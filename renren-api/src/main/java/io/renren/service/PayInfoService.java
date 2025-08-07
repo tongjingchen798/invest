@@ -1,10 +1,4 @@
-/**
- * Copyright (c) 2018 人人开源 All rights reserved.
- *
- * https://www.renren.io
- *
- * 版权所有，侵权必究！
- */
+ 
 
 package io.renren.service;
 
@@ -32,4 +26,9 @@ public interface PayInfoService extends BaseService<PayInfoEntity> {
      * 批量删除支付信息
      */
     void delete(List<Long> ids);
+    
+    /**
+     * 保存支付信息
+     */
+    void savePayInfo(PayInfoEntity entity);
 }

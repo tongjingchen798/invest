@@ -15,7 +15,13 @@
 			<artifactId>renren-common</artifactId>
 			<version>5.2.0</version>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
 
 	<build>
 		<finalName>${project.artifactId}</finalName>

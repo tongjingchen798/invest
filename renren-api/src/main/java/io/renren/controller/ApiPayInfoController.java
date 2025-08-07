@@ -1,10 +1,3 @@
-/**
- * Copyright (c) 2018 人人开源 All rights reserved.
- *
- * https://www.renren.io
- *
- * 版权所有，侵权必究！
- */
 
 package io.renren.controller;
 
@@ -21,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.renren.common.page.PageData;
 import io.renren.service.PayInfoService;
 import io.renren.annotation.LoginUser;
 import io.renren.entity.UserEntity;
@@ -33,6 +25,14 @@ import io.renren.common.constant.Constant;
 
 import org.springframework.web.bind.annotation.RequestBody;
 import java.util.List;
+import io.renren.entity.PayInfoEntity;
+import java.util.Date;
+import org.apache.commons.lang.StringUtils;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import io.renren.common.utils.ConvertUtils;
+import io.renren.dao.PayInfoDao;
+
+import javax.annotation.Resource;
 
 /**
  * 支付信息接口
@@ -47,20 +47,55 @@ public class ApiPayInfoController {
     @Autowired
     private PayInfoService payInfoService;
 
+    @Resource
+    private PayInfoDao PayInfoDao;
+
     @Login
     @PostMapping
     @ApiOperation("新增支付方式")
     public Result<Map<String, Object>> addPayInfo(@RequestBody PayInfoDTO dto, @LoginUser UserEntity user) {
         // 参数校验
         ValidatorUtils.validateEntity(dto);
+
+        // 验证银行账号格式（简单验证）
+        if (StringUtils.isNotBlank(dto.getPayNo()) && dto.getPayNo().length() < 10) {
+            return new Result().error("银行账号格式不正确");
+        }
         
-        // TODO: 实现新增支付方式逻辑
-        // 这里需要根据业务需求实现具体的支付方式添加逻辑
-        // 包括：验证验证码、保存支付信息到数据库、关联用户等
+        // 验证手机号格式（简单验证）
+        if (StringUtils.isNotBlank(dto.getMobile()) && !dto.getMobile().matches("^1[3-9]\\d{9}$")) {
+            return new Result().error("手机号格式不正确");
+        }
+
+        // 检查是否已存在相同的银行账号
+        QueryWrapper<PayInfoEntity> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("pay_no", dto.getPayNo())
+                   .eq("user_id", user.getId());
+        List<PayInfoEntity> existList = PayInfoDao.selectList(queryWrapper);
+        if (existList != null && !existList.isEmpty()) {
+            return new Result().error("该银行账号已存在");
+        }
+
+        // 转换为实体对象
+        PayInfoEntity entity = ConvertUtils.sourceToTarget(dto, PayInfoEntity.class);
         
+        // 设置用户ID
+        entity.setUserId(user.getId());
+        
+        // 设置创建时间
+        entity.setCreateTime(new Date());
+        
+        // 设置默认状态
+        entity.setState(1);
+        
+        // 保存支付信息
+        payInfoService.savePayInfo(entity);
+        
+        // 返回结果
         Map<String, Object> result = new HashMap<>();
-        result.put("payInfoId", "PAY_" + System.currentTimeMillis());
+        result.put("payInfoId", entity.getId());
         result.put("status", "success");
+        result.put("message", "支付信息添加成功");
         
         return new Result<Map<String, Object>>().ok(result);
     }

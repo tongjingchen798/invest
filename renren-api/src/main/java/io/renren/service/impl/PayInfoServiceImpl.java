@@ -9,6 +9,7 @@ import io.renren.common.constant.Constant;
 import io.renren.common.page.PageData;
 import io.renren.common.service.impl.BaseServiceImpl;
 import io.renren.common.utils.ConvertUtils;
+import io.renren.common.utils.Result;
 import io.renren.dao.PayInfoDao;
 import io.renren.dto.PayInfoDTO;
 import io.renren.dto.PayInfoPageData;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Date;
 
 /**
  * 用户支付信息
@@ -80,5 +82,23 @@ public class PayInfoServiceImpl extends BaseServiceImpl<PayInfoDao, PayInfoEntit
     public void delete(List<Long> ids) {
         // 批量删除支付信息
         baseDao.deleteBatchIds(ids);
+    }
+
+    @Override
+    public void savePayInfo(PayInfoEntity entity) {
+
+        // 设置默认值
+        if (entity.getState() == null) {
+            entity.setState(1); // 默认状态为正常
+        }
+        if (entity.getSortV() == null) {
+            entity.setSortV(0); // 默认排序为0
+        }
+        if (entity.getCreateTime() == null) {
+            entity.setCreateTime(new Date());
+        }
+        
+        // 保存到数据库
+        baseDao.insert(entity);
     }
 }
