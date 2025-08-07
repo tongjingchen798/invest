@@ -27,4 +27,9 @@ public interface ProjectService extends BaseService<ProjectEntity> {
      * 查询投资项目列表（分组）
      */
     List<ProjectDTO> queryListGroup();
+
+    /**
+     * 根据ID查询投资项目信息
+     */
+    ProjectDTO getById(Long id);
 }

@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2018 人人开源 All rights reserved.
+ *
+ * https://www.renren.io
+ *
+ * 版权所有，侵权必究！
+ */
 
  package io.renren.controller;
 
@@ -8,6 +15,7 @@
  import io.renren.service.ProjectTypeService;
  import io.swagger.annotations.Api;
  import io.swagger.annotations.ApiOperation;
+ import io.swagger.annotations.ApiParam;
  import org.springframework.web.bind.annotation.*;
  
  import javax.annotation.Resource;
@@ -40,5 +48,13 @@
      public Result<List<ProjectTypeDTO>> list() {
          List<ProjectTypeDTO> list = projectTypeService.queryList();
          return new Result<List<ProjectTypeDTO>>().ok(list);
+     }
+     
+     @GetMapping("{id}")
+     @ApiOperation("投资项目信息")
+     public Result<ProjectDTO> getById(
+             @ApiParam(value = "项目ID", required = true) @PathVariable("id") Long id) {
+         ProjectDTO project = projectService.getById(id);
+         return new Result<ProjectDTO>().ok(project);
      }
  }

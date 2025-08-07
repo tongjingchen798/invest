@@ -48,4 +48,13 @@ public class ProjectServiceImpl extends BaseServiceImpl<ProjectDao, ProjectEntit
         // 转换为DTO
         return ConvertUtils.sourceToTarget(entityList, ProjectDTO.class);
     }
+
+    @Override
+public ProjectDTO getById(Long id) {
+    ProjectEntity entity = baseDao.selectById(id);
+    if (entity == null) {
+        return null;
+    }
+    return ConvertUtils.sourceToTarget(entity, ProjectDTO.class);
+}
 }
