@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.dao.ProjectTypeDao">
+
+    <resultMap type="io.renren.entity.ProjectTypeEntity" id="projectTypeMap">
+        <result property="typeId" column="type_id"/>
+        <result property="typeName" column="type_name"/>
+        <result property="sort" column="sort"/>
+        <result property="status" column="status"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="sysCreateUserId" column="sys_create_user_id"/>
+        <result property="sysUpdateUserId" column="sys_update_user_id"/>
+    </resultMap>
+
+</mapper>
