@@ -75,4 +75,10 @@ public class PayInfoServiceImpl extends BaseServiceImpl<PayInfoDao, PayInfoEntit
 
         return queryWrapper;
     }
+
+    @Override
+    public void delete(List<Long> ids) {
+        // 批量删除支付信息
+        baseDao.deleteBatchIds(ids);
+    }
 }

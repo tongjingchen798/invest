@@ -27,4 +27,9 @@ import java.util.Map;
 public interface PayInfoService extends BaseService<PayInfoEntity> {
 
     PayInfoPageData<PayInfoDTO> queryPageData(Map<String, Object> params);
+    
+    /**
+     * 批量删除支付信息
+     */
+    void delete(List<Long> ids);
 }

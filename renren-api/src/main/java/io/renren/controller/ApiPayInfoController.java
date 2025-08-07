@@ -31,6 +31,9 @@ import io.swagger.annotations.ApiParam;
 import io.renren.dto.PayInfoPageData;
 import io.renren.common.constant.Constant;
 
+import org.springframework.web.bind.annotation.RequestBody;
+import java.util.List;
+
 /**
  * 支付信息接口
  *
@@ -83,4 +86,23 @@ public class ApiPayInfoController {
         
         return new Result<PayInfoPageData<PayInfoDTO>>().ok(pageData);
     }
+
+    @Login
+    @DeleteMapping
+    @ApiOperation("删除支付信息")
+    public Result delete(@RequestBody List<Long> ids, @LoginUser UserEntity user) {
+        // 参数校验
+        if (ids == null || ids.isEmpty()) {
+            return new Result().error("请选择要删除的支付信息");
+        }
+        
+        // TODO: 可以添加权限校验，确保只能删除自己的支付信息
+        // 这里可以根据业务需求添加额外的校验逻辑
+        
+        // 执行删除
+        payInfoService.delete(ids);
+        
+        return new Result().ok("success");
+    }
+    
 }
