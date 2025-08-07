@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.dao.ProfitDao">
+
+    <resultMap type="io.renren.entity.ProfitEntity" id="profitMap">
+        <result property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="investId" column="invest_id"/>
+        <result property="investName" column="invest_name"/>
+        <result property="investmentAmount" column="investment_amount"/>
+        <result property="profitAmount" column="profit_amount"/>
+        <result property="profitInterest" column="profit_interest"/>
+        <result property="profitPrincipal" column="profit_principal"/>
+        <result property="ddsy" column="ddsy"/>
+        <result property="cycle" column="cycle"/>
+        <result property="cycleType" column="cycle_type"/>
+        <result property="orderDate" column="order_date"/>
+        <result property="profitDate" column="profit_date"/>
+        <result property="orderId" column="order_id"/>
+        <result property="orderAbbr" column="order_abbr"/>
+        <result property="investCount" column="invest_count"/>
+        <result property="img" column="img"/>
+        <result property="status" column="status"/>
+        <result property="agent" column="agent"/>
+        <result property="salesmanid" column="salesmanid"/>
+        <result property="mobile" column="mobile"/>
+        <result property="rushMinute" column="rush_minute"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+</mapper>

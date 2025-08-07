@@ -8,8 +8,11 @@ import io.renren.common.utils.Result;
 import io.renren.dto.BalanceDTO;
 import io.renren.dto.TransactionDetailDTO;
 import io.renren.dto.TransactionDetailPageData;
+import io.renren.dto.ProfitDTO;
+import io.renren.dto.ProfitPageData;
 import io.renren.entity.UserEntity;
 import io.renren.service.TransactionDetailService;
+import io.renren.service.ProfitService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -31,6 +34,9 @@ public class ApiPersonalCenterController {
 
     @Autowired
     private TransactionDetailService transactionDetailService;
+
+    @Autowired
+    private ProfitService profitService;
 
     @Login
     @PostMapping("BalanceTransfers")
@@ -118,5 +124,24 @@ public class ApiPersonalCenterController {
         balanceDTO.setUpdateDate(new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date()));
         
         return new Result<BalanceDTO>().ok(balanceDTO);
+    }
+
+    @Login
+    @GetMapping("profitlist")
+    @ApiOperation("付息还本")
+    public Result<ProfitPageData<ProfitDTO>> getProfitList(
+            @ApiParam(value = "每页显示记录数", required = true) @RequestParam(Constant.LIMIT) Integer limit,
+            @ApiParam(value = "当前页码，从1开始", required = true) @RequestParam(Constant.PAGE) Integer page,
+            @LoginUser UserEntity user) {
+        
+        Map<String, Object> params = new HashMap<>();
+        params.put(Constant.PAGE, page);
+        params.put(Constant.LIMIT, limit);
+        // 只查询当前用户的收益记录
+        params.put("userId", user.getId().toString());
+
+        ProfitPageData<ProfitDTO> pageData = profitService.queryPageData(params);
+        
+        return new Result<ProfitPageData<ProfitDTO>>().ok(pageData);
     }
 }
