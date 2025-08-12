@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.dao.OrderDao">
+
+    <resultMap type="io.renren.entity.OrderEntity" id="orderMap">
+        <result property="id" column="id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="investId" column="invest_id"/>
+        <result property="orderAmount" column="order_amount"/>
+        <result property="couponType" column="coupon_type"/>
+        <result property="couponId" column="coupon_id"/>
+        <result property="couponName" column="coupon_name"/>
+        <result property="orderDescribe" column="order_describe"/>
+        <result property="couponAmount" column="coupon_amount"/>
+        <result property="userCouponId" column="user_coupon_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="projectType" column="project_type"/>
+        <result property="mobile" column="mobile"/>
+        <result property="salesmanId" column="salesman_id"/>
+        <result property="salesmanName" column="salesman_name"/>
+        <result property="investName" column="invest_name"/>
+        <result property="orderDate" column="order_date"/>
+        <result property="investCount" column="invest_count"/>
+        <result property="actualAmount" column="actual_amount"/>
+        <result property="agentId" column="agent_id"/>
+        <result property="agentName" column="agent_name"/>
+        <result property="label" column="label"/>
+        <result property="inviteCodeStatus" column="invite_code_status"/>
+        <result property="fissionStatus" column="fission_status"/>
+        <result property="expirationTime" column="expiration_time"/>
+        <result property="historyGm" column="history_gm"/>
+        <result property="abbreviation" column="abbreviation"/>
+        <result property="remainingPurchaseCount" column="remaining_purchase_count"/>
+        <result property="payHotFlag" column="pay_hot_flag"/>
+        <result property="yifan" column="yifan"/>
+        <result property="typeName" column="type_name"/>
+        <result property="superiorMobile" column="superior_mobile"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateDate" column="update_date"/>
+    </resultMap>
+
+</mapper>
