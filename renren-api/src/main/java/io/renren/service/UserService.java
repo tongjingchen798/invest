@@ -5,6 +5,7 @@ package io.renren.service;
 import io.renren.common.service.BaseService;
 import io.renren.entity.UserEntity;
 import io.renren.dto.LoginDTO;
+import io.renren.dto.UserInfoDTO;
 
 import java.util.Map;
 
@@ -25,4 +26,11 @@ public interface UserService extends BaseService<UserEntity> {
 	 * @return        返回登录信息
 	 */
 	Map<String, Object> login(LoginDTO dto);
+
+	/**
+	 * 获取用户信息（包含上级用户信息）
+	 * @param userId 用户ID
+	 * @return 用户信息DTO
+	 */
+	UserInfoDTO getUserInfoWithSuperior(Long userId);
 }

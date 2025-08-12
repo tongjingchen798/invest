@@ -30,11 +30,16 @@ public class ApiUserController {
     @Autowired
     private UserService userService;
 
-    @GetMapping("info")
+    @GetMapping("/userInfo")
     @ApiOperation("获取用户信息")
     public Result<UserInfoDTO> getUserInfo(@LoginUser UserEntity user) {
-        UserInfoDTO userInfo = new UserInfoDTO();
-        BeanUtils.copyProperties(user, userInfo);
+        // 使用Service方法获取用户信息（包含上级用户信息）
+        UserInfoDTO userInfo = userService.getUserInfoWithSuperior(user.getId());
+        
+        if (userInfo == null) {
+            return new Result<UserInfoDTO>().error("用户不存在");
+        }
+        
         return new Result<UserInfoDTO>().ok(userInfo);
     }
 
