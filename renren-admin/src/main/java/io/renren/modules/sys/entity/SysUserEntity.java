@@ -76,5 +76,66 @@ public class SysUserEntity extends BaseEntity {
 	 */
 	@TableField(exist=false)
 	private String deptName;
+	
+	/**
+	 * 渠道
+	 */
+	private String channel;
+	
+	/**
+	 * 类型
+	 */
+	private Integer type;
+	
+	/**
+	 * 代理ID
+	 */
+	private Long agent;
+	
+	/**
+	 * 域名
+	 */
+	private String domainname;
+	
+	/**
+	 * 下载码
+	 */
+	private String dowloadCode;
+	
+	/**
+	 * 微信图片
+	 */
+	private String wsimage;
+	
+	/**
+	 * 微信号
+	 */
+	private String wsnumber;
+	
+	/**
+	 * 微信名称
+	 */
+	private String wsname;
+	
+	/**
+	 * 推广号
+	 */
+	private String tgnumber;
+	
+	/**
+	 * 二次验证码
+	 */
+	private String twoFactorCode;
+	
+	/**
+	 * 代理邀请码
+	 */
+	private String agentInviteCode;
+	
+	/**
+	 * 角色ID列表
+	 */
+	@TableField(exist=false)
+	private Long[] roleIdList;
 
 }
