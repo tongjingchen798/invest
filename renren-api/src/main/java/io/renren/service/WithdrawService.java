@@ -29,4 +29,12 @@ public interface WithdrawService {
      * @return 提现分页数据
      */
     WithdrawPageData getWithdrawPageData(WithdrawQueryDTO queryDTO);
+
+    /**
+     * 分页查询用户佣金提现记录
+     *
+     * @param queryDTO 查询参数
+     * @return 佣金提现分页数据
+     */
+    WithdrawPageData getRewardWithdrawPageData(WithdrawQueryDTO queryDTO);
 }

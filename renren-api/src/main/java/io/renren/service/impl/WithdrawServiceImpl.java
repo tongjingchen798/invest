@@ -88,6 +88,39 @@ public class WithdrawServiceImpl implements WithdrawService {
         }
     }
 
+    @Override
+    public WithdrawPageData getRewardWithdrawPageData(WithdrawQueryDTO queryDTO) {
+        try {
+            WithdrawPageData pageData = new WithdrawPageData();
+            
+            // 使用MyBatis-Plus分页查询
+            Page<WithdrawOrderEntity> pageParam = new Page<>(queryDTO.getPage(), queryDTO.getLimit());
+            
+            // 构建佣金提现查询条件
+            QueryWrapper<WithdrawOrderEntity> queryWrapper = buildRewardWithdrawQueryWrapper(queryDTO);
+            
+            // 执行分页查询
+            Page<WithdrawOrderEntity> result = withdrawOrderDao.selectPage(pageParam, queryWrapper);
+            
+            // 转换为DTO列表
+            List<UserWithdrawInfoDTO> dtoList = convertToDTOList(result.getRecords());
+            
+            // 计算汇总信息
+            Map<String, Object> sum = calculateSum(result.getRecords());
+            
+            // 设置分页数据
+            pageData.setList(dtoList);
+            pageData.setSum(sum);
+            pageData.setTotal((int) result.getTotal());
+            
+            return pageData;
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("获取佣金提现分页数据失败: " + e.getMessage());
+        }
+    }
+
     /**
      * 构建查询条件
      */
@@ -96,6 +129,50 @@ public class WithdrawServiceImpl implements WithdrawService {
         
         // 用户ID条件
         queryWrapper.eq("user_id", queryDTO.getUserId().toString());
+        
+        // 第三方订单号条件
+        if (StringUtils.hasText(queryDTO.getOrderno())) {
+            queryWrapper.eq("threeorder_no", queryDTO.getOrderno());
+        }
+        
+        // 卡号条件
+        if (StringUtils.hasText(queryDTO.getPayNo())) {
+            queryWrapper.eq("pay_no", queryDTO.getPayNo());
+        }
+        
+        // 状态条件
+        if (queryDTO.getState() != null) {
+            queryWrapper.eq("state", queryDTO.getState());
+        }
+        
+        // 我方订单号条件
+        if (StringUtils.hasText(queryDTO.getTransNo())) {
+            queryWrapper.eq("orderno", queryDTO.getTransNo());
+        }
+        
+        // 排序
+        if (StringUtils.hasText(queryDTO.getOrderField())) {
+            String order = "desc".equalsIgnoreCase(queryDTO.getOrder()) ? "desc" : "asc";
+            queryWrapper.orderBy(true, "desc".equals(order), queryDTO.getOrderField());
+        } else {
+            // 默认按创建时间倒序
+            queryWrapper.orderByDesc("create_time");
+        }
+        
+        return queryWrapper;
+    }
+
+    /**
+     * 构建佣金提现查询条件
+     */
+    private QueryWrapper<WithdrawOrderEntity> buildRewardWithdrawQueryWrapper(WithdrawQueryDTO queryDTO) {
+        QueryWrapper<WithdrawOrderEntity> queryWrapper = new QueryWrapper<>();
+        
+        // 用户ID条件
+        queryWrapper.eq("user_id", queryDTO.getUserId().toString());
+        
+        // 佣金提现类型条件（withdraw_type = 2）
+        queryWrapper.eq("withdraw_type", 2);
         
         // 第三方订单号条件
         if (StringUtils.hasText(queryDTO.getOrderno())) {
