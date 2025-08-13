@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.dao.PayChannelDao">
+
+    <!-- 查询所有上架的支付通道 -->
+    <select id="selectAllActiveChannels" resultType="io.renren.entity.PayChannelEntity">
+        SELECT * FROM tb_pay_channel 
+        WHERE status = 1 
+        ORDER BY create_date DESC
+    </select>
+    
+    <!-- 根据充提类型查询支付通道 -->
+    <select id="selectChannelsByType" resultType="io.renren.entity.PayChannelEntity">
+        SELECT * FROM tb_pay_channel 
+        WHERE status = 1 AND chargeorwithdraw = #{chargeorwithdraw}
+        ORDER BY create_date DESC
+    </select>
+    
+    <!-- 根据通道类型查询支付通道 -->
+    <select id="selectChannelsByChannelType" resultType="io.renren.entity.PayChannelEntity">
+        SELECT * FROM tb_pay_channel 
+        WHERE status = 1 AND channel_type = #{channelType}
+        ORDER BY create_date DESC
+    </select>
+
+</mapper>
