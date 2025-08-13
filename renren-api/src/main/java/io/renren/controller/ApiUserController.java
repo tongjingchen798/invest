@@ -112,84 +112,79 @@ public class ApiUserController {
 
     
 
+//
+//    @PostMapping("update")
+//    @ApiOperation("更新用户信息")
+//    public Result updateUserInfo(@LoginUser UserEntity user, @RequestBody UpdateUserDTO dto) {
+//        // 表单校验
+//        ValidatorUtils.validateEntity(dto);
+//
+//        // 更新用户信息
+//        if (dto.getUsername() != null) {
+//            user.setUsername(dto.getUsername());
+//        }
+//        if (dto.getInviteCode() != null) {
+//            user.setInviteCode(dto.getInviteCode());
+//        }
+//        if (dto.getAgent() != null) {
+//            user.setAgent(dto.getAgent());
+//        }
+//        if (dto.getChannel() != null) {
+//            user.setChannel(dto.getChannel());
+//        }
+//        if (dto.getEquipment() != null) {
+//            user.setEquipment(dto.getEquipment());
+//        }
+//
+//        userService.updateById(user);
+//        return new Result();
+//    }
+//
+//    @PostMapping("changePassword")
+//    @ApiOperation("修改密码")
+//    public Result changePassword(@LoginUser UserEntity user, @RequestBody ChangePasswordDTO dto) {
+//        // 表单校验
+//        ValidatorUtils.validateEntity(dto);
+//
+//        // 验证原密码
+//        if (!user.getPassword().equals(DigestUtils.sha256Hex(dto.getOldPassword()))) {
+//            return new Result().error("原密码不正确");
+//        }
+//
+//        // 验证新密码确认
+//        if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
+//            return new Result().error("两次输入的新密码不一致");
+//        }
+//
+//        // 更新密码
+//        user.setPassword(DigestUtils.sha256Hex(dto.getNewPassword()));
+//        userService.updateById(user);
+//
+//        return new Result();
+//    }
+//
+//    @PostMapping("changeTwoPassword")
+//    @ApiOperation("修改二级密码")
+//    public Result changeTwoPassword(@LoginUser UserEntity user, @RequestBody ChangeTwoPasswordDTO dto) {
+//        // 表单校验
+//        ValidatorUtils.validateEntity(dto);
+//
+//        // 验证原二级密码
+//        if (user.getTwoPwd() != null && !user.getTwoPwd().equals(DigestUtils.sha256Hex(dto.getOldTwoPassword()))) {
+//            return new Result().error("原二级密码不正确");
+//        }
+//
+//        // 验证新二级密码确认
+//        if (!dto.getNewTwoPassword().equals(dto.getConfirmTwoPassword())) {
+//            return new Result().error("两次输入的新二级密码不一致");
+//        }
+//
+//        // 更新二级密码
+//        user.setTwoPwd(DigestUtils.sha256Hex(dto.getNewTwoPassword()));
+//        userService.updateById(user);
+//
+//        return new Result();
+//    }
 
-    @PostMapping("update")
-    @ApiOperation("更新用户信息")
-    public Result updateUserInfo(@LoginUser UserEntity user, @RequestBody UpdateUserDTO dto) {
-        // 表单校验
-        ValidatorUtils.validateEntity(dto);
 
-        // 更新用户信息
-        if (dto.getUsername() != null) {
-            user.setUsername(dto.getUsername());
-        }
-        if (dto.getInviteCode() != null) {
-            user.setInviteCode(dto.getInviteCode());
-        }
-        if (dto.getAgent() != null) {
-            user.setAgent(dto.getAgent());
-        }
-        if (dto.getChannel() != null) {
-            user.setChannel(dto.getChannel());
-        }
-        if (dto.getEquipment() != null) {
-            user.setEquipment(dto.getEquipment());
-        }
-
-        userService.updateById(user);
-        return new Result();
-    }
-
-    @PostMapping("changePassword")
-    @ApiOperation("修改密码")
-    public Result changePassword(@LoginUser UserEntity user, @RequestBody ChangePasswordDTO dto) {
-        // 表单校验
-        ValidatorUtils.validateEntity(dto);
-
-        // 验证原密码
-        if (!user.getPassword().equals(DigestUtils.sha256Hex(dto.getOldPassword()))) {
-            return new Result().error("原密码不正确");
-        }
-
-        // 验证新密码确认
-        if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
-            return new Result().error("两次输入的新密码不一致");
-        }
-
-        // 更新密码
-        user.setPassword(DigestUtils.sha256Hex(dto.getNewPassword()));
-        userService.updateById(user);
-
-        return new Result();
-    }
-
-    @PostMapping("changeTwoPassword")
-    @ApiOperation("修改二级密码")
-    public Result changeTwoPassword(@LoginUser UserEntity user, @RequestBody ChangeTwoPasswordDTO dto) {
-        // 表单校验
-        ValidatorUtils.validateEntity(dto);
-
-        // 验证原二级密码
-        if (user.getTwoPwd() != null && !user.getTwoPwd().equals(DigestUtils.sha256Hex(dto.getOldTwoPassword()))) {
-            return new Result().error("原二级密码不正确");
-        }
-
-        // 验证新二级密码确认
-        if (!dto.getNewTwoPassword().equals(dto.getConfirmTwoPassword())) {
-            return new Result().error("两次输入的新二级密码不一致");
-        }
-
-        // 更新二级密码
-        user.setTwoPwd(DigestUtils.sha256Hex(dto.getNewTwoPassword()));
-        userService.updateById(user);
-
-        return new Result();
-    }
-
-    @PostMapping("logout")
-    @ApiOperation("退出登录")
-    public Result logout(@LoginUser UserEntity user) {
-        // 这里可以添加token失效逻辑
-        return new Result();
-    }
 }

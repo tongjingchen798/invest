@@ -104,4 +104,56 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, UserEntity> implem
 
 		return userInfoDTO;
 	}
+
+	@Override
+	public boolean updatePasswordByMobile(String mobile, String newPassword) {
+		try {
+			// 根据手机号查找用户
+			UserEntity user = getByMobile(mobile);
+			if (user == null) {
+				return false;
+			}
+			
+			// 对新密码进行SHA256加密
+			String encryptedPassword = DigestUtils.sha256Hex(newPassword);
+			
+			// 更新用户密码
+			user.setPassword(encryptedPassword);
+			
+			// 保存到数据库
+			baseDao.updateById(user);
+			
+			return true;
+		} catch (Exception e) {
+			// 记录日志
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	@Override
+	public boolean updatePasswordByUserId(Long userId, String newPassword) {
+		try {
+			// 根据用户ID查找用户
+			UserEntity user = getUserByUserId(userId);
+			if (user == null) {
+				return false;
+			}
+			
+			// 对新密码进行SHA256加密
+			String encryptedPassword = DigestUtils.sha256Hex(newPassword);
+			
+			// 更新用户密码
+			user.setPassword(encryptedPassword);
+			
+			// 保存到数据库
+			baseDao.updateById(user);
+			
+			return true;
+		} catch (Exception e) {
+			// 记录日志
+			e.printStackTrace();
+			return false;
+		}
+	}
 }

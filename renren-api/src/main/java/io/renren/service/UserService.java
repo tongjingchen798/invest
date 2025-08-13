@@ -33,4 +33,20 @@ public interface UserService extends BaseService<UserEntity> {
 	 * @return 用户信息DTO
 	 */
 	UserInfoDTO getUserInfoWithSuperior(Long userId);
+
+	/**
+	 * 根据手机号更新用户密码
+	 * @param mobile 手机号
+	 * @param newPassword 新密码
+	 * @return 是否更新成功
+	 */
+	boolean updatePasswordByMobile(String mobile, String newPassword);
+
+	/**
+	 * 根据用户ID更新用户密码
+	 * @param userId 用户ID
+	 * @param newPassword 新密码
+	 * @return 是否更新成功
+	 */
+	boolean updatePasswordByUserId(Long userId, String newPassword);
 }
