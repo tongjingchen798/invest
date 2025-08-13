@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.dao.UserSignStatisticsDao">
+
+    <!-- 根据用户ID查询签到统计 -->
+    <select id="selectByUserId" resultType="io.renren.entity.UserSignStatisticsEntity">
+        SELECT * FROM tb_user_sign_statistics 
+        WHERE user_id = #{userId}
+        LIMIT 1
+    </select>
+    
+    <!-- 更新用户连续签到天数 -->
+    <update id="updateContinuousDays">
+        UPDATE tb_user_sign_statistics 
+        SET continuous_days = #{continuousDays}, update_time = NOW()
+        WHERE user_id = #{userId}
+    </update>
+    
+    <!-- 更新用户最大连续签到天数 -->
+    <update id="updateMaxContinuousDays">
+        UPDATE tb_user_sign_statistics 
+        SET max_continuous_days = #{maxContinuousDays}, update_time = NOW()
+        WHERE user_id = #{userId} AND max_continuous_days &lt; #{maxContinuousDays}
+    </update>
+
+</mapper>

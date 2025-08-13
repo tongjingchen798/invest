@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.dao.UserSignInDao">
+
+    <!-- 查询用户今日是否已签到 -->
+    <select id="selectTodaySignIn" resultType="io.renren.entity.UserSignInEntity">
+        SELECT * FROM tb_user_sign_in 
+        WHERE user_id = #{userId} AND sign_date = #{signDate} AND status = 1
+        LIMIT 1
+    </select>
+    
+    <!-- 查询用户连续签到天数 -->
+    <select id="selectContinuousDays" resultType="java.lang.Integer">
+        SELECT continuous_days FROM tb_user_sign_statistics 
+        WHERE user_id = #{userId}
+        LIMIT 1
+    </select>
+    
+    <!-- 查询用户最近7天的签到记录 -->
+    <select id="selectRecentSignIns" resultType="io.renren.entity.UserSignInEntity">
+        SELECT * FROM tb_user_sign_in 
+        WHERE user_id = #{userId} 
+        AND sign_date BETWEEN #{startDate} AND #{endDate}
+        AND status = 1
+        ORDER BY sign_date DESC
+    </select>
+    
+    <!-- 分页查询用户签到记录 -->
+    <select id="selectSignInRecordsByPage" resultType="io.renren.entity.UserSignInEntity">
+        SELECT * FROM tb_user_sign_in 
+        WHERE user_id = #{userId} AND status = 1
+        <if test="orderField != null and orderField != ''">
+            ORDER BY ${orderField} 
+            <if test="order != null and order != ''">
+                <choose>
+                    <when test="order == 'asc'">ASC</when>
+                    <when test="order == 'desc'">DESC</when>
+                    <otherwise>DESC</otherwise>
+                </choose>
+            </if>
+        </if>
+        <if test="orderField == null or orderField == ''">
+            ORDER BY sign_date DESC
+        </if>
+        LIMIT #{offset}, #{limit}
+    </select>
+    
+    <!-- 查询用户签到记录总数 -->
+    <select id="selectSignInRecordsCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM tb_user_sign_in 
+        WHERE user_id = #{userId} AND status = 1
+    </select>
+
+</mapper>
