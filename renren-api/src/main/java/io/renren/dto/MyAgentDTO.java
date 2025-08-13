@@ -8,7 +8,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * 我的佣金DTO
+ * 我的佣金
  *
  * @author renren
  * @email renren@gmail.com
@@ -43,16 +43,16 @@ public class MyAgentDTO implements Serializable {
     @ApiModelProperty(value = "二级佣金")
     private Long list2_amt;
 
-    @ApiModelProperty(value = "有效一级会员数")
+    @ApiModelProperty(value = "一级有效会员数")
     private Long effectiveList1;
 
-    @ApiModelProperty(value = "本月有效一级会员数")
+    @ApiModelProperty(value = "一级本月有效会员数")
     private Long effectiveList1Month;
 
-    @ApiModelProperty(value = "有效二级会员数")
+    @ApiModelProperty(value = "二级有效会员数")
     private Long effectiveList2;
 
-    @ApiModelProperty(value = "本月有效二级会员数")
+    @ApiModelProperty(value = "二级本月有效会员数")
     private Long effectiveList2Month;
 
     @ApiModelProperty(value = "一级会员列表")

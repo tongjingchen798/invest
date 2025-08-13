@@ -23,29 +23,33 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/agent")
 @Api(tags = "代理佣金接口")
 public class ApiAgentController {
-    
+
     @Autowired
     private AgentCommissionService agentCommissionService;
-    
+
     @Login
     @PostMapping("myAgent/{userId}")
     @ApiOperation("我的佣金")
     public Result<MyAgentDTO> getMyAgentCommission(
             @ApiParam(value = "用户ID", required = true) @PathVariable Long userId,
             @LoginUser UserEntity user) {
-        try {
-            // 验证用户权限（只能查询自己的佣金信息）
-            if (!user.getId().equals(userId)) {
-                return new Result<MyAgentDTO>().error("无权限查询其他用户的佣金信息");
-            }
-            
-            // 获取佣金信息
-            MyAgentDTO commission = agentCommissionService.getMyAgentCommission(userId);
-            
-            return new Result<MyAgentDTO>().ok(commission);
-            
-        } catch (Exception e) {
-            return new Result<MyAgentDTO>().error("获取佣金信息失败: " + e.getMessage());
+        if (!user.getId().equals(userId)) {
+            return new Result<MyAgentDTO>().error("无权限查询其他用户的佣金信息");
         }
+        MyAgentDTO commission = agentCommissionService.getMyAgentCommission(userId);
+        return new Result<MyAgentDTO>().ok(commission);
+    }
+
+    @Login
+    @PostMapping("{userId}")
+    @ApiOperation("代理中心")
+    public Result<MyAgentDTO> getAgentCenter(
+            @ApiParam(value = "用户ID", required = true) @PathVariable Long userId,
+            @LoginUser UserEntity user) {
+        if (!user.getId().equals(userId)) {
+            return new Result<MyAgentDTO>().error("无权限查询其他用户的佣金信息");
+        }
+        MyAgentDTO commission = agentCommissionService.getMyAgentCommission(userId);
+        return new Result<MyAgentDTO>().ok(commission);
     }
 }

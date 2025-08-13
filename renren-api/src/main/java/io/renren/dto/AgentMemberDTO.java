@@ -8,7 +8,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * 代理会员DTO
+ * 代理会员
  *
  * @author renren
  * @email renren@gmail.com
