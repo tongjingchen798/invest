@@ -211,7 +211,7 @@ public class UserEntity implements Serializable {
 	/**
 	 * 冻结余额
 	 */
-	private Long freeze_balance;
+	private Long freezeBalance;
 	
 	/**
 	 * U级账户余额
@@ -229,32 +229,32 @@ public class UserEntity implements Serializable {
 	private Long uccnt;
 	
 	/**
-	 * U级账户收益
+	 * 1级今日收益
 	 */
 	private Long uaProfit;
 	
 	/**
-	 * U级账户收益
+	 * 2级今日收益
 	 */
 	private Long ubProfit;
 	
 	/**
-	 * U级账户收益
+	 * 3级今日收益
 	 */
 	private Long ucProfit;
 	
 	/**
-	 * 历史U级账户收益
+	 * 1级历史收益
 	 */
 	private Long historyUaProfit;
 	
 	/**
-	 * 历史U级账户收益
+	 * 2级历史收益
 	 */
 	private Long historyUbProfit;
 	
 	/**
-	 * 历史U级账户收益
+	 * 3级历史收益
 	 */
 	private Long historyUcProfit;
 	

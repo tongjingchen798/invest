@@ -7,14 +7,17 @@ import io.renren.annotation.Login;
 import io.renren.common.utils.Result;
 import io.renren.common.validator.ValidatorUtils;
 import io.renren.dto.LoginDTO;
+import io.renren.dto.CustomerServiceDTO;
 import io.renren.service.TokenService;
 import io.renren.service.UserService;
+import io.renren.service.CustomerServiceService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -30,6 +33,8 @@ public class ApiLoginController {
     private UserService userService;
     @Autowired
     private TokenService tokenService;
+    @Autowired
+    private CustomerServiceService customerServiceService;
 
 
     @PostMapping("login")
@@ -50,6 +55,13 @@ public class ApiLoginController {
     public Result logout(@ApiIgnore @RequestAttribute("userId") Long userId){
         tokenService.expireToken(userId);
         return new Result();
+    }
+
+    @GetMapping("nologinwslist")
+    @ApiOperation("获取客服号列表")
+    public Result<List<CustomerServiceDTO>> getCustomerServiceList(){
+        List<CustomerServiceDTO> customerServices = customerServiceService.getAllCustomerServices();
+        return new Result().ok(customerServices);
     }
 
 }

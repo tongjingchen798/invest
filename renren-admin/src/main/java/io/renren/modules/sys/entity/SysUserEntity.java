@@ -83,7 +83,7 @@ public class SysUserEntity extends BaseEntity {
 	private String channel;
 	
 	/**
-	 * 类型  1业务员 2代理
+	 * 类型 1代理 2客服
 	 */
 	private Integer type;
 	
