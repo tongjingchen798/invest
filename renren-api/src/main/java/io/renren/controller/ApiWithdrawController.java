@@ -4,6 +4,7 @@ import io.renren.annotation.Login;
 import io.renren.annotation.LoginUser;
 import io.renren.common.utils.Result;
 import io.renren.dto.RewardWithdrawRequestDTO;
+import io.renren.dto.RewardWithdrawSumDTO;
 import io.renren.dto.WithdrawPageData;
 import io.renren.dto.WithdrawQueryDTO;
 import io.renren.entity.UserEntity;
@@ -162,6 +163,18 @@ public class ApiWithdrawController {
 
         } catch (Exception e) {
             return new Result<Map<String, Object>>().error("提交佣金提现申请失败: " + e.getMessage());
+        }
+    }
+
+    @Login
+    @GetMapping("rewardWithdrawSum")
+    @ApiOperation("佣金提现统计")
+    public Result<RewardWithdrawSumDTO> getRewardWithdrawSum(@LoginUser UserEntity user) {
+        try {
+            RewardWithdrawSumDTO sumDTO = withdrawService.getRewardWithdrawSum(user.getId());
+            return new Result<RewardWithdrawSumDTO>().ok(sumDTO);
+        } catch (Exception e) {
+            return new Result<RewardWithdrawSumDTO>().error("获取佣金提现统计失败: " + e.getMessage());
         }
     }
 }

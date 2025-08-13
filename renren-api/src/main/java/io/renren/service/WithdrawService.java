@@ -1,6 +1,7 @@
 package io.renren.service;
 
 import io.renren.dto.RewardWithdrawRequestDTO;
+import io.renren.dto.RewardWithdrawSumDTO;
 import io.renren.dto.WithdrawPageData;
 import io.renren.dto.WithdrawQueryDTO;
 
@@ -47,4 +48,12 @@ public interface WithdrawService {
      * @return 提现结果
      */
     Map<String, Object> submitRewardWithdraw(Long userId, RewardWithdrawRequestDTO requestDTO);
+
+    /**
+     * 获取用户佣金提现统计
+     *
+     * @param userId 用户ID
+     * @return 佣金提现统计信息
+     */
+    RewardWithdrawSumDTO getRewardWithdrawSum(Long userId);
 }

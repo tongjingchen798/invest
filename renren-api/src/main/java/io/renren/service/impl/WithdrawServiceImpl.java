@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.renren.dao.UserDao;
 import io.renren.dao.WithdrawOrderDao;
 import io.renren.dto.RewardWithdrawRequestDTO;
+import io.renren.dto.RewardWithdrawSumDTO;
 import io.renren.dto.UserWithdrawInfoDTO;
 import io.renren.dto.WithdrawPageData;
 import io.renren.dto.WithdrawQueryDTO;
@@ -206,6 +207,45 @@ public class WithdrawServiceImpl implements WithdrawService {
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("提交佣金提现申请失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public RewardWithdrawSumDTO getRewardWithdrawSum(Long userId) {
+        try {
+            RewardWithdrawSumDTO sumDTO = new RewardWithdrawSumDTO();
+            
+            // 构建查询条件：佣金提现类型
+            QueryWrapper<WithdrawOrderEntity> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("user_id", userId.toString())
+                       .eq("withdraw_type", 2); // 佣金提现
+            
+            // 查询所有佣金提现记录
+            List<WithdrawOrderEntity> withdrawList = withdrawOrderDao.selectList(queryWrapper);
+            
+            long historyAmount = 0; // 累计提现
+            long zztxAmount = 0;    // 提现中
+            
+            for (WithdrawOrderEntity withdraw : withdrawList) {
+                if (withdraw.getAmount() != null) {
+                    // 累计提现：包括所有状态的提现记录
+                    historyAmount += withdraw.getAmount();
+                    
+                    // 提现中：状态为0（待审核）和1（审核通过）的记录
+                    if (withdraw.getState() != null && (withdraw.getState() == 0 || withdraw.getState() == 1)) {
+                        zztxAmount += withdraw.getAmount();
+                    }
+                }
+            }
+            
+            sumDTO.setHistoryAmount(historyAmount);
+            sumDTO.setZztxAmount(zztxAmount);
+            
+            return sumDTO;
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("获取佣金提现统计失败: " + e.getMessage());
         }
     }
 
