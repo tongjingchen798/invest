@@ -1,11 +1,16 @@
 package io.renren.service.impl;
 
+import io.renren.dao.UserDao;
 import io.renren.dto.AgentMemberDTO;
 import io.renren.dto.MyAgentDTO;
+import io.renren.entity.UserEntity;
 import io.renren.service.AgentCommissionService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -18,33 +23,48 @@ import java.util.List;
 @Service
 public class AgentCommissionServiceImpl implements AgentCommissionService {
 
+    @Autowired
+    private UserDao userDao;
+
     @Override
     public MyAgentDTO getMyAgentCommission(Long userId) {
         try {
             MyAgentDTO myAgent = new MyAgentDTO();
             
-            // 设置基础佣金信息（这里使用模拟数据，实际项目中应该从数据库查询）
-            myAgent.setHirstory_amt(0L);
-            myAgent.setHirstory_gzamt(0L);
-            myAgent.setToday_amt(0L);
-            myAgent.setToday_gzamt(0L);
-            myAgent.setWithdraw_amt(0L);
-            myAgent.setYt_withdraw_amt(0L);
-            myAgent.setList1_amt(0L);
-            myAgent.setList2_amt(0L);
-            myAgent.setEffectiveList1(0L);
-            myAgent.setEffectiveList1Month(0L);
-            myAgent.setEffectiveList2(0L);
-            myAgent.setEffectiveList2Month(0L);
+            // 获取当前用户信息
+            UserEntity currentUser = userDao.selectById(userId);
+            if (currentUser == null) {
+                throw new RuntimeException("用户不存在");
+            }
+            
+            // 设置基础佣金信息（从UserEntity获取）
+            myAgent.setHirstory_amt(currentUser.getHistoryProfit() != null ? currentUser.getHistoryProfit() : 0L);
+            myAgent.setHirstory_gzamt(0L); // 工资字段在UserEntity中可能没有对应字段
+            myAgent.setToday_amt(currentUser.getTodayProfit() != null ? currentUser.getTodayProfit() : 0L);
+            myAgent.setToday_gzamt(0L); // 今日工资字段在UserEntity中可能没有对应字段
+            myAgent.setWithdraw_amt(currentUser.getBalance() != null ? currentUser.getBalance() : 0L); // 可提现余额
+            myAgent.setYt_withdraw_amt(currentUser.getWithdrawSum() != null ? currentUser.getWithdrawSum() : 0L); // 已提现
+            myAgent.setList1_amt(0L); // 需要计算一级佣金
+            myAgent.setList2_amt(0L); // 需要计算二级佣金
+            myAgent.setEffectiveList1(currentUser.getUacnt() != null ? currentUser.getUacnt() : 0L); // 有效一级会员数
+            myAgent.setEffectiveList1Month(0L); // 本月有效一级会员数，需要按月统计
+            myAgent.setEffectiveList2(currentUser.getUbcnt() != null ? currentUser.getUbcnt() : 0L); // 有效二级会员数
+            myAgent.setEffectiveList2Month(0L); // 本月有效二级会员数，需要按月统计
             
             // 设置一级会员列表
-            myAgent.setList1(getLevel1Members(userId));
+            myAgent.setList1(getLevel1Members(currentUser.getInviteCode()));
             
             // 设置二级会员列表
-            myAgent.setList2(getLevel2Members(userId));
+            myAgent.setList2(getLevel2Members(currentUser.getInviteCode()));
             
             // 设置三级会员列表
-            myAgent.setList3(getLevel3Members(userId));
+            myAgent.setList3(getLevel3Members(currentUser.getInviteCode()));
+            
+            // 计算一级和二级佣金总额
+            calculateCommissionAmounts(myAgent);
+            
+            // 计算本月有效会员数
+            calculateMonthlyEffectiveMembers(myAgent, userId);
             
             return myAgent;
             
@@ -57,20 +77,25 @@ public class AgentCommissionServiceImpl implements AgentCommissionService {
     /**
      * 获取一级会员列表
      */
-    private List<AgentMemberDTO> getLevel1Members(Long userId) {
+    private List<AgentMemberDTO> getLevel1Members(String inviteCode) {
         List<AgentMemberDTO> members = new ArrayList<>();
         
-        // 这里应该从数据库查询一级会员信息
-        // 目前使用模拟数据
-        AgentMemberDTO member1 = createMockMember(1001L, "user001", 1, 1000L, 50000L, 100L, 5000L, 0.05);
-        AgentMemberDTO member2 = createMockMember(1002L, "user002", 2, 2000L, 80000L, 200L, 8000L, 0.05);
-        
-        // 设置下级会员
-        member1.setXj(getLevel2Members(member1.getId()));
-        member2.setXj(getLevel2Members(member2.getId()));
-        
-        members.add(member1);
-        members.add(member2);
+        try {
+            // 从UserEntity查询一级会员（直接下级）
+            List<UserEntity> level1Users = userDao.selectBySuperiorId(inviteCode);
+            
+            for (UserEntity user : level1Users) {
+                AgentMemberDTO member = convertToAgentMember(user, 0.07); // 一级佣金比例7%
+                
+                // 设置下级会员
+                member.setXj(getLevel2Members(user.getInviteCode()));
+                
+                members.add(member);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            // 如果查询失败，返回空列表
+        }
         
         return members;
     }
@@ -78,20 +103,25 @@ public class AgentCommissionServiceImpl implements AgentCommissionService {
     /**
      * 获取二级会员列表
      */
-    private List<AgentMemberDTO> getLevel2Members(Long parentId) {
+    private List<AgentMemberDTO> getLevel2Members(String inviteCode) {
         List<AgentMemberDTO> members = new ArrayList<>();
         
-        // 这里应该从数据库查询二级会员信息
-        // 目前使用模拟数据
-        AgentMemberDTO member1 = createMockMember(2001L, "subuser001", 1, 500L, 20000L, 50L, 2000L, 0.03);
-        AgentMemberDTO member2 = createMockMember(2002L, "subuser002", 1, 800L, 30000L, 80L, 3000L, 0.03);
-        
-        // 设置下级会员
-        member1.setXj(getLevel3Members(member1.getId()));
-        member2.setXj(getLevel3Members(member2.getId()));
-        
-        members.add(member1);
-        members.add(member2);
+        try {
+            // 从UserEntity查询二级会员
+            List<UserEntity> level2Users = userDao.selectBySuperiorId(inviteCode);
+            
+            for (UserEntity user : level2Users) {
+                AgentMemberDTO member = convertToAgentMember(user, 0.03); // 二级佣金比例3%
+                
+                // 设置下级会员
+                member.setXj(getLevel3Members(user.getInviteCode()));
+                
+                members.add(member);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            // 如果查询失败，返回空列表
+        }
         
         return members;
     }
@@ -99,36 +129,95 @@ public class AgentCommissionServiceImpl implements AgentCommissionService {
     /**
      * 获取三级会员列表
      */
-    private List<AgentMemberDTO> getLevel3Members(Long parentId) {
+    private List<AgentMemberDTO> getLevel3Members(String inviteCode) {
         List<AgentMemberDTO> members = new ArrayList<>();
         
-        // 这里应该从数据库查询三级会员信息
-        // 目前使用模拟数据
-        AgentMemberDTO member1 = createMockMember(3001L, "subsubuser001", 0, 200L, 10000L, 20L, 1000L, 0.02);
-        AgentMemberDTO member2 = createMockMember(3002L, "subsubuser002", 0, 300L, 15000L, 30L, 1500L, 0.02);
-        
-        members.add(member1);
-        members.add(member2);
+        try {
+            // 从UserEntity查询三级会员
+            List<UserEntity> level3Users = userDao.selectBySuperiorId(inviteCode);
+            
+            for (UserEntity user : level3Users) {
+                AgentMemberDTO member = convertToAgentMember(user, 0.02); // 三级佣金比例2%
+                members.add(member);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            // 如果查询失败，返回空列表
+        }
         
         return members;
     }
 
     /**
-     * 创建模拟会员数据
+     * 将UserEntity转换为AgentMemberDTO
      */
-    private AgentMemberDTO createMockMember(Long id, String username, Integer vip, 
-                                          Long historyAmt, Long historyTz, 
-                                          Long todayAmt, Long todayTz, Double yjRate) {
+    private AgentMemberDTO convertToAgentMember(UserEntity user, Double commissionRate) {
         AgentMemberDTO member = new AgentMemberDTO();
-        member.setId(id);
-        member.setUsername(username);
-        member.setVip(vip);
-        member.setHirstory_amt(historyAmt);
-        member.setHirstory_tz(historyTz);
-        member.setToday_amt(todayAmt);
-        member.setToday_tz(todayTz);
-        member.setYj_rate(yjRate);
+        member.setId(user.getId());
+        member.setUsername(user.getUsername());
+        member.setVip(user.getVip() != null ? user.getVip() : 0);
+        member.setHirstory_amt(user.getHistoryProfit() != null ? user.getHistoryProfit() : 0L);
+        member.setHirstory_tz(user.getHistoryInvestment() != null ? user.getHistoryInvestment() : 0L);
+        member.setToday_amt(user.getTodayProfit() != null ? user.getTodayProfit() : 0L);
+        member.setToday_tz(0L); // 今日投资需要从投资记录表查询
+        member.setYj_rate(commissionRate);
         member.setXj(new ArrayList<>());
         return member;
+    }
+
+    /**
+     * 计算一级和二级佣金总额
+     */
+    private void calculateCommissionAmounts(MyAgentDTO myAgent) {
+        long list1Total = 0;
+        long list2Total = 0;
+        
+        // 计算一级佣金总额
+        if (myAgent.getList1() != null) {
+            for (AgentMemberDTO member : myAgent.getList1()) {
+                if (member.getHirstory_amt() != null) {
+                    list1Total += member.getHirstory_amt();
+                }
+            }
+        }
+        
+        // 计算二级佣金总额
+        if (myAgent.getList2() != null) {
+            for (AgentMemberDTO member : myAgent.getList2()) {
+                if (member.getHirstory_amt() != null) {
+                    list2Total += member.getHirstory_amt();
+                }
+            }
+        }
+        
+        myAgent.setList1_amt(list1Total);
+        myAgent.setList2_amt(list2Total);
+    }
+
+    /**
+     * 计算本月有效会员数
+     */
+    private void calculateMonthlyEffectiveMembers(MyAgentDTO myAgent, Long userId) {
+        try {
+            // 获取本月开始时间
+            Calendar cal = Calendar.getInstance();
+            cal.set(Calendar.DAY_OF_MONTH, 1);
+            cal.set(Calendar.HOUR_OF_DAY, 0);
+            cal.set(Calendar.MINUTE, 0);
+            cal.set(Calendar.SECOND, 0);
+            cal.set(Calendar.MILLISECOND, 0);
+            Date monthStart = cal.getTime();
+            
+            // 这里可以添加按月统计的逻辑
+            // 目前设置为0，实际项目中需要根据业务需求实现
+            myAgent.setEffectiveList1Month(0L);
+            myAgent.setEffectiveList2Month(0L);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            // 如果计算失败，设置为0
+            myAgent.setEffectiveList1Month(0L);
+            myAgent.setEffectiveList2Month(0L);
+        }
     }
 }

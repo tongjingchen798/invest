@@ -2,6 +2,7 @@
 
 package io.renren.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -46,17 +47,20 @@ public class UserEntity implements Serializable {
 	 * 二级密码
 	 */
 	@JsonIgnore
+	@TableField("two_pwd")
 	private String twoPwd;
 	
 	/**
 	 * 邀请码
 	 */
+	@TableField("invite_code")
 	private String inviteCode;
 	
 	/**
-	 * 上级用户ID（外键关联）
+	 * 上级邀请码
 	 */
-	private Long superiorId;
+	@TableField("upinvite_code")
+	private String upinviteCode;
 	
 	/**
 	 * 代理信息
@@ -66,6 +70,7 @@ public class UserEntity implements Serializable {
 	/**
 	 * 代理名称
 	 */
+	@TableField("agent_name")
 	private String agentName;
 	
 	/**
@@ -76,7 +81,20 @@ public class UserEntity implements Serializable {
 	/**
 	 * 业务员名称
 	 */
+	@TableField("salesman_name")
 	private String salesmanName;
+	
+	/**
+	 * 上级名称
+	 */
+	@TableField("superior_name")
+	private String superiorName;
+	
+	/**
+	 * 上级邀请码
+	 */
+	@TableField("superior_code")
+	private String superiorCode;
 	
 	/**
 	 * 客户渠道号
@@ -91,76 +109,91 @@ public class UserEntity implements Serializable {
 	/**
 	 * 注册IP
 	 */
+	@TableField("register_ip")
 	private String registerIp;
 	
 	/**
 	 * 最后登录IP
 	 */
+	@TableField("last_ip")
 	private String lastIp;
 	
 	/**
 	 * 最后登录时间
 	 */
+	@TableField("last_date")
 	private Date lastDate;
 	
 	/**
 	 * 创建时间
 	 */
+	@TableField("create_date")
 	private Date createDate;
 	
 	/**
 	 * 推广名称
 	 */
+	@TableField("extension_name")
 	private String extensionName;
 	
 	/**
-	 * 今日投资
+	 * 今日投资(分)
 	 */
+	@TableField("today_investment")
 	private Long todayInvestment;
 	
 	/**
-	 * 历史投资
+	 * 历史投资(分)
 	 */
+	@TableField("history_investment")
 	private Long historyInvestment;
 	
 	/**
-	 * 今日收益
+	 * 今日收益(分)
 	 */
+	@TableField("today_profit")
 	private Long todayProfit;
 	
 	/**
-	 * 历史收益
+	 * 历史收益(分)
 	 */
+	@TableField("history_profit")
 	private Long historyProfit;
 	
 	/**
-	 * 今日充值
+	 * 今日充值(分)
 	 */
+	@TableField("today_recharge")
 	private Long todayRecharge;
 	
 	/**
-	 * 今日提现
+	 * 今日提现(分)
 	 */
+	@TableField("today_withdraw")
 	private Long todayWithdraw;
 	
 	/**
 	 * 今日充值次数
 	 */
+	@TableField("today_recharge_cnt")
 	private Long todayRechargeCnt;
 	
 	/**
 	 * 今日提现次数
 	 */
+	@TableField("today_withdraw_cnt")
 	private Long todayWithdrawCnt;
 	
 	/**
-	 * 累计充值
+	 * 累计充值(分)
 	 */
+	@TableField("charge_sum")
 	private Long chargeSum;
 	
 	/**
-	 * 累计提现
+	 * 累计提现(分)
 	 */
+	@TableField("withdraw_sum")
 	private Long withdrawSum;
 	
 	/**
@@ -174,43 +207,49 @@ public class UserEntity implements Serializable {
 	private Long historywithdrawcnt;
 	
 	/**
-	 * 历史优惠券余额
+	 * 历史优惠券余额(分)
 	 */
+	@TableField("history_coupon_balance")
 	private Long historyCouponBalance;
 	
 	/**
 	 * 优惠券数量
 	 */
+	@TableField("coupon_cnt")
 	private Long couponCnt;
 	
 	/**
-	 * 优惠券余额
+	 * 优惠券余额(分)
 	 */
+	@TableField("coupon_balance")
 	private Long couponBalance;
 	
 	/**
 	 * 历史特权券数量
 	 */
-	private Long historyPrivilege_cnt;
+	@TableField("history_privilege_cnt")
+	private Long historyPrivilegeCnt;
 	
 	/**
 	 * 特权券数量
 	 */
-	private Long privilege_cnt;
+	@TableField("privilege_cnt")
+	private Long privilegeCnt;
 	
 	/**
-	 * 余额
+	 * 余额(分)
 	 */
 	private Long balance;
 	
 	/**
-	 * 可提现余额
+	 * 可提现余额(分)
 	 */
 	private Long cashwithdrawable;
 	
 	/**
-	 * 冻结余额
+	 * 冻结余额(分)
 	 */
+	@TableField("freeze_balance")
 	private Long freezeBalance;
 	
 	/**
@@ -229,58 +268,69 @@ public class UserEntity implements Serializable {
 	private Long uccnt;
 	
 	/**
-	 * 1级今日收益
+	 * 1级今日收益(分)
 	 */
+	@TableField("ua_profit")
 	private Long uaProfit;
 	
 	/**
-	 * 2级今日收益
+	 * 2级今日收益(分)
 	 */
+	@TableField("ub_profit")
 	private Long ubProfit;
 	
 	/**
-	 * 3级今日收益
+	 * 3级今日收益(分)
 	 */
+	@TableField("uc_profit")
 	private Long ucProfit;
 	
 	/**
-	 * 1级历史收益
+	 * 历史1级账户收益(分)
 	 */
+	@TableField("history_ua_profit")
 	private Long historyUaProfit;
 	
 	/**
-	 * 2级历史收益
+	 * 历史2级账户收益(分)
 	 */
+	@TableField("history_ub_profit")
 	private Long historyUbProfit;
 	
 	/**
-	 * 3级历史收益
+	 * 历史3级账户收益(分)
 	 */
+	@TableField("history_uc_profit")
 	private Long historyUcProfit;
 	
 	/**
 	 * 今日提现次数
 	 */
+	@TableField("to_daywithdraw_count")
 	private Long toDaywithdrawCount;
 	
 	/**
-	 * 今日提现额度
+	 * 今日提现额度(分)
 	 */
+	@TableField("to_daywithdraw_quota")
 	private Long toDaywithdrawQuota;
 	
 	/**
 	 * 提现次数
 	 */
+	@TableField("withdraw_count")
 	private Long withdrawCount;
 	
 	/**
-	 * 提现额度
+	 * 提现额度(分)
 	 */
+	@TableField("withdraw_quota")
 	private Long withdrawQuota;
 	
 	/**
-	 * 佣金余额
+	 * 佣金余额(分)
 	 */
+	@TableField("commission_balance")
 	private Long commissionBalance;
 	
 	/**
@@ -289,17 +339,19 @@ public class UserEntity implements Serializable {
 	private Long tgrs;
 	
 	/**
-	 * 收益总额
+	 * 收益总额(分)
 	 */
+	@TableField("sy_sum")
 	private Long sySum;
 	
 	/**
-	 * 今日CTC
+	 * 今日CTC(分)
 	 */
+	@TableField("to_dayctc")
 	private Long toDayctc;
 	
 	/**
-	 * 历史CTC
+	 * 历史CTC(分)
 	 */
 	private Long historyctc;
 	
@@ -311,16 +363,19 @@ public class UserEntity implements Serializable {
 	/**
 	 * 邀请码状态 0：禁用 1：正常
 	 */
+	@TableField("invite_code_status")
 	private Integer inviteCodeStatus;
 	
 	/**
 	 * 投资提现状态 0：禁用 1：正常
 	 */
+	@TableField("tz_withdraw_status")
 	private Integer tzWithdrawStatus;
 	
 	/**
 	 * 奖励提现状态 0：禁用 1：正常
 	 */
+	@TableField("reward_withdraw_status")
 	private Integer rewardWithdrawStatus;
 	
 	/**
@@ -334,7 +389,7 @@ public class UserEntity implements Serializable {
 	private Integer vip;
 	
 	/**
-	 * VIP利率
+	 * VIP利率(分)
 	 */
 	private Long viplr;
 	

@@ -5,6 +5,9 @@ package io.renren.dao;
 import io.renren.common.dao.BaseDao;
 import io.renren.entity.UserEntity;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * 用户
@@ -16,4 +19,11 @@ public interface UserDao extends BaseDao<UserEntity> {
     UserEntity getUserByMobile(String mobile);
 
     UserEntity getUserByUserId(Long userId);
+    
+    /**
+     * 根据上级邀请码查询用户列表
+     * @param upinviteCode 上级邀请码
+     * @return 用户列表
+     */
+    List<UserEntity> selectBySuperiorId(@Param("upinviteCode") String upinviteCode);
 }
