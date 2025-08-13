@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.dao.WithdrawOrderDao">
+
+    <resultMap type="io.renren.entity.WithdrawOrderEntity" id="withdrawOrderMap">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="mobile" column="mobile"/>
+        <result property="username" column="username"/>
+        <result property="channel" column="channel"/>
+        <result property="msg" column="msg"/>
+        <result property="withdrawTime" column="withdraw_time"/>
+        <result property="amount" column="amount"/>
+        <result property="inputamount" column="inputamount"/>
+        <result property="rate" column="rate"/>
+        <result property="handFee" column="hand_fee"/>
+        <result property="realAmount" column="real_amount"/>
+        <result property="channelAmount" column="channel_amount"/>
+        <result property="blankCode" column="blank_code"/>
+        <result property="blankName" column="blank_name"/>
+        <result property="payName" column="pay_name"/>
+        <result property="payNo" column="pay_no"/>
+        <result property="operCode" column="oper_code"/>
+        <result property="remark" column="remark"/>
+        <result property="createTime" column="create_time"/>
+        <result property="stateTime" column="state_time"/>
+        <result property="state" column="state"/>
+        <result property="withdrawType" column="withdraw_type"/>
+        <result property="partMon" column="part_mon"/>
+        <result property="orderno" column="orderno"/>
+        <result property="threeorderNo" column="threeorder_no"/>
+        <result property="sourcetypeName" column="sourcetype_name"/>
+        <result property="infoIp" column="info_ip"/>
+        <result property="ifsc" column="ifsc"/>
+        <result property="agentName" column="agent_name"/>
+        <result property="agent" column="agent"/>
+        <result property="salesmanid" column="salesmanid"/>
+        <result property="salesmanName" column="salesman_name"/>
+        <result property="channelid" column="channelid"/>
+        <result property="merchantid" column="merchantid"/>
+        <result property="merchantname" column="merchantname"/>
+        <result property="biaoqian" column="biaoqian"/>
+        <result property="inviteCodeStatus" column="invite_code_status"/>
+        <result property="liebian" column="liebian"/>
+        <result property="ctc" column="ctc"/>
+    </resultMap>
+
+    <!-- 统计用户提现次数 -->
+    <select id="selectCountByUserId" resultType="long">
+        SELECT COUNT(*) 
+        FROM tb_withdraw_order 
+        WHERE user_id = #{userId}
+    </select>
+
+</mapper>
