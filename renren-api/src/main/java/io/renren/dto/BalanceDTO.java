@@ -4,26 +4,21 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import java.io.Serializable;
-
 /**
  * 余额表单
  *
  * @author Mark sunlightcs@gmail.com
- * @since 1.0.0
  */
 @Data
 @ApiModel(value = "余额表单")
-public class BalanceDTO implements Serializable {
-    private static final long serialVersionUID = 1L;
-
+public class BalanceDTO {
     @ApiModelProperty(value = "ID")
     private Long id;
 
-    @ApiModelProperty(value = "用户id")
+    @ApiModelProperty(value = "用户ID")
     private Long userId;
 
-    @ApiModelProperty(value = "可用余额分为单位")
+    @ApiModelProperty(value = "可用余额(分为单位)")
     private Long assets;
 
     @ApiModelProperty(value = "账户余额/我的资产=余额+可提现+等待收益")
@@ -65,6 +60,6 @@ public class BalanceDTO implements Serializable {
     @ApiModelProperty(value = "转盘次数")
     private Integer wheelTimes;
 
-    @ApiModelProperty(value = "更新时间")
+    @ApiModelProperty(value = "更新日期")
     private String updateDate;
 }

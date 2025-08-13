@@ -5,6 +5,7 @@ package io.renren.controller;
 import io.renren.annotation.LoginUser;
 import io.renren.common.utils.Result;
 import io.renren.common.validator.ValidatorUtils;
+import io.renren.dto.BalanceDTO;
 import io.renren.dto.ChangePasswordDTO;
 import io.renren.dto.ChangeTwoPasswordDTO;
 import io.renren.dto.UpdateUserDTO;
@@ -42,6 +43,75 @@ public class ApiUserController {
         
         return new Result<UserInfoDTO>().ok(userInfo);
     }
+
+    @GetMapping("/balance")
+    @ApiOperation("获取用户余额")
+    public Result<BalanceDTO> getUserBalance(@LoginUser UserEntity user) {
+        try {
+            // 从tb_user表查询用户余额信息
+            UserEntity userBalance = userService.selectById(user.getId());
+            
+            if (userBalance == null) {
+                return new Result<BalanceDTO>().error("用户不存在");
+            }
+            
+            // 构建余额DTO，从用户实体中获取相关字段
+            BalanceDTO balanceDTO = new BalanceDTO();
+            balanceDTO.setId(userBalance.getId());
+            balanceDTO.setUserId(userBalance.getId());
+            
+            // 余额相关字段
+            balanceDTO.setAssets(userBalance.getAssets() != null ? userBalance.getAssets() : 0L);
+            balanceDTO.setBalance(userBalance.getBalance() != null ? userBalance.getBalance() : 0L);
+            balanceDTO.setCashwithdrawable(userBalance.getCashwithdrawable() != null ? userBalance.getCashwithdrawable() : 0L);
+            
+            // 累计收益 = 代收收益 + 已收收益
+            Long cumulative = (userBalance.getHistoryProfit() != null ? userBalance.getHistoryProfit() : 0L) + 
+                            (userBalance.getTodayProfit() != null ? userBalance.getTodayProfit() : 0L);
+            balanceDTO.setCumulative(cumulative);
+            
+            // 累计充值
+            balanceDTO.setCzAmount(userBalance.getChargeSum() != null ? userBalance.getChargeSum() : 0L);
+            
+            // 待收利息/等待回收 (使用今日收益作为待收)
+            balanceDTO.setDsAmount(userBalance.getTodayProfit() != null ? userBalance.getTodayProfit() : 0L);
+            
+            // 待收本金 (使用今日投资作为待收)
+            balanceDTO.setDsbjAmount(userBalance.getTodayInvestment() != null ? userBalance.getTodayInvestment() : 0L);
+            
+            // 今日收益
+            balanceDTO.setJrAmount(userBalance.getTodayProfit() != null ? userBalance.getTodayProfit() : 0L);
+            
+            // 累计投资
+            balanceDTO.setTzAmount(userBalance.getHistoryInvestment() != null ? userBalance.getHistoryInvestment() : 0L);
+            
+            // 已收利息 (使用历史收益)
+            balanceDTO.setYsAmount(userBalance.getHistoryProfit() != null ? userBalance.getHistoryProfit() : 0L);
+            
+            // 已收本金 (使用历史投资)
+            balanceDTO.setYsbjAmount(userBalance.getHistoryInvestment() != null ? userBalance.getHistoryInvestment() : 0L);
+            
+            // 已提现
+            balanceDTO.setYtxAmount(userBalance.getWithdrawSum() != null ? userBalance.getWithdrawSum() : 0L);
+            
+            // 正在提现 (使用今日提现)
+            balanceDTO.setZztxAmount(userBalance.getTodayWithdraw() != null ? userBalance.getTodayWithdraw() : 0L);
+            
+            // 转盘次数 (暂时设为0，如果表中有相关字段可以替换)
+            balanceDTO.setWheelTimes(0);
+            
+            // 更新日期 (使用最后登录时间)
+            balanceDTO.setUpdateDate(userBalance.getLastDate() != null ? userBalance.getLastDate().toString() : "");
+            
+            return new Result<BalanceDTO>().ok(balanceDTO);
+            
+        } catch (Exception e) {
+            return new Result<BalanceDTO>().error("获取余额信息失败");
+        }
+    }
+
+    
+
 
     @PostMapping("update")
     @ApiOperation("更新用户信息")

@@ -9,11 +9,13 @@ import io.renren.dto.RegisterDTO;
 import io.renren.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Date;
@@ -55,5 +57,63 @@ public class ApiRegisterController {
         userService.insert(user);
 
         return new Result();
+    }
+
+    @PostMapping("verificationBnkCode")
+    @ApiOperation("发送短信验证码")
+    public Result sendVerificationCode(
+            @ApiParam(value = "手机号码", required = false) 
+            @RequestParam(value = "mobile", required = false) String mobile) {
+        
+        // 验证手机号格式
+        if (mobile == null || mobile.trim().isEmpty()) {
+            return new Result().error("手机号不能为空");
+        }
+        
+        // 验证手机号格式（10位数字）
+        if (!mobile.matches("^\\d{10}$")) {
+            return new Result().error("手机号格式错误");
+        }
+        
+        try {
+            // TODO: 这里需要集成具体的短信服务商API
+            String verificationCode = generateVerificationCode();
+            
+            // 发送短信验证码的逻辑
+            boolean sendResult = sendSmsCode(mobile, verificationCode);
+            
+            if (sendResult) {
+                // 将验证码存储到Redis或数据库中，设置过期时间
+                // TODO: 实现验证码存储逻辑
+                
+                return new Result().ok("验证码发送成功");
+            } else {
+                return new Result().error("验证码发送失败，请稍后重试");
+            }
+            
+        } catch (Exception e) {
+            return new Result().error("系统异常，请稍后重试");
+        }
+    }
+    
+    /**
+     * 生成6位随机验证码
+     */
+    private String generateVerificationCode() {
+        return String.valueOf((int)((Math.random() * 9 + 1) * 100000));
+    }
+    
+    /**
+     * 发送短信验证码
+     * TODO: 需要集成具体的短信服务商
+     */
+    private boolean sendSmsCode(String mobile, String code) {
+        // 这里应该调用具体的短信服务商API
+        // 例如：阿里云短信、腾讯云短信等
+        // 暂时返回true，实际使用时需要替换为真实的短信发送逻辑
+        
+        // 模拟发送成功
+        System.out.println("向手机号 " + mobile + " 发送验证码: " + code);
+        return true;
     }
 }
