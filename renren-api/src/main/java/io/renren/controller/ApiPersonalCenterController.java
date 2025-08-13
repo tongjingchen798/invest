@@ -15,6 +15,7 @@ import io.renren.dto.MyInvestmentDTO;
 import io.renren.dto.MyInvestmentPageData;
 import io.renren.dto.BalanceDetailPageData;
 import io.renren.dto.TeamPointsDetailPageData;
+import io.renren.dto.ProfitEndedDTO;
 import io.renren.entity.UserEntity;
 import io.renren.service.TransactionDetailService;
 import io.renren.service.ProfitService;
@@ -22,6 +23,7 @@ import io.renren.service.UserService;
 import io.renren.service.MyInvestmentService;
 import io.renren.service.BalanceDetailService;
 import io.renren.service.TeamPointsDetailService;
+import io.renren.service.ProfitEndedService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -58,6 +60,9 @@ public class ApiPersonalCenterController {
 
     @Autowired
     private TeamPointsDetailService teamPointsDetailService;
+
+    @Autowired
+    private ProfitEndedService profitEndedService;
 
     @Login
     @PostMapping("BalanceTransfers")
@@ -189,6 +194,18 @@ public class ApiPersonalCenterController {
         ProfitPageData<ProfitDTO> pageData = profitService.queryPageData(params);
         
         return new Result<ProfitPageData<ProfitDTO>>().ok(pageData);
+    }
+
+    @Login
+    @GetMapping("profitEnded")
+    @ApiOperation("付息还本【代收，已收】")
+    public Result<ProfitEndedDTO> getProfitEnded(@LoginUser UserEntity user) {
+        try {
+            ProfitEndedDTO profitEndedDTO = profitEndedService.getProfitEndedRecord(user.getId());
+            return new Result<ProfitEndedDTO>().ok(profitEndedDTO);
+        } catch (Exception e) {
+            return new Result<ProfitEndedDTO>().error("获取付息还本记录失败: " + e.getMessage());
+        }
     }
 
     @Login
