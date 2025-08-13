@@ -214,17 +214,17 @@ public class UserEntity implements Serializable {
 	private Long freezeBalance;
 	
 	/**
-	 * U级账户余额
+	 * 1级会员数
 	 */
 	private Long uacnt;
 	
 	/**
-	 * U级账户余额
+	 * 2级会员数
 	 */
 	private Long ubcnt;
 	
 	/**
-	 * U级账户余额
+	 * 3级会员数
 	 */
 	private Long uccnt;
 	

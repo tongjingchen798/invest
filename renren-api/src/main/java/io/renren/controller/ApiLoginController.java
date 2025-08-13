@@ -59,9 +59,18 @@ public class ApiLoginController {
 
     @GetMapping("nologinwslist")
     @ApiOperation("获取客服号列表")
-    public Result<List<CustomerServiceDTO>> getCustomerServiceList(){
+    public Result<List<CustomerServiceDTO>> nologinwslist(){
         List<CustomerServiceDTO> customerServices = customerServiceService.getAllCustomerServices();
         return new Result().ok(customerServices);
     }
+
+    @Login
+    @GetMapping("wslist")
+    @ApiOperation("返回对应的客服号(登录)")
+    public Result<List<CustomerServiceDTO>> wslist(){
+        List<CustomerServiceDTO> customerServices = customerServiceService.getAllCustomerServices();
+        return new Result().ok(customerServices);
+    }
+
 
 }
