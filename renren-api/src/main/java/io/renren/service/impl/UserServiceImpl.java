@@ -12,6 +12,7 @@ import io.renren.entity.UserEntity;
 import io.renren.dto.LoginDTO;
 import io.renren.dto.UserInfoDTO;
 import io.renren.dto.SuperiorUserInfoDTO;
+import io.renren.dto.UserDataSummaryDTO;
 import io.renren.service.TokenService;
 import io.renren.service.UserService;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -154,6 +155,44 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, UserEntity> implem
 			// 记录日志
 			e.printStackTrace();
 			return false;
+		}
+	}
+
+	@Override
+	public UserDataSummaryDTO getUserDataSummary(Long userId) {
+		try {
+			// 根据用户ID查找用户
+			UserEntity user = getUserByUserId(userId);
+			if (user == null) {
+				return null;
+			}
+			
+			// 创建用户数据汇总DTO
+			UserDataSummaryDTO summaryDTO = new UserDataSummaryDTO();
+			
+			// 设置充值相关统计
+			summaryDTO.setChargeMoney(user.getTotalRecharge() != null ? user.getTotalRecharge() : 0L);
+			summaryDTO.setChargeNum(user.getRechargeCount() != null ? user.getRechargeCount() : 0L);
+			
+			// 设置投资收益统计
+			summaryDTO.setInvestmentIncome(user.getHistoryProfit() != null ? user.getHistoryProfit() : 0L);
+			
+			// 设置邀请相关统计
+			summaryDTO.setInviteIncome(user.getInviteProfit() != null ? user.getInviteProfit() : 0L);
+			summaryDTO.setInviteNum(user.getInviteCount() != null ? user.getInviteCount() : 0);
+			
+			// 设置等级
+			summaryDTO.setVip(user.getVipLevel() != null ? user.getVipLevel() : 0);
+			
+			// 设置提现统计
+			summaryDTO.setWithdrawMoney(user.getTotalWithdraw() != null ? user.getTotalWithdraw() : 0L);
+			
+			return summaryDTO;
+			
+		} catch (Exception e) {
+			// 记录日志
+			e.printStackTrace();
+			return null;
 		}
 	}
 }

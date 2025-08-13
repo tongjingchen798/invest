@@ -3,6 +3,7 @@
 package io.renren.service;
 
 import io.renren.common.service.BaseService;
+import io.renren.dto.UserDataSummaryDTO;
 import io.renren.entity.UserEntity;
 import io.renren.dto.LoginDTO;
 import io.renren.dto.UserInfoDTO;
@@ -49,4 +50,11 @@ public interface UserService extends BaseService<UserEntity> {
 	 * @return 是否更新成功
 	 */
 	boolean updatePasswordByUserId(Long userId, String newPassword);
+
+	/**
+	 * 获取用户数据汇总信息
+	 * @param userId 用户ID
+	 * @return 用户数据汇总DTO
+	 */
+	UserDataSummaryDTO getUserDataSummary(Long userId);
 }

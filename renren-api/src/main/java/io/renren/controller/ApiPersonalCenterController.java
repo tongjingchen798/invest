@@ -10,9 +10,11 @@ import io.renren.dto.TransactionDetailDTO;
 import io.renren.dto.TransactionDetailPageData;
 import io.renren.dto.ProfitDTO;
 import io.renren.dto.ProfitPageData;
+import io.renren.dto.UserDataSummaryDTO;
 import io.renren.entity.UserEntity;
 import io.renren.service.TransactionDetailService;
 import io.renren.service.ProfitService;
+import io.renren.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -37,6 +39,9 @@ public class ApiPersonalCenterController {
 
     @Autowired
     private ProfitService profitService;
+
+    @Autowired
+    private UserService userService;
 
     @Login
     @PostMapping("BalanceTransfers")
@@ -143,5 +148,24 @@ public class ApiPersonalCenterController {
         ProfitPageData<ProfitDTO> pageData = profitService.queryPageData(params);
         
         return new Result<ProfitPageData<ProfitDTO>>().ok(pageData);
+    }
+
+    @Login
+    @GetMapping("userDataSummary")
+    @ApiOperation("查询用户统计信息")
+    public Result<UserDataSummaryDTO> getUserDataSummary(@LoginUser UserEntity user) {
+        try {
+            // 获取用户数据汇总信息
+            UserDataSummaryDTO summaryDTO = userService.getUserDataSummary(user.getId());
+            
+            if (summaryDTO == null) {
+                return new Result<UserDataSummaryDTO>().error("获取用户统计信息失败");
+            }
+            
+            return new Result<UserDataSummaryDTO>().ok(summaryDTO);
+            
+        } catch (Exception e) {
+            return new Result<UserDataSummaryDTO>().error("查询用户统计信息失败: " + e.getMessage());
+        }
     }
 }
