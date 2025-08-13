@@ -109,32 +109,31 @@ public class ApiPersonalCenterController {
     @ApiOperation("账户概览")
     public Result<BalanceDTO> getBalance(@LoginUser UserEntity user) {
         
-        // TODO: 实现获取账户余额逻辑
-        // 这里需要根据业务需求实现具体的账户余额查询逻辑
-        // 包括：查询用户余额、投资收益、充值提现记录等
-        
-        BalanceDTO balanceDTO = new BalanceDTO();
-        balanceDTO.setId(user.getId());
-        balanceDTO.setUserId(user.getId());
-        
-        // 设置默认值（实际应该从数据库查询）
-        balanceDTO.setAssets(0L);           // 可用余额
-        balanceDTO.setBalance(0L);          // 账户余额
-        balanceDTO.setCashwithdrawable(0L); // 可提现
-        balanceDTO.setCumulative(0L);       // 累计收益
-        balanceDTO.setCzAmount(0L);         // 累计充值
-        balanceDTO.setDsAmount(0L);         // 待收利息
-        balanceDTO.setDsbjAmount(0L);       // 待收本金
-        balanceDTO.setJrAmount(0L);         // 今日收益
-        balanceDTO.setTzAmount(0L);         // 累计投资
-        balanceDTO.setYsAmount(0L);         // 已收利息
-        balanceDTO.setYsbjAmount(0L);       // 已收本金
-        balanceDTO.setYtxAmount(0L);        // 已提现
-        balanceDTO.setZztxAmount(0L);       // 正在提现
-        balanceDTO.setWheelTimes(0);        // 转盘次数
-        balanceDTO.setUpdateDate(new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date()));
-        
-        return new Result<BalanceDTO>().ok(balanceDTO);
+        try {
+            BalanceDTO balanceDTO = new BalanceDTO();
+            balanceDTO.setId(user.getId());
+            balanceDTO.setUserId(user.getId());
+            balanceDTO.setAssets(user.getBalance() != null ? user.getBalance() : 0L);           // 可用余额
+            balanceDTO.setBalance(user.getBalance() != null ? user.getBalance() : 0L);          // 账户余额
+            balanceDTO.setCashwithdrawable(user.getCashwithdrawable() != null ? user.getCashwithdrawable() : 0L); // 可提现
+            balanceDTO.setCumulative(user.getHistoryProfit() != null ? user.getHistoryProfit() : 0L);       // 累计收益
+            balanceDTO.setCzAmount(user.getChargeSum() != null ? user.getChargeSum() : 0L);         // 累计充值
+            balanceDTO.setDsAmount(0L);         // 待收利息 - 需要从投资记录表查询
+            balanceDTO.setDsbjAmount(0L);       // 待收本金 - 需要从投资记录表查询
+            balanceDTO.setJrAmount(user.getTodayProfit() != null ? user.getTodayProfit() : 0L);         // 今日收益
+            balanceDTO.setTzAmount(user.getHistoryInvestment() != null ? user.getHistoryInvestment() : 0L);         // 累计投资
+            balanceDTO.setYsAmount(0L);         // 已收利息 - 需要从投资记录表查询
+            balanceDTO.setYsbjAmount(0L);       // 已收本金 - 需要从投资记录表查询
+            balanceDTO.setYtxAmount(user.getWithdrawSum() != null ? user.getWithdrawSum() : 0L);        // 已提现
+            balanceDTO.setZztxAmount(0L);       // 正在提现 - 需要从提现记录表查询
+            balanceDTO.setWheelTimes(0);        // 转盘次数 - 需要从转盘记录表查询
+            balanceDTO.setUpdateDate(new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date()));
+            
+            return new Result<BalanceDTO>().ok(balanceDTO);
+            
+        } catch (Exception e) {
+            return new Result<BalanceDTO>().error("获取账户余额失败: " + e.getMessage());
+        }
     }
 
     @Login
