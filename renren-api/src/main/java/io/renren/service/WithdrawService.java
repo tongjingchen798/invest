@@ -1,5 +1,8 @@
 package io.renren.service;
 
+import io.renren.dto.WithdrawPageData;
+import io.renren.dto.WithdrawQueryDTO;
+
 import java.util.Map;
 
 /**
@@ -18,4 +21,12 @@ public interface WithdrawService {
      * @return 包含是否首次提现信息的Map
      */
     Map<String, Object> checkFirstWithdraw(Long userId);
+
+    /**
+     * 分页查询用户提现记录
+     *
+     * @param queryDTO 查询参数
+     * @return 提现分页数据
+     */
+    WithdrawPageData getWithdrawPageData(WithdrawQueryDTO queryDTO);
 }

@@ -1,11 +1,21 @@
 package io.renren.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.renren.dao.WithdrawOrderDao;
+import io.renren.dto.UserWithdrawInfoDTO;
+import io.renren.dto.WithdrawPageData;
+import io.renren.dto.WithdrawQueryDTO;
+import io.renren.entity.WithdrawOrderEntity;
 import io.renren.service.WithdrawService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -43,5 +53,147 @@ public class WithdrawServiceImpl implements WithdrawService {
             e.printStackTrace();
             throw new RuntimeException("检查首次提现状态失败: " + e.getMessage());
         }
+    }
+
+    @Override
+    public WithdrawPageData getWithdrawPageData(WithdrawQueryDTO queryDTO) {
+        try {
+            WithdrawPageData pageData = new WithdrawPageData();
+            
+            // 使用MyBatis-Plus分页查询
+            Page<WithdrawOrderEntity> pageParam = new Page<>(queryDTO.getPage(), queryDTO.getLimit());
+            
+            // 构建查询条件
+            QueryWrapper<WithdrawOrderEntity> queryWrapper = buildQueryWrapper(queryDTO);
+            
+            // 执行分页查询
+            Page<WithdrawOrderEntity> result = withdrawOrderDao.selectPage(pageParam, queryWrapper);
+            
+            // 转换为DTO列表
+            List<UserWithdrawInfoDTO> dtoList = convertToDTOList(result.getRecords());
+            
+            // 计算汇总信息
+            Map<String, Object> sum = calculateSum(result.getRecords());
+            
+            // 设置分页数据
+            pageData.setList(dtoList);
+            pageData.setSum(sum);
+            pageData.setTotal((int) result.getTotal());
+            
+            return pageData;
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("获取提现分页数据失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 构建查询条件
+     */
+    private QueryWrapper<WithdrawOrderEntity> buildQueryWrapper(WithdrawQueryDTO queryDTO) {
+        QueryWrapper<WithdrawOrderEntity> queryWrapper = new QueryWrapper<>();
+        
+        // 用户ID条件
+        queryWrapper.eq("user_id", queryDTO.getUserId().toString());
+        
+        // 第三方订单号条件
+        if (StringUtils.hasText(queryDTO.getOrderno())) {
+            queryWrapper.eq("threeorder_no", queryDTO.getOrderno());
+        }
+        
+        // 卡号条件
+        if (StringUtils.hasText(queryDTO.getPayNo())) {
+            queryWrapper.eq("pay_no", queryDTO.getPayNo());
+        }
+        
+        // 状态条件
+        if (queryDTO.getState() != null) {
+            queryWrapper.eq("state", queryDTO.getState());
+        }
+        
+        // 我方订单号条件
+        if (StringUtils.hasText(queryDTO.getTransNo())) {
+            queryWrapper.eq("orderno", queryDTO.getTransNo());
+        }
+        
+        // 排序
+        if (StringUtils.hasText(queryDTO.getOrderField())) {
+            String order = "desc".equalsIgnoreCase(queryDTO.getOrder()) ? "desc" : "asc";
+            queryWrapper.orderBy(true, "desc".equals(order), queryDTO.getOrderField());
+        } else {
+            // 默认按创建时间倒序
+            queryWrapper.orderByDesc("create_time");
+        }
+        
+        return queryWrapper;
+    }
+
+    /**
+     * 将Entity转换为DTO
+     */
+    private List<UserWithdrawInfoDTO> convertToDTOList(List<WithdrawOrderEntity> entityList) {
+        List<UserWithdrawInfoDTO> dtoList = new java.util.ArrayList<>();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        
+        for (WithdrawOrderEntity entity : entityList) {
+            UserWithdrawInfoDTO dto = new UserWithdrawInfoDTO();
+            
+            // 复制基本属性
+            BeanUtils.copyProperties(entity, dto);
+            
+            // 处理字段类型转换
+            dto.setId(Long.parseLong(entity.getId()));
+            dto.setUserId(Long.parseLong(entity.getUserId()));
+            dto.setChannelid(entity.getChannelid() != null ? Long.parseLong(entity.getChannelid()) : null);
+            dto.setMerchantid(entity.getMerchantid() != null ? Long.parseLong(entity.getMerchantid()) : null);
+            
+            // 格式化日期字段
+            if (entity.getCreateTime() != null) {
+                dto.setCreateTime(sdf.format(entity.getCreateTime()));
+            }
+            if (entity.getStateTime() != null) {
+                dto.setStateTime(sdf.format(entity.getStateTime()));
+            }
+            if (entity.getWithdrawTime() != null) {
+                dto.setWithdrawTime(sdf.format(entity.getWithdrawTime()));
+            }
+            
+            dtoList.add(dto);
+        }
+        
+        return dtoList;
+    }
+
+    /**
+     * 计算汇总信息
+     */
+    private Map<String, Object> calculateSum(List<WithdrawOrderEntity> records) {
+        Map<String, Object> sum = new HashMap<>();
+        
+        long totalAmount = 0;
+        long totalInputAmount = 0;
+        long totalRealAmount = 0;
+        long totalHandFee = 0;
+        long totalChannelAmount = 0;
+        int totalCount = 0;
+        
+        for (WithdrawOrderEntity record : records) {
+            totalAmount += record.getAmount() != null ? record.getAmount() : 0;
+            totalInputAmount += record.getInputamount() != null ? record.getInputamount() : 0;
+            totalRealAmount += record.getRealAmount() != null ? record.getRealAmount() : 0;
+            totalHandFee += record.getHandFee() != null ? record.getHandFee() : 0;
+            totalChannelAmount += record.getChannelAmount() != null ? record.getChannelAmount() : 0;
+            totalCount++;
+        }
+        
+        sum.put("totalAmount", totalAmount);
+        sum.put("totalInputAmount", totalInputAmount);
+        sum.put("totalRealAmount", totalRealAmount);
+        sum.put("totalHandFee", totalHandFee);
+        sum.put("totalChannelAmount", totalChannelAmount);
+        sum.put("totalCount", totalCount);
+        
+        return sum;
     }
 }
