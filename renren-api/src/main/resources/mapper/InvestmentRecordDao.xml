@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.dao.InvestmentRecordDao">
+
+	<resultMap type="io.renren.entity.InvestmentRecordEntity" id="investmentRecordMap">
+		<result property="id" column="id"/>
+		<result property="userId" column="user_id"/>
+		<result property="projectId" column="project_id"/>
+		<result property="investmentAmount" column="investment_amount"/>
+		<result property="orderId" column="order_id"/>
+		<result property="orderAbbr" column="order_abbr"/>
+		<result property="orderDate" column="order_date"/>
+		<result property="profitAmount" column="profit_amount"/>
+		<result property="profitDate" column="profit_date"/>
+		<result property="profitInterest" column="profit_interest"/>
+		<result property="profitPrincipal" column="profit_principal"/>
+		<result property="status" column="status"/>
+		<result property="cycle" column="cycle"/>
+		<result property="cycleType" column="cycle_type"/>
+		<result property="ddsy" column="ddsy"/>
+		<result property="investCount" column="invest_count"/>
+		<result property="rushMinute" column="rush_minute"/>
+		<result property="agent" column="agent"/>
+		<result property="salesmanid" column="salesmanid"/>
+		<result property="createDate" column="create_date"/>
+		<result property="updateDate" column="update_date"/>
+	</resultMap>
+
+	<!-- 根据用户ID查询投资记录 -->
+	<select id="selectByUserId" resultMap="investmentRecordMap">
+		SELECT * FROM tb_investment_record 
+		WHERE user_id = #{userId}
+		ORDER BY order_date DESC
+	</select>
+
+	<!-- 根据用户ID和状态查询投资记录 -->
+	<select id="selectByUserIdAndStatus" resultMap="investmentRecordMap">
+		SELECT * FROM tb_investment_record 
+		WHERE user_id = #{userId} AND status = #{status}
+		ORDER BY order_date DESC
+	</select>
+
+	<!-- 根据项目ID查询投资记录 -->
+	<select id="selectByProjectId" resultMap="investmentRecordMap">
+		SELECT * FROM tb_investment_record 
+		WHERE project_id = #{projectId}
+		ORDER BY order_date DESC
+	</select>
+
+	<!-- 查询用户总投资金额 -->
+	<select id="selectTotalInvestmentByUserId" resultType="long">
+		SELECT COALESCE(SUM(investment_amount), 0) 
+		FROM tb_investment_record 
+		WHERE user_id = #{userId}
+	</select>
+
+	<!-- 查询用户总收益金额 -->
+	<select id="selectTotalProfitByUserId" resultType="long">
+		SELECT COALESCE(SUM(profit_amount), 0) 
+		FROM tb_investment_record 
+		WHERE user_id = #{userId} AND status = 1
+	</select>
+
+	<!-- 分页查询用户投资记录 -->
+	<select id="selectPageByUserId" resultMap="investmentRecordMap">
+		SELECT * FROM tb_investment_record 
+		WHERE user_id = #{userId}
+		<if test="status != null">
+			AND status = #{status}
+		</if>
+		ORDER BY order_date DESC
+		LIMIT #{offset}, #{limit}
+	</select>
+
+	<!-- 统计用户投资记录总数 -->
+	<select id="selectCountByUserId" resultType="int">
+		SELECT COUNT(*) FROM tb_investment_record 
+		WHERE user_id = #{userId}
+		<if test="status != null">
+			AND status = #{status}
+		</if>
+	</select>
+
+</mapper>

@@ -11,10 +11,13 @@ import io.renren.dto.TransactionDetailPageData;
 import io.renren.dto.ProfitDTO;
 import io.renren.dto.ProfitPageData;
 import io.renren.dto.UserDataSummaryDTO;
+import io.renren.dto.MyInvestmentDTO;
+import io.renren.dto.MyInvestmentPageData;
 import io.renren.entity.UserEntity;
 import io.renren.service.TransactionDetailService;
 import io.renren.service.ProfitService;
 import io.renren.service.UserService;
+import io.renren.service.MyInvestmentService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -42,6 +45,9 @@ public class ApiPersonalCenterController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private MyInvestmentService myInvestmentService;
 
     @Login
     @PostMapping("BalanceTransfers")
@@ -166,6 +172,31 @@ public class ApiPersonalCenterController {
             
         } catch (Exception e) {
             return new Result<UserDataSummaryDTO>().error("查询用户统计信息失败: " + e.getMessage());
+        }
+    }
+
+    @Login
+    @GetMapping("myprofit")
+    @ApiOperation("我的投资")
+    public Result<MyInvestmentPageData<MyInvestmentDTO>> getMyInvestment(
+            @ApiParam(value = "每页显示记录数", required = true) @RequestParam(Constant.LIMIT) Integer limit,
+            @ApiParam(value = "当前页码，从1开始", required = true) @RequestParam(Constant.PAGE) Integer page,
+            @ApiParam(value = "状态 0:正在生产 1:生产结束", required = true) @RequestParam Integer status,
+            @LoginUser UserEntity user) {
+        
+        try {
+            Map<String, Object> params = new HashMap<>();
+            params.put(Constant.PAGE, page);
+            params.put(Constant.LIMIT, limit);
+            params.put("status", status);
+            params.put("userId", user.getId().toString());
+
+            MyInvestmentPageData<MyInvestmentDTO> pageData = myInvestmentService.queryPageData(params);
+            
+            return new Result<MyInvestmentPageData<MyInvestmentDTO>>().ok(pageData);
+            
+        } catch (Exception e) {
+            return new Result<MyInvestmentPageData<MyInvestmentDTO>>().error("查询我的投资失败: " + e.getMessage());
         }
     }
 }
