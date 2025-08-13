@@ -6,6 +6,7 @@ import io.renren.common.utils.Result;
 import io.renren.common.validator.ValidatorUtils;
 import io.renren.dto.ChargeOrderDetailDTO;
 import io.renren.dto.ChargeRequestDTO;
+import io.renren.dto.ChargePageData;
 import io.renren.entity.UserEntity;
 import io.renren.enums.ChargeTypeEnum;
 import io.renren.service.ChargeOrderService;
@@ -68,6 +69,32 @@ public class ApiChargeController {
             
         } catch (Exception e) {
             return new Result<String>().error("充值失败: " + e.getMessage());
+        }
+    }
+
+    @Login
+    @GetMapping("page")
+    @ApiOperation("资金明细分页查询")
+    public Result<ChargePageData> getChargePage(
+            @ApiParam(value = "当前页码，从1开始", required = true) @RequestParam Integer page,
+            @ApiParam(value = "每页显示记录数", required = true) @RequestParam Integer limit,
+            @LoginUser UserEntity user) {
+        try {
+            // 参数验证
+            if (page == null || page < 1) {
+                return new Result<ChargePageData>().error("页码必须大于0");
+            }
+            if (limit == null || limit < 1 || limit > 100) {
+                return new Result<ChargePageData>().error("每页记录数必须在1-100之间");
+            }
+
+            // 获取分页数据
+            ChargePageData pageData = chargeOrderService.getChargePageData(user.getId(), page, limit);
+            
+            return new Result<ChargePageData>().ok(pageData);
+            
+        } catch (Exception e) {
+            return new Result<ChargePageData>().error("获取资金明细失败: " + e.getMessage());
         }
     }
 }

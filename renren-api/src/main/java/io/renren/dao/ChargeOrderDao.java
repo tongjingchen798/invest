@@ -66,4 +66,13 @@ public interface ChargeOrderDao extends BaseMapper<ChargeOrderEntity> {
      * @return 充值次数
      */
     Long selectCountByUserId(@Param("userId") Long userId);
+
+    /**
+     * 分页查询用户充值订单
+     * @param userId 用户ID
+     * @param offset 偏移量
+     * @param limit 限制数量
+     * @return 充值订单列表
+     */
+    List<ChargeOrderEntity> selectPageByUserId(@Param("userId") Long userId, @Param("offset") Integer offset, @Param("limit") Integer limit);
 }

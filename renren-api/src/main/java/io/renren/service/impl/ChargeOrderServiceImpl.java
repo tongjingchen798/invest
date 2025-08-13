@@ -3,6 +3,7 @@ package io.renren.service.impl;
 import io.renren.common.service.impl.BaseServiceImpl;
 import io.renren.dao.ChargeOrderDao;
 import io.renren.dto.ChargeOrderDetailDTO;
+import io.renren.dto.ChargePageData;
 import io.renren.entity.ChargeOrderEntity;
 import io.renren.enums.ChargeTypeEnum;
 import io.renren.service.ChargeOrderService;
@@ -11,7 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -94,6 +97,106 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
     @Override
     public Long getChargeCountByUserId(Long userId) {
         return chargeOrderDao.selectCountByUserId(userId);
+    }
+
+    @Override
+    public ChargePageData getChargePageData(Long userId, Integer page, Integer limit) {
+        try {
+            // 计算偏移量
+            int offset = (page - 1) * limit;
+            
+            // 查询总数
+            Long total = chargeOrderDao.selectCountByUserId(userId);
+            
+            // 查询分页数据
+            List<ChargeOrderEntity> chargeOrders = chargeOrderDao.selectPageByUserId(userId, offset, limit);
+            
+            // 转换为DTO列表
+            List<ChargeOrderDetailDTO> dtoList = convertToDTOList(chargeOrders);
+            
+            // 计算汇总信息
+            Map<String, Object> sum = calculateSum(chargeOrders);
+            
+            // 构建分页数据
+            ChargePageData pageData = new ChargePageData();
+            pageData.setList(dtoList);
+            pageData.setSum(sum);
+            pageData.setTotal(total.intValue());
+            
+            return pageData;
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("获取充值分页数据失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 转换为DTO列表
+     */
+    private List<ChargeOrderDetailDTO> convertToDTOList(List<ChargeOrderEntity> chargeOrders) {
+        List<ChargeOrderDetailDTO> dtoList = new ArrayList<>();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        
+        for (ChargeOrderEntity order : chargeOrders) {
+            ChargeOrderDetailDTO dto = new ChargeOrderDetailDTO();
+            BeanUtils.copyProperties(order, dto);
+            
+            // 格式化日期字段
+            if (order.getChargeTime() != null) {
+                dto.setChargeTime(sdf.format(order.getChargeTime()));
+            }
+            if (order.getCreateTime() != null) {
+                dto.setCreateTime(sdf.format(order.getCreateTime()));
+            }
+            
+            dtoList.add(dto);
+        }
+        
+        return dtoList;
+    }
+
+    /**
+     * 计算汇总信息
+     */
+    private Map<String, Object> calculateSum(List<ChargeOrderEntity> chargeOrders) {
+        Map<String, Object> sum = new HashMap<>();
+        long totalAmount = 0;
+        long totalRealAmount = 0;
+        long totalUAmount = 0;
+        int successCount = 0;
+        int pendingCount = 0;
+        int failedCount = 0;
+        
+        for (ChargeOrderEntity order : chargeOrders) {
+            totalAmount += order.getAmount() != null ? order.getAmount() : 0;
+            totalRealAmount += order.getRealAmount() != null ? order.getRealAmount() : 0;
+            totalUAmount += order.getUamout() != null ? order.getUamout() : 0;
+            
+            if (order.getState() != null) {
+                switch (order.getState()) {
+                    case 0:
+                        pendingCount++;
+                        break;
+                    case 1:
+                        successCount++;
+                        break;
+                    case 2:
+                        failedCount++;
+                        break;
+                }
+            }
+        }
+        
+        sum.put("totalAmount", totalAmount);
+        sum.put("totalRealAmount", totalRealAmount);
+        sum.put("totalUAmount", totalUAmount);
+        sum.put("successCount", successCount);
+        sum.put("pendingCount", pendingCount);
+        sum.put("failedCount", failedCount);
+        sum.put("totalCount", chargeOrders.size());
+        
+        return sum;
     }
 
     @Override

@@ -2,6 +2,7 @@ package io.renren.service;
 
 import io.renren.common.service.BaseService;
 import io.renren.dto.ChargeOrderDetailDTO;
+import io.renren.dto.ChargePageData;
 import io.renren.entity.ChargeOrderEntity;
 
 import java.util.List;
@@ -81,4 +82,13 @@ public interface ChargeOrderService extends BaseService<ChargeOrderEntity> {
      * @return 充值订单号
      */
     String createChargeOrder(Long userId, Long amount, Integer chargeType, Long channelid);
+
+    /**
+     * 分页查询用户充值记录
+     * @param userId 用户ID
+     * @param page 页码
+     * @param limit 每页大小
+     * @return 分页数据
+     */
+    ChargePageData getChargePageData(Long userId, Integer page, Integer limit);
 }
