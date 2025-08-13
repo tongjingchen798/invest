@@ -18,6 +18,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+
 /**
  * 充值订单服务实现类
  *
@@ -94,34 +97,33 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
         return chargeOrderDao.selectTotalAmountByUserId(userId);
     }
 
-    @Override
-    public Long getChargeCountByUserId(Long userId) {
-        return chargeOrderDao.selectCountByUserId(userId);
-    }
+
 
     @Override
     public ChargePageData getChargePageData(Long userId, Integer page, Integer limit) {
         try {
-            // 计算偏移量
-            int offset = (page - 1) * limit;
+            // 使用MyBatis-Plus分页查询
+            Page<ChargeOrderEntity> pageParam = new Page<>(page, limit);
             
-            // 查询总数
-            Long total = chargeOrderDao.selectCountByUserId(userId);
+            // 构建查询条件
+            QueryWrapper<ChargeOrderEntity> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("user_id", userId)
+                       .orderByDesc("create_time", "id");
             
-            // 查询分页数据
-            List<ChargeOrderEntity> chargeOrders = chargeOrderDao.selectPageByUserId(userId, offset, limit);
+            // 执行分页查询
+            Page<ChargeOrderEntity> result = chargeOrderDao.selectPage(pageParam, queryWrapper);
             
             // 转换为DTO列表
-            List<ChargeOrderDetailDTO> dtoList = convertToDTOList(chargeOrders);
+            List<ChargeOrderDetailDTO> dtoList = convertToDTOList(result.getRecords());
             
             // 计算汇总信息
-            Map<String, Object> sum = calculateSum(chargeOrders);
+            Map<String, Object> sum = calculateSum(result.getRecords());
             
             // 构建分页数据
             ChargePageData pageData = new ChargePageData();
             pageData.setList(dtoList);
             pageData.setSum(sum);
-            pageData.setTotal(total.intValue());
+            pageData.setTotal((int) result.getTotal());
             
             return pageData;
             

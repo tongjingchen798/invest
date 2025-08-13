@@ -66,12 +66,6 @@ public interface ChargeOrderService extends BaseService<ChargeOrderEntity> {
      */
     Long getTotalChargeAmountByUserId(Long userId);
 
-    /**
-     * 统计用户充值次数
-     * @param userId 用户ID
-     * @return 充值次数
-     */
-    Long getChargeCountByUserId(Long userId);
 
     /**
      * 创建充值订单

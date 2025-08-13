@@ -93,19 +93,4 @@
         WHERE user_id = #{userId} AND state = 1
     </select>
 
-    <!-- 统计用户充值次数 -->
-    <select id="selectCountByUserId" resultType="long">
-        SELECT COUNT(*) 
-        FROM tb_charge_order 
-        WHERE user_id = #{userId}
-    </select>
-
-    <!-- 分页查询用户充值订单 -->
-    <select id="selectPageByUserId" resultMap="chargeOrderMap">
-        SELECT * FROM tb_charge_order 
-        WHERE user_id = #{userId} 
-        ORDER BY create_time DESC
-        LIMIT #{offset}, #{limit}
-    </select>
-
 </mapper>

@@ -1,6 +1,6 @@
 package io.renren.dao;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import io.renren.common.dao.BaseDao;
 import io.renren.entity.ChargeOrderEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -16,7 +16,7 @@ import java.util.Map;
  * @date 2024-01-01 00:00:00
  */
 @Mapper
-public interface ChargeOrderDao extends BaseMapper<ChargeOrderEntity> {
+public interface ChargeOrderDao extends BaseDao<ChargeOrderEntity> {
 
     /**
      * 根据用户ID查询充值订单
@@ -60,19 +60,6 @@ public interface ChargeOrderDao extends BaseMapper<ChargeOrderEntity> {
      */
     Long selectTotalAmountByUserId(@Param("userId") Long userId);
 
-    /**
-     * 统计用户充值次数
-     * @param userId 用户ID
-     * @return 充值次数
-     */
-    Long selectCountByUserId(@Param("userId") Long userId);
-
-    /**
-     * 分页查询用户充值订单
-     * @param userId 用户ID
-     * @param offset 偏移量
-     * @param limit 限制数量
-     * @return 充值订单列表
-     */
-    List<ChargeOrderEntity> selectPageByUserId(@Param("userId") Long userId, @Param("offset") Integer offset, @Param("limit") Integer limit);
+    // 使用MyBatis-Plus的BaseMapper提供的基础CRUD方法
+    // 分页查询通过selectPage方法实现
 }
