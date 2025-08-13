@@ -18,4 +18,12 @@ public interface ProfitEndedService {
      * @return 付息还本记录
      */
     ProfitEndedDTO getProfitEndedRecord(Long userId);
+
+    /**
+     * 获取用户投资中项目统计
+     *
+     * @param userId 用户ID
+     * @return 投资中项目统计
+     */
+    ProfitEndedDTO getProfitInvestingRecord(Long userId);
 }

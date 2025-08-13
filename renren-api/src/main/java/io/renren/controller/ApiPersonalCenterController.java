@@ -209,6 +209,18 @@ public class ApiPersonalCenterController {
     }
 
     @Login
+    @GetMapping("profitInvesting")
+    @ApiOperation("付息还本【代收，已收】- 投资中项目")
+    public Result<ProfitEndedDTO> getProfitInvesting(@LoginUser UserEntity user) {
+        try {
+            ProfitEndedDTO profitEndedDTO = profitEndedService.getProfitInvestingRecord(user.getId());
+            return new Result<ProfitEndedDTO>().ok(profitEndedDTO);
+        } catch (Exception e) {
+            return new Result<ProfitEndedDTO>().error("获取投资中项目统计失败: " + e.getMessage());
+        }
+    }
+
+    @Login
     @GetMapping("userDataSummary")
     @ApiOperation("查询用户统计信息")
     public Result<UserDataSummaryDTO> getUserDataSummary(@LoginUser UserEntity user) {
