@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.dao.ChargeOrderDao">
+
+    <resultMap type="io.renren.entity.ChargeOrderEntity" id="chargeOrderMap">
+        <result property="chargeId" column="charge_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="mobile" column="mobile"/>
+        <result property="agent" column="agent"/>
+        <result property="salesmanid" column="salesmanid"/>
+        <result property="channel" column="channel"/>
+        <result property="channelType" column="channel_type"/>
+        <result property="channelid" column="channelid"/>
+        <result property="merchantid" column="merchantid"/>
+        <result property="merchantname" column="merchantname"/>
+        <result property="orderno" column="orderno"/>
+        <result property="threeorderNo" column="threeorder_no"/>
+        <result property="platform" column="platform"/>
+        <result property="amount" column="amount"/>
+        <result property="realAmount" column="real_amount"/>
+        <result property="uamout" column="uamout"/>
+        <result property="uprice" column="uprice"/>
+        <result property="uRealAmout" column="u_real_amout"/>
+        <result property="walletId" column="wallet_id"/>
+        <result property="walletAddr" column="wallet_addr"/>
+        <result property="state" column="state"/>
+        <result property="infoIp" column="info_ip"/>
+        <result property="operCode" column="oper_code"/>
+        <result property="remark" column="remark"/>
+        <result property="sourcetypeName" column="sourcetype_name"/>
+        <result property="chargeTime" column="charge_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- 根据用户ID查询充值订单 -->
+    <select id="selectByUserId" resultMap="chargeOrderMap">
+        SELECT * FROM tb_charge_order 
+        WHERE user_id = #{userId} 
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 根据订单号查询充值订单 -->
+    <select id="selectByOrderno" resultMap="chargeOrderMap">
+        SELECT * FROM tb_charge_order 
+        WHERE orderno = #{orderno}
+    </select>
+
+    <!-- 根据第三方订单号查询充值订单 -->
+    <select id="selectByThreeOrderNo" resultMap="chargeOrderMap">
+        SELECT * FROM tb_charge_order 
+        WHERE threeorder_no = #{threeorderNo}
+    </select>
+
+    <!-- 根据状态查询充值订单 -->
+    <select id="selectByState" resultMap="chargeOrderMap">
+        SELECT * FROM tb_charge_order 
+        WHERE state = #{state} 
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 根据条件查询充值订单 -->
+    <select id="selectByParams" resultMap="chargeOrderMap" parameterType="map">
+        SELECT * FROM tb_charge_order 
+        <where>
+            <if test="userId != null">
+                AND user_id = #{userId}
+            </if>
+            <if test="state != null">
+                AND state = #{state}
+            </if>
+            <if test="channel != null and channel != ''">
+                AND channel = #{channel}
+            </if>
+            <if test="agent != null and agent != ''">
+                AND agent = #{agent}
+            </if>
+            <if test="startTime != null">
+                AND create_time >= #{startTime}
+            </if>
+            <if test="endTime != null">
+                AND create_time &lt;= #{endTime}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 统计用户充值总额 -->
+    <select id="selectTotalAmountByUserId" resultType="long">
+        SELECT COALESCE(SUM(real_amount), 0) 
+        FROM tb_charge_order 
+        WHERE user_id = #{userId} AND state = 1
+    </select>
+
+    <!-- 统计用户充值次数 -->
+    <select id="selectCountByUserId" resultType="long">
+        SELECT COUNT(*) 
+        FROM tb_charge_order 
+        WHERE user_id = #{userId}
+    </select>
+
+</mapper>
