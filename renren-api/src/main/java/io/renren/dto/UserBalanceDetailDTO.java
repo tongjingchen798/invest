@@ -3,7 +3,6 @@ package io.renren.dto;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -72,9 +71,9 @@ public class UserBalanceDetailDTO implements Serializable {
     private String mobile;
 
     /**
-     * 原始金额
+     * 原始金额（分）
      */
-    private BigDecimal originalAmount;
+    private Long originalAmount;
 
     /**
      * 备注
@@ -102,19 +101,19 @@ public class UserBalanceDetailDTO implements Serializable {
     private String streamId;
 
     /**
-     * 交易后金额
+     * 交易后金额（分）
      */
-    private BigDecimal amountAfterTransaction;
+    private Long amountAfterTransaction;
 
     /**
-     * 交易金额
+     * 交易金额（分）
      */
-    private BigDecimal transactionAmount;
+    private Long transactionAmount;
 
     /**
-     * 优惠券金额
+     * 优惠券金额（分）
      */
-    private BigDecimal couponAmount;
+    private Long couponAmount;
 
     /**
      * 创建时间

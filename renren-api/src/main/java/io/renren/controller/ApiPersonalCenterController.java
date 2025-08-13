@@ -14,12 +14,14 @@ import io.renren.dto.UserDataSummaryDTO;
 import io.renren.dto.MyInvestmentDTO;
 import io.renren.dto.MyInvestmentPageData;
 import io.renren.dto.BalanceDetailPageData;
+import io.renren.dto.TeamPointsDetailPageData;
 import io.renren.entity.UserEntity;
 import io.renren.service.TransactionDetailService;
 import io.renren.service.ProfitService;
 import io.renren.service.UserService;
 import io.renren.service.MyInvestmentService;
 import io.renren.service.BalanceDetailService;
+import io.renren.service.TeamPointsDetailService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -53,6 +55,9 @@ public class ApiPersonalCenterController {
 
     @Autowired
     private BalanceDetailService balanceDetailService;
+
+    @Autowired
+    private TeamPointsDetailService teamPointsDetailService;
 
     @Login
     @PostMapping("BalanceTransfers")
@@ -227,6 +232,27 @@ public class ApiPersonalCenterController {
             
         } catch (Exception e) {
             return new Result<MyInvestmentPageData<MyInvestmentDTO>>().error("查询我的投资失败: " + e.getMessage());
+        }
+    }
+
+    @Login
+    @GetMapping("teamPointsDetail")
+    @ApiOperation("积分明细")
+    public Result<TeamPointsDetailPageData> getTeamPointsDetail(
+            @ApiParam(value = "当前页码，从1开始", required = true) @RequestParam Integer page,
+            @ApiParam(value = "每页显示记录数", required = true) @RequestParam Integer limit,
+            @LoginUser UserEntity user) {
+        try {
+            if (page == null || page < 1) {
+                return new Result<TeamPointsDetailPageData>().error("页码必须大于0");
+            }
+            if (limit == null || limit < 1 || limit > 100) {
+                return new Result<TeamPointsDetailPageData>().error("每页记录数必须在1-100之间");
+            }
+            TeamPointsDetailPageData pageData = teamPointsDetailService.getTeamPointsDetailPageData(user.getId(), page, limit);
+            return new Result<TeamPointsDetailPageData>().ok(pageData);
+        } catch (Exception e) {
+            return new Result<TeamPointsDetailPageData>().error("获取积分明细失败: " + e.getMessage());
         }
     }
 }
