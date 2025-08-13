@@ -13,11 +13,13 @@ import io.renren.dto.ProfitPageData;
 import io.renren.dto.UserDataSummaryDTO;
 import io.renren.dto.MyInvestmentDTO;
 import io.renren.dto.MyInvestmentPageData;
+import io.renren.dto.BalanceDetailPageData;
 import io.renren.entity.UserEntity;
 import io.renren.service.TransactionDetailService;
 import io.renren.service.ProfitService;
 import io.renren.service.UserService;
 import io.renren.service.MyInvestmentService;
+import io.renren.service.BalanceDetailService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -48,6 +50,9 @@ public class ApiPersonalCenterController {
 
     @Autowired
     private MyInvestmentService myInvestmentService;
+
+    @Autowired
+    private BalanceDetailService balanceDetailService;
 
     @Login
     @PostMapping("BalanceTransfers")
@@ -133,6 +138,32 @@ public class ApiPersonalCenterController {
             
         } catch (Exception e) {
             return new Result<BalanceDTO>().error("获取账户余额失败: " + e.getMessage());
+        }
+    }
+
+    @Login
+    @GetMapping("grzxBalanceDetail")
+    @ApiOperation("资金明细")
+    public Result<BalanceDetailPageData> grzxBalanceDetail(
+            @ApiParam(value = "当前页码，从1开始", required = true) @RequestParam Integer page,
+            @ApiParam(value = "每页显示记录数", required = true) @RequestParam Integer limit,
+            @LoginUser UserEntity user) {
+        try {
+            // 参数验证
+            if (page == null || page < 1) {
+                return new Result<BalanceDetailPageData>().error("页码必须大于0");
+            }
+            if (limit == null || limit < 1 || limit > 100) {
+                return new Result<BalanceDetailPageData>().error("每页记录数必须在1-100之间");
+            }
+
+            // 获取资金明细分页数据
+            BalanceDetailPageData pageData = balanceDetailService.getBalanceDetailPageData(user.getId(), page, limit);
+            
+            return new Result<BalanceDetailPageData>().ok(pageData);
+            
+        } catch (Exception e) {
+            return new Result<BalanceDetailPageData>().error("获取资金明细失败: " + e.getMessage());
         }
     }
 
