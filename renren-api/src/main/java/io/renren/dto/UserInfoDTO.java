@@ -156,4 +156,17 @@ public class UserInfoDTO {
 
     @ApiModelProperty(value = "上级用户信息")
     private SuperiorUserInfoDTO superiorInfo;
+
+    // 新增字段 - 根据接口文档要求
+    @ApiModelProperty(value = "上级1级账户余额")
+    private Long superiorUa;
+
+    @ApiModelProperty(value = "上级2级账户余额")
+    private Long superiorUb;
+
+    @ApiModelProperty(value = "上级3级账户余额")
+    private Long superiorUc;
+
+    @ApiModelProperty(value = "上级邀请码")
+    private String upinviteCode;
 }

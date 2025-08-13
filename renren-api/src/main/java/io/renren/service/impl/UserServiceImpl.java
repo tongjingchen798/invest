@@ -82,10 +82,18 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, UserEntity> implem
 				superiorInfo.setSuperiorAgent(superiorUser.getAgent());
 				superiorInfo.setSuperiorAgentName(superiorUser.getAgentName());
 				
-				// 设置上级用户的U级账户余额（如果需要的话）
-				// 注意：这里可以根据业务需求决定是否返回上级用户的敏感信息
+				// 设置上级用户的U级账户余额
+				superiorInfo.setSuperiorUa(superiorUser.getUacnt());
+				superiorInfo.setSuperiorUb(superiorUser.getUbcnt());
+				superiorInfo.setSuperiorUc(superiorUser.getUccnt());
 				
 				userInfoDTO.setSuperiorInfo(superiorInfo);
+				
+				// 设置上级相关字段到主DTO
+				userInfoDTO.setUpinviteCode(superiorUser.getInviteCode());
+				userInfoDTO.setSuperiorUa(superiorUser.getUacnt());
+				userInfoDTO.setSuperiorUb(superiorUser.getUbcnt());
+				userInfoDTO.setSuperiorUc(superiorUser.getUccnt());
 			}
 		}
 
@@ -101,6 +109,65 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, UserEntity> implem
 		}
 		if (userInfoDTO.getTotalProfit() == null) {
 			userInfoDTO.setTotalProfit(user.getHistoryProfit());
+		}
+		
+		// 设置其他字段的默认值
+		if (userInfoDTO.getEndedItems() == null) {
+			userInfoDTO.setEndedItems(0L);
+		}
+		if (userInfoDTO.getEndedPrincipal() == null) {
+			userInfoDTO.setEndedPrincipal(0L);
+		}
+		if (userInfoDTO.getEndedProfit() == null) {
+			userInfoDTO.setEndedProfit(0L);
+		}
+		if (userInfoDTO.getItmes() == null) {
+			userInfoDTO.setItmes(0L);
+		}
+		if (userInfoDTO.getTodaybalance10() == null) {
+			userInfoDTO.setTodaybalance10(0L);
+		}
+		if (userInfoDTO.getTodaybalance20() == null) {
+			userInfoDTO.setTodaybalance20(0L);
+		}
+		if (userInfoDTO.getTodaybalance5() == null) {
+			userInfoDTO.setTodaybalance5(0L);
+		}
+		if (userInfoDTO.getTodaycharge100() == null) {
+			userInfoDTO.setTodaycharge100(0L);
+		}
+		if (userInfoDTO.getTodaycharge20() == null) {
+			userInfoDTO.setTodaycharge20(0L);
+		}
+		if (userInfoDTO.getTodaycharge50() == null) {
+			userInfoDTO.setTodaycharge50(0L);
+		}
+		if (userInfoDTO.getValid3user() == null) {
+			userInfoDTO.setValid3user(0L);
+		}
+		if (userInfoDTO.getValid6user() == null) {
+			userInfoDTO.setValid6user(0L);
+		}
+		if (userInfoDTO.getValid9user() == null) {
+			userInfoDTO.setValid9user(0L);
+		}
+		if (userInfoDTO.getVip1state() == null) {
+			userInfoDTO.setVip1state(0L);
+		}
+		if (userInfoDTO.getVip2state() == null) {
+			userInfoDTO.setVip2state(0L);
+		}
+		if (userInfoDTO.getVip3state() == null) {
+			userInfoDTO.setVip3state(0L);
+		}
+		if (userInfoDTO.getVip4state() == null) {
+			userInfoDTO.setVip4state(0L);
+		}
+		if (userInfoDTO.getVip5state() == null) {
+			userInfoDTO.setVip5state(0L);
+		}
+		if (userInfoDTO.getVip6state() == null) {
+			userInfoDTO.setVip6state(0L);
 		}
 
 		return userInfoDTO;
@@ -171,21 +238,23 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, UserEntity> implem
 			UserDataSummaryDTO summaryDTO = new UserDataSummaryDTO();
 			
 			// 设置充值相关统计
-			summaryDTO.setChargeMoney(user.getTotalRecharge() != null ? user.getTotalRecharge() : 0L);
-			summaryDTO.setChargeNum(user.getRechargeCount() != null ? user.getRechargeCount() : 0L);
-			
+			summaryDTO.setChargeMoney(user.getChargeSum() != null ? user.getChargeSum() : 0L);
+			//TODO 充值记录里面拿
+//			summaryDTO.setChargeNum(user.getc() != null ? user.getRechargeCount() : 0L);
+			summaryDTO.setChargeNum(0L);
 			// 设置投资收益统计
 			summaryDTO.setInvestmentIncome(user.getHistoryProfit() != null ? user.getHistoryProfit() : 0L);
 			
-			// 设置邀请相关统计
-			summaryDTO.setInviteIncome(user.getInviteProfit() != null ? user.getInviteProfit() : 0L);
-			summaryDTO.setInviteNum(user.getInviteCount() != null ? user.getInviteCount() : 0);
+			// 设置邀请相关统计 TODO 邀请人总收益
+//			summaryDTO.setInviteIncome(user.getInviteProfit() != null ? user.getInviteProfit() : 0L);
+			summaryDTO.setInviteIncome( 0L);
+			summaryDTO.setInviteNum(user.getUacnt() != null ? user.getUacnt().intValue() : 0);
 			
 			// 设置等级
-			summaryDTO.setVip(user.getVipLevel() != null ? user.getVipLevel() : 0);
+			summaryDTO.setVip(user.getVip() != null ? user.getVip() : 0);
 			
 			// 设置提现统计
-			summaryDTO.setWithdrawMoney(user.getTotalWithdraw() != null ? user.getTotalWithdraw() : 0L);
+			summaryDTO.setWithdrawMoney(user.getWithdrawSum() != null ? user.getWithdrawSum() : 0L);
 			
 			return summaryDTO;
 			
