@@ -2,21 +2,27 @@ package io.renren.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.renren.dao.UserDao;
 import io.renren.dao.WithdrawOrderDao;
+import io.renren.dto.RewardWithdrawRequestDTO;
 import io.renren.dto.UserWithdrawInfoDTO;
 import io.renren.dto.WithdrawPageData;
 import io.renren.dto.WithdrawQueryDTO;
+import io.renren.entity.UserEntity;
 import io.renren.entity.WithdrawOrderEntity;
 import io.renren.service.WithdrawService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 提现服务实现类
@@ -30,6 +36,12 @@ public class WithdrawServiceImpl implements WithdrawService {
 
     @Autowired
     private WithdrawOrderDao withdrawOrderDao;
+
+    @Autowired
+    private UserDao userDao;
+
+    // 订单号生成器
+    private static final AtomicLong orderNoGenerator = new AtomicLong(System.currentTimeMillis());
 
     @Override
     public Map<String, Object> checkFirstWithdraw(Long userId) {
@@ -119,6 +131,100 @@ public class WithdrawServiceImpl implements WithdrawService {
             e.printStackTrace();
             throw new RuntimeException("获取佣金提现分页数据失败: " + e.getMessage());
         }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Map<String, Object> submitRewardWithdraw(Long userId, RewardWithdrawRequestDTO requestDTO) {
+        try {
+
+            // 查询用户信息
+            UserEntity user = userDao.selectById(userId);
+            if (user == null) {
+                throw new RuntimeException("用户不存在");
+            }
+            
+            // 验证支付密码
+            if (!validatePayPassword(user, requestDTO.getPayPassword())) {
+                throw new RuntimeException("支付密码错误");
+            }
+            
+            // 检查佣金余额
+            if (user.getCommissionBalance() == null || user.getCommissionBalance() < requestDTO.getAmount()) {
+                throw new RuntimeException("佣金余额不足");
+            }
+            
+            // 检查提现金额限制
+            if (requestDTO.getAmount() < 1000) { // 最小提现金额10元（1000分）
+                throw new RuntimeException("提现金额不能少于10元");
+            }
+            
+            // 生成订单号
+            String orderNo = generateOrderNo();
+            
+            // 计算手续费和实际到账金额（假设手续费为1%）
+            long handFee = requestDTO.getAmount() / 100; // 1%手续费
+            long realAmount = requestDTO.getAmount() - handFee;
+            
+            // 创建提现订单
+            WithdrawOrderEntity withdrawOrder = new WithdrawOrderEntity();
+            withdrawOrder.setId(String.valueOf(System.currentTimeMillis()));
+            withdrawOrder.setUserId(userId.toString());
+            withdrawOrder.setMobile(user.getMobile());
+            withdrawOrder.setUsername(user.getUsername());
+            withdrawOrder.setAmount(requestDTO.getAmount());
+            withdrawOrder.setInputamount(requestDTO.getAmount());
+            withdrawOrder.setHandFee(handFee);
+            withdrawOrder.setRealAmount(realAmount);
+            withdrawOrder.setPayNo(requestDTO.getPayNo());
+            withdrawOrder.setPayName(user.getUsername());
+            withdrawOrder.setWithdrawType(2); // 佣金提现
+            withdrawOrder.setState(0); // 待审核
+            withdrawOrder.setOrderno(orderNo);
+            withdrawOrder.setCreateTime(new Date());
+            withdrawOrder.setWithdrawTime(new Date());
+            withdrawOrder.setRemark("佣金提现申请");
+            
+            // 保存提现订单
+            withdrawOrderDao.insert(withdrawOrder);
+            
+            // 扣除用户佣金余额
+            user.setCommissionBalance(user.getCommissionBalance() - requestDTO.getAmount());
+            userDao.updateById(user);
+            
+            // 构建返回结果
+            Map<String, Object> result = new HashMap<>();
+            result.put("orderNo", orderNo);
+            result.put("amount", requestDTO.getAmount());
+            result.put("handFee", handFee);
+            result.put("realAmount", realAmount);
+            result.put("status", "待审核");
+            result.put("message", "佣金提现申请提交成功");
+            
+            return result;
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("提交佣金提现申请失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 验证支付密码
+     */
+    private boolean validatePayPassword(UserEntity user, String payPassword) {
+        // 这里应该根据实际的密码验证逻辑来实现
+        // 暂时使用简单的字符串比较，实际项目中应该使用加密验证
+        return StringUtils.hasText(payPassword) && payPassword.equals(user.getPaymentPwd());
+    }
+
+    /**
+     * 生成订单号
+     */
+    private String generateOrderNo() {
+        long timestamp = System.currentTimeMillis();
+        long sequence = orderNoGenerator.incrementAndGet();
+        return "RW" + timestamp + String.format("%04d", sequence % 10000);
     }
 
     /**

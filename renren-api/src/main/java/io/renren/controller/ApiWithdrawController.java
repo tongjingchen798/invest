@@ -3,6 +3,7 @@ package io.renren.controller;
 import io.renren.annotation.Login;
 import io.renren.annotation.LoginUser;
 import io.renren.common.utils.Result;
+import io.renren.dto.RewardWithdrawRequestDTO;
 import io.renren.dto.WithdrawPageData;
 import io.renren.dto.WithdrawQueryDTO;
 import io.renren.entity.UserEntity;
@@ -44,7 +45,7 @@ public class ApiWithdrawController {
 
     @Login
     @GetMapping("page")
-    @ApiOperation("余额提现分页查询")
+    @ApiOperation("余额提现(提现记录分页查询)")
     public Result<WithdrawPageData> getWithdrawPage(
             @ApiParam(value = "每页显示记录数", required = true) @RequestParam Integer limit,
             @ApiParam(value = "当前页码，从1开始", required = true) @RequestParam Integer page,
@@ -137,6 +138,30 @@ public class ApiWithdrawController {
 
         } catch (Exception e) {
             return new Result<WithdrawPageData>().error("获取佣金提现分页数据失败: " + e.getMessage());
+        }
+    }
+
+    @Login
+    @PostMapping("rewardwithdraw")
+    @ApiOperation("前端佣金提现")
+    public Result<Map<String, Object>> submitRewardWithdraw(
+            @ApiParam(value = "提现金额（分）", required = true) @RequestParam Long amount,
+            @ApiParam(value = "收款人卡号", required = true) @RequestParam String payNo,
+            @ApiParam(value = "支付密码", required = true) @RequestParam String payPassword,
+            @LoginUser UserEntity user) {
+        try {
+            // 构建请求DTO
+            RewardWithdrawRequestDTO requestDTO = new RewardWithdrawRequestDTO();
+            requestDTO.setAmount(amount);
+            requestDTO.setPayNo(payNo);
+            requestDTO.setPayPassword(payPassword);
+
+            // 执行佣金提现
+            Map<String, Object> result = withdrawService.submitRewardWithdraw(user.getId(), requestDTO);
+            return new Result<Map<String, Object>>().ok(result);
+
+        } catch (Exception e) {
+            return new Result<Map<String, Object>>().error("提交佣金提现申请失败: " + e.getMessage());
         }
     }
 }
