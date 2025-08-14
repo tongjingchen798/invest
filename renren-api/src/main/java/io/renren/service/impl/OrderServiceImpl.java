@@ -2,9 +2,13 @@ package io.renren.service.impl;
 
 import io.renren.dao.InvestmentRecordDao;
 import io.renren.dao.ProjectDao;
+import io.renren.dao.UserDao;
+import io.renren.dao.UserBalanceDetailDao;
 import io.renren.dto.PlaceOrderDTO;
 import io.renren.entity.InvestmentRecordEntity;
 import io.renren.entity.ProjectEntity;
+import io.renren.entity.UserBalanceDetailEntity;
+import io.renren.entity.UserEntity;
 import io.renren.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,6 +36,12 @@ public class OrderServiceImpl implements OrderService {
 	@Autowired
 	private InvestmentRecordDao investmentRecordDao;
 	
+	@Autowired
+	private UserDao userDao;
+	
+	@Autowired
+	private UserBalanceDetailDao userBalanceDetailDao;
+	
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public Map<String, String> placeOrder(PlaceOrderDTO dto, Long userId) {
@@ -54,10 +64,18 @@ public class OrderServiceImpl implements OrderService {
 				return result;
 			}
 			
-			// 3. 生成订单号
+			// 3. 验证并扣减用户余额
+			Map<String, String> balanceResult = validateAndDeductBalance(userId, dto.getAmount());
+			if (!"success".equals(balanceResult.get("status"))) {
+				result.put("status", "error");
+				result.put("message", balanceResult.get("message"));
+				return result;
+			}
+			
+			// 4. 生成订单号
 			String orderNumber = generateOrderNumber();
 			
-			// 4. 创建投资记录
+			// 5. 创建投资记录
 			InvestmentRecordEntity investmentRecord = new InvestmentRecordEntity();
 			investmentRecord.setUserId(userId);
 			investmentRecord.setProjectId(dto.getInvestId());
@@ -76,10 +94,13 @@ public class OrderServiceImpl implements OrderService {
 			investmentRecord.setCreateDate(new Date());
 			investmentRecord.setUpdateDate(new Date());
 			
-			// 5. 保存投资记录
+			// 6. 保存投资记录
 			investmentRecordDao.insert(investmentRecord);
 			
-			// 6. 更新项目投资金额（如果需要）
+			// 7. 记录账变明细
+			recordBalanceDetail(userId, dto.getAmount(), orderNumber, project.getInvestName(), balanceResult.get("originalBalance"));
+			
+			// 8. 更新项目投资金额（如果需要）
 			// projectDao.updateInvestmentAmount(dto.getInvestId(), dto.getAmount());
 			
 			result.put("status", "success");
@@ -93,6 +114,77 @@ public class OrderServiceImpl implements OrderService {
 		}
 		
 		return result;
+	}
+	
+	/**
+	 * 验证并扣减用户余额
+	 */
+	private Map<String, String> validateAndDeductBalance(Long userId, Long amount) {
+		Map<String, String> result = new HashMap<>();
+		
+		try {
+			// 1. 获取用户信息
+			UserEntity user = userDao.getUserByUserId(userId);
+			if (user == null) {
+				result.put("status", "error");
+				result.put("message", "用户不存在");
+				return result;
+			}
+			
+			// 2. 验证用户可用余额是否充足
+			Long currentAssets = user.getAssets() != null ? user.getAssets() : 0L;
+			if (currentAssets < amount) {
+				result.put("status", "error");
+				result.put("message", "可用余额不足，当前可用余额: " + (currentAssets / 100.0) + "元，需要: " + (amount / 100.0) + "元");
+				return result;
+			}
+			
+			// 3. 执行余额扣款（原子操作，包含余额验证）
+			int updateRows = userDao.updateBalanceForInvestment(userId, amount);
+			if (updateRows == 0) {
+				result.put("status", "error");
+				result.put("message", "余额扣款失败，可能余额不足或用户不存在");
+				return result;
+			}
+			
+			// 4. 记录原始余额，用于账变记录
+			result.put("originalBalance", currentAssets.toString());
+			result.put("status", "success");
+			result.put("message", "余额扣款成功");
+			
+		} catch (Exception e) {
+			result.put("status", "error");
+			result.put("message", "余额验证失败: " + e.getMessage());
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * 记录账变明细
+	 */
+	private void recordBalanceDetail(Long userId, Long amount, String orderNumber, String projectName, String originalBalance) {
+		try {
+			UserBalanceDetailEntity balanceDetail = new UserBalanceDetailEntity();
+			balanceDetail.setUserId(userId);
+			balanceDetail.setTransactionDate(new Date());
+			balanceDetail.setBusinessType(1); // 1:购买流水
+			balanceDetail.setChannel("投资");
+			balanceDetail.setStreamId(orderNumber);
+			balanceDetail.setTransactionAmount(-amount); // 负数表示扣款
+			balanceDetail.setOriginalAmount(Long.parseLong(originalBalance));
+			balanceDetail.setAmountAfterTransaction(Long.parseLong(originalBalance) - amount);
+			balanceDetail.setRemarks("投资" + projectName + "，订单号：" + orderNumber);
+			balanceDetail.setStatus(1); // 1:正常
+			balanceDetail.setCreateDate(new Date());
+			balanceDetail.setUpdateDate(new Date());
+			
+			userBalanceDetailDao.insert(balanceDetail);
+			
+		} catch (Exception e) {
+			// 记录账变失败不影响主流程，只记录日志
+			e.printStackTrace();
+		}
 	}
 	
 	@Override
@@ -140,6 +232,21 @@ public class OrderServiceImpl implements OrderService {
 			if (project.getInvestRepeat() != null && dto.getCount() > project.getInvestRepeat()) {
 				result.put("status", "error");
 				result.put("message", "购买份数超过项目可买台数");
+				return result;
+			}
+			
+			// 7. 验证用户可用余额是否充足
+			UserEntity user = userDao.getUserByUserId(userId);
+			if (user == null) {
+				result.put("status", "error");
+				result.put("message", "用户不存在");
+				return result;
+			}
+			
+			Long currentAssets = user.getAssets() != null ? user.getAssets() : 0L;
+			if (currentAssets < dto.getAmount()) {
+				result.put("status", "error");
+				result.put("message", "可用余额不足，当前可用余额: " + (currentAssets / 100.0) + "元，需要: " + (dto.getAmount() / 100.0) + "元");
 				return result;
 			}
 			

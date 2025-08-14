@@ -7,6 +7,7 @@ import io.renren.entity.UserEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
 
@@ -30,4 +31,22 @@ public interface UserDao extends BaseDao<UserEntity> {
      * @return 用户列表
      */
     List<UserEntity> selectBySuperiorId(@Param("upinviteCode") String upinviteCode);
+
+    /**
+     * 更新用户余额（扣款）
+     * @param userId 用户ID
+     * @param amount 扣款金额（分）
+     * @return 影响行数
+     */
+    @Update("UPDATE tb_user SET assets = assets - #{amount}, history_investment = history_investment + #{amount}, today_investment = today_investment + #{amount} WHERE id = #{userId} AND assets >= #{amount}")
+    int updateBalanceForInvestment(@Param("userId") Long userId, @Param("amount") Long amount);
+
+    /**
+     * 更新用户累计投资金额
+     * @param userId 用户ID
+     * @param amount 投资金额（分）
+     * @return 影响行数
+     */
+    @Update("UPDATE tb_user SET history_investment = history_investment + #{amount}, today_investment = today_investment + #{amount} WHERE id = #{userId}")
+    int updateInvestmentAmount(@Param("userId") Long userId, @Param("amount") Long amount);
 }

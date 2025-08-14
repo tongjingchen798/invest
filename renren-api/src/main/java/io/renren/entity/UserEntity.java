@@ -236,7 +236,7 @@ public class UserEntity implements Serializable {
 	private Long privilegeCnt;
 
 	/**
-	 * 余额(分)
+	 * 我的资产=余额+可提现+等待收益
 	 */
 	private Long balance;
 
@@ -392,9 +392,8 @@ public class UserEntity implements Serializable {
 	 */
 	private Long viplr;
 
-	// 新增字段 - 根据接口文档
 	/**
-	 * 资产
+	 * 可用余额(分为单位)
 	 */
 	private Long assets;
 
