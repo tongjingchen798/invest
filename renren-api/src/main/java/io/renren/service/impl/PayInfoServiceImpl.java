@@ -39,7 +39,7 @@ public class PayInfoServiceImpl extends BaseServiceImpl<PayInfoDao, PayInfoEntit
         
         // 使用 BaseServiceImpl 的标准分页处理
         IPage<PayInfoEntity> pageResult = baseDao.selectPage(
-            getPage(params, Constant.CREATE_DATE, false),
+            getPage(params, "create_time", false),
             queryWrapper
         );
         

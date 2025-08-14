@@ -47,7 +47,6 @@ public class ApiUserController {
     @ApiOperation("获取用户余额")
     public Result<BalanceDTO> getUserBalance(@LoginUser UserEntity user) {
         try {
-            // 从tb_user表查询用户余额信息
             UserEntity userBalance = userService.selectById(user.getId());
             
             if (userBalance == null) {

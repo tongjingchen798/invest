@@ -40,7 +40,7 @@
          
          // 使用 BaseServiceImpl 的标准分页处理
          IPage<TransactionDetailEntity> pageResult = baseDao.selectPage(
-             getPage(params, Constant.CREATE_DATE, false),
+             getPage(params, "create_time", false),
              queryWrapper
          );
          

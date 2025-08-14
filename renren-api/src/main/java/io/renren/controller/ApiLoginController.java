@@ -74,7 +74,7 @@ public class ApiLoginController {
         return new Result().ok(customerServices);
     }
 
-    	@PostMapping("retrieve")
+	@PostMapping("retrieve")
 	@ApiOperation("找回密码")
 	public Result retrievePassword(@RequestBody RetrievePasswordDTO dto) {
 		try {
