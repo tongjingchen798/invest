@@ -13,6 +13,8 @@ import io.renren.entity.SignRewardConfigEntity;
 import io.renren.entity.UserEntity;
 import io.renren.entity.UserSignInEntity;
 import io.renren.entity.UserSignStatisticsEntity;
+import io.renren.entity.UserBalanceDetailEntity;
+import io.renren.dao.UserBalanceDetailDao;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +47,9 @@ public class ApiQdController {
 
     @Autowired
     private SignRewardConfigDao signRewardConfigDao;
+
+    @Autowired
+    private UserBalanceDetailDao userBalanceDetailDao;
 
     @GetMapping("getUserQd")
     @ApiOperation("获取用户签到")
@@ -135,6 +140,56 @@ public class ApiQdController {
             // 保存签到记录
             userSignInDao.insert(signInRecord);
             
+            // 记录账变明细
+            UserBalanceDetailEntity userBalanceDetail = new UserBalanceDetailEntity();
+            userBalanceDetail.setUserId(user.getId());
+            
+            // 设置交易时间
+            Date now = new Date();
+            userBalanceDetail.setTransactionDate(now);
+            
+            // 设置业务类型：13签到奖励
+            userBalanceDetail.setBusinessType(13);
+            
+            // 设置渠道
+            userBalanceDetail.setChannel("1");
+            
+            // 设置交易流水ID（使用签到记录ID）
+            userBalanceDetail.setStreamId(signInRecord.getId().toString());
+            
+            // 设置使用金额（签到奖励金额）
+            userBalanceDetail.setUseAmount(rewardAmount);
+            
+            // 设置原始金额（签到前的余额）
+            userBalanceDetail.setOriginalAmount(user.getAssets() != null ? user.getAssets() : 0L);
+            
+            // 设置交易后金额（签到后的余额）
+            userBalanceDetail.setTransactionAmount(user.getAssets() != null ? user.getAssets() + rewardAmount : rewardAmount);
+            
+            // 设置备注：连续签到X天，送钱【金额】
+            String remarks = String.format("连续签到%d天，送钱【%d】", 
+                newContinuousDays, // 使用前面已经计算好的连续天数
+                rewardAmount / 100); // 转换为元显示
+            userBalanceDetail.setRemarks(remarks);
+            
+            // 设置状态：1正常
+            userBalanceDetail.setStatus(1);
+            
+            // 设置业务员ID和代理ID（如果有的话）
+//            if (user.getSalesmanId() != null) {
+//                userBalanceDetail.setSalesmanId(user.getSalesmanId());
+//            }
+//            if (user.getAgentId() != null) {
+//                userBalanceDetail.setAgentId(user.getAgentId());
+//            }
+            
+            // 设置创建和更新时间
+            userBalanceDetail.setCreateDate(now);
+            userBalanceDetail.setUpdateDate(now);
+            
+            // 插入账变记录
+            userBalanceDetailDao.insert(userBalanceDetail);
+
             // 更新或创建用户签到统计
             if (statistics == null) {
                 // 创建新的统计记录
