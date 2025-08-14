@@ -49,4 +49,27 @@ public interface UserDao extends BaseDao<UserEntity> {
      */
     @Update("UPDATE tb_user SET history_investment = history_investment + #{amount}, today_investment = today_investment + #{amount} WHERE id = #{userId}")
     int updateInvestmentAmount(@Param("userId") Long userId, @Param("amount") Long amount);
+
+    /**
+     * 更新用户投资统计信息（项目数、总本金等）
+     * @param userId 用户ID
+     * @param amount 投资金额（分）
+     * @return 影响行数
+     */
+    @Update("UPDATE tb_user SET itmes = itmes + 1, total_principal = total_principal + #{amount} WHERE id = #{userId}")
+    int updateInvestmentStatistics(@Param("userId") Long userId, @Param("amount") Long amount);
+
+    /**
+     * 更新用户投资相关字段（综合更新）
+     * @param userId 用户ID
+     * @param amount 投资金额（分）
+     * @return 影响行数
+     */
+    @Update("UPDATE tb_user SET " +
+            "history_investment = history_investment + #{amount}, " +
+            "today_investment = today_investment + #{amount}, " +
+            "itmes = itmes + 1, " +
+            "total_principal = total_principal + #{amount} " +
+            "WHERE id = #{userId}")
+    int updateAllInvestmentFields(@Param("userId") Long userId, @Param("amount") Long amount);
 }

@@ -164,13 +164,10 @@
      @ApiModelProperty(value = "是否限时抢购 1是，0不是")
      private Integer rushbuyFalg;
  
-     @ApiModelProperty(value = "限时可抢份数")
-     private Integer rushbuyNum;
- 
-     @ApiModelProperty(value = "限时可抢剩余份数")
-     private Integer rushbuyRemainNum;
- 
-     @ApiModelProperty(value = "限时抢购开始时间")
+    @ApiModelProperty(value = "限时可抢份数")
+    private Integer rushbuyNum;
+
+    @ApiModelProperty(value = "限时抢购开始时间")
      private String rushbuyStart;
  
      @ApiModelProperty(value = "rushbuyStartTime")

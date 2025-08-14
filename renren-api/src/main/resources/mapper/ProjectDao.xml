@@ -3,5 +3,76 @@
 
 <mapper namespace="io.renren.dao.ProjectDao">
 
+    <!-- 更新项目投资金额和参与人数 -->
+    <update id="updateInvestmentAmount" parameterType="map">
+        UPDATE tb_project 
+        SET 
+            join_num = join_num + 1,
+            update_date = NOW()
+        WHERE invest_id = #{projectId}
+    </update>
+
+    <!-- 检查项目投资限额 -->
+    <select id="checkInvestmentLimit" resultType="boolean" parameterType="map">
+        SELECT 
+            CASE 
+                WHEN join_num < invest_repeat THEN 1
+                ELSE 0
+            END as can_invest
+        FROM tb_project 
+        WHERE invest_id = #{projectId}
+    </select>
+
+    <!-- 根据ID查询项目详情 -->
+    <select id="selectProjectById" resultType="io.renren.entity.ProjectEntity">
+        SELECT * FROM tb_project WHERE invest_id = #{projectId}
+    </select>
+
+    <!-- 查询上架的项目列表 -->
+    <select id="selectActiveProjects" resultType="io.renren.entity.ProjectEntity">
+        SELECT * FROM tb_project WHERE status = 1 ORDER BY sort ASC, create_date DESC
+    </select>
+
+    <!-- 根据类型查询项目 -->
+    <select id="selectProjectsByType" resultType="io.renren.entity.ProjectEntity">
+        SELECT * FROM tb_project WHERE project_type = #{projectType} AND status = 1 ORDER BY sort ASC
+    </select>
+
+    <!-- 根据周期类型查询项目 -->
+    <select id="selectProjectsByCycleType" resultType="io.renren.entity.ProjectEntity">
+        SELECT * FROM tb_project WHERE cycle_type = #{cycleType} AND status = 1 ORDER BY sort ASC
+    </select>
+
+    <!-- 分页查询项目 -->
+    <select id="selectProjectsByPage" resultType="io.renren.entity.ProjectEntity" parameterType="map">
+        SELECT * FROM tb_project 
+        WHERE status = 1
+        <if test="projectType != null">
+            AND project_type = #{projectType}
+        </if>
+        <if test="cycleType != null">
+            AND cycle_type = #{cycleType}
+        </if>
+        <if test="typeId != null">
+            AND type_id = #{typeId}
+        </if>
+        ORDER BY sort ASC, create_date DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 统计项目总数 -->
+    <select id="selectProjectCount" resultType="int" parameterType="map">
+        SELECT COUNT(*) FROM tb_project 
+        WHERE status = 1
+        <if test="projectType != null">
+            AND project_type = #{projectType}
+        </if>
+        <if test="cycleType != null">
+            AND cycle_type = #{cycleType}
+        </if>
+        <if test="typeId != null">
+            AND type_id = #{typeId}
+        </if>
+    </select>
 
 </mapper>

@@ -99,8 +99,18 @@ public class OrderServiceImpl implements OrderService {
 			// 7. 记录账变明细
 			recordBalanceDetail(userId, dto.getAmount(), orderNumber, project.getInvestName(), balanceResult.get("originalBalance"));
 			
-			// 8. 更新项目投资金额（如果需要）
-			// projectDao.updateInvestmentAmount(dto.getInvestId(), dto.getAmount());
+			// 8. 更新项目投资金额和参与人数
+			int projectUpdateRows = projectDao.updateInvestmentAmount(dto.getInvestId(), dto.getAmount());
+			if (projectUpdateRows == 0) {
+				throw new RuntimeException("更新项目投资金额失败");
+			}
+			
+			// 9. 更新用户表中的投资相关字段（项目数、总本金等）
+			int userUpdateRows = userDao.updateAllInvestmentFields(userId, dto.getAmount());
+			if (userUpdateRows == 0) {
+				throw new RuntimeException("更新用户投资统计失败");
+			}
+			
 			
 			result.put("status", "success");
 			result.put("message", "下单成功");
@@ -142,7 +152,7 @@ public class OrderServiceImpl implements OrderService {
 			int updateRows = userDao.updateBalanceForInvestment(userId, amount);
 			if (updateRows == 0) {
 				result.put("status", "error");
-				result.put("message", "余额扣款失败，可能余额不足或用户不存在");
+				result.put("message", "余额扣款失败，余额不足");
 				return result;
 			}
 			
@@ -238,7 +248,15 @@ public class OrderServiceImpl implements OrderService {
 				return result;
 			}
 			
-			// 7. 验证用户可用余额是否充足
+//			// 7. 验证项目投资限额（参与人数和剩余份数）
+//			boolean canInvest = projectDao.checkInvestmentLimit(dto.getInvestId(), dto.getAmount());
+//			if (!canInvest) {
+//				result.put("status", "error");
+//				result.put("message", "项目投资限额已满或剩余份数不足");
+//				return result;
+//			}
+			
+			// 8. 验证用户可用余额是否充足
 			UserEntity user = userDao.getUserByUserId(userId);
 			if (user == null) {
 				result.put("status", "error");
