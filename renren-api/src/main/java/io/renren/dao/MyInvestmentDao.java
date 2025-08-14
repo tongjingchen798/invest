@@ -1,7 +1,10 @@
 package io.renren.dao;
 
-import io.renren.common.dao.BaseDao;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.renren.dto.MyInvestmentDTO;
+import io.renren.entity.InvestmentRecordEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -14,19 +17,13 @@ import java.util.Map;
  * @author Mark sunlightcs@gmail.com
  */
 @Mapper
-public interface MyInvestmentDao extends BaseDao<MyInvestmentDTO> {
+public interface MyInvestmentDao extends BaseMapper<InvestmentRecordEntity> {
 
     /**
-     * 查询总数
+     * 分页查询投资列表
+     * @param page 分页对象
      * @param params 查询参数
-     * @return 总数
+     * @return 分页结果
      */
-    int selectTotal(Map<String, Object> params);
-
-    /**
-     * 分页查询列表
-     * @param params 查询参数
-     * @return 投资列表
-     */
-    List<MyInvestmentDTO> selectList(Map<String, Object> params);
+    IPage<MyInvestmentDTO> selectPage(IPage<MyInvestmentDTO> page, @Param("params") Map<String, Object> params);
 }

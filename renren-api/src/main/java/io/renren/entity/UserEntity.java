@@ -417,10 +417,6 @@ public class UserEntity implements Serializable {
 	 */
 	private Long flag;
 
-	/**
-	 * 身份证号 (没有使用)
-	 */
-	private String idCard;
 
 	/**
 	 * 项目数
@@ -437,40 +433,40 @@ public class UserEntity implements Serializable {
 	 */
 	private String loginTime;
 
-	/**
-	 * 支付密码 (没有使用)
-	 */
-	private String paymentPwd;
+//	/**
+//	 * 支付密码 (没有使用)
+//	 */
+//	private String paymentPwd;
 
-	/**
-	 * 今日余额10
-	 */
-	private Long todaybalance10;
-
-	/**
-	 * 今日余额20
-	 */
-	private Long todaybalance20;
-
-	/**
-	 * 今日余额5
-	 */
-	private Long todaybalance5;
-
-	/**
-	 * 今日充值100
-	 */
-	private Long todaycharge100;
-
-	/**
-	 * 今日充值20
-	 */
-	private Long todaycharge20;
-
-	/**
-	 * 今日充值50
-	 */
-	private Long todaycharge50;
+//	/**
+//	 * 今日余额10
+//	 */
+//	private Long todaybalance10;
+//
+//	/**
+//	 * 今日余额20
+//	 */
+//	private Long todaybalance20;
+//
+//	/**
+//	 * 今日余额5
+//	 */
+//	private Long todaybalance5;
+//
+//	/**
+//	 * 今日充值100
+//	 */
+//	private Long todaycharge100;
+//
+//	/**
+//	 * 今日充值20
+//	 */
+//	private Long todaycharge20;
+//
+//	/**
+//	 * 今日充值50
+//	 */
+//	private Long todaycharge50;
 
 	/**
 	 * 总本金

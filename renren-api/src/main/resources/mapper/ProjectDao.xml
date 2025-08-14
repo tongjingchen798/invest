@@ -13,15 +13,15 @@
     </update>
 
     <!-- 检查项目投资限额 -->
-    <select id="checkInvestmentLimit" resultType="boolean" parameterType="map">
-        SELECT 
-            CASE 
-                WHEN join_num < invest_repeat THEN 1
-                ELSE 0
-            END as can_invest
-        FROM tb_project 
-        WHERE invest_id = #{projectId}
-    </select>
+<!--    <select id="checkInvestmentLimit" resultType="boolean" parameterType="map">-->
+<!--        SELECT -->
+<!--            CASE -->
+<!--                WHEN join_num < invest_repeat THEN 1-->
+<!--                ELSE 0-->
+<!--            END as can_invest-->
+<!--        FROM tb_project -->
+<!--        WHERE invest_id = #{projectId}-->
+<!--    </select>-->
 
     <!-- 根据ID查询项目详情 -->
     <select id="selectProjectById" resultType="io.renren.entity.ProjectEntity">

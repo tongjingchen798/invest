@@ -145,10 +145,10 @@ public class WithdrawServiceImpl implements WithdrawService {
                 throw new RuntimeException("用户不存在");
             }
             
-            // 验证支付密码
-            if (!validatePayPassword(user, requestDTO.getPayPassword())) {
-                throw new RuntimeException("支付密码错误");
-            }
+//            // 验证支付密码
+//            if (!validatePayPassword(user, requestDTO.getPayPassword())) {
+//                throw new RuntimeException("支付密码错误");
+//            }
             
             // 检查佣金余额
             if (user.getCommissionBalance() == null || user.getCommissionBalance() < requestDTO.getAmount()) {
@@ -249,14 +249,14 @@ public class WithdrawServiceImpl implements WithdrawService {
         }
     }
 
-    /**
-     * 验证支付密码
-     */
-    private boolean validatePayPassword(UserEntity user, String payPassword) {
-        // 这里应该根据实际的密码验证逻辑来实现
-        // 暂时使用简单的字符串比较，实际项目中应该使用加密验证
-        return StringUtils.hasText(payPassword) && payPassword.equals(user.getPaymentPwd());
-    }
+//    /**
+//     * 验证支付密码
+//     */
+//    private boolean validatePayPassword(UserEntity user, String payPassword) {
+//        // 这里应该根据实际的密码验证逻辑来实现
+//        // 暂时使用简单的字符串比较，实际项目中应该使用加密验证
+//        return StringUtils.hasText(payPassword) && payPassword.equals(user.getPaymentPwd());
+//    }
 
     /**
      * 生成订单号

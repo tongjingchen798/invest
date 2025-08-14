@@ -69,11 +69,11 @@ public interface ProjectDao extends BaseMapper<ProjectEntity> {
 	 */
 	int updateInvestmentAmount(@Param("projectId") Long projectId, @Param("amount") Long amount);
 	
-	/**
-	 * 检查项目投资限额
-	 * @param projectId 项目ID
-	 * @param amount 投资金额
-	 * @return 是否可投资
-	 */
-	boolean checkInvestmentLimit(@Param("projectId") Long projectId, @Param("amount") Long amount);
+//	/**
+//	 * 检查项目投资限额
+//	 * @param projectId 项目ID
+//	 * @param amount 投资金额
+//	 * @return 是否可投资
+//	 */
+//	boolean checkInvestmentLimit(@Param("projectId") Long projectId, @Param("amount") Long amount);
 }

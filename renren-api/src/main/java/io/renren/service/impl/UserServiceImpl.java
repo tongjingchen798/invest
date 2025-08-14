@@ -121,24 +121,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, UserEntity> implem
 		if (userInfoDTO.getItmes() == null) {
 			userInfoDTO.setItmes(0L);
 		}
-		if (userInfoDTO.getTodaybalance10() == null) {
-			userInfoDTO.setTodaybalance10(0L);
-		}
-		if (userInfoDTO.getTodaybalance20() == null) {
-			userInfoDTO.setTodaybalance20(0L);
-		}
-		if (userInfoDTO.getTodaybalance5() == null) {
-			userInfoDTO.setTodaybalance5(0L);
-		}
-		if (userInfoDTO.getTodaycharge100() == null) {
-			userInfoDTO.setTodaycharge100(0L);
-		}
-		if (userInfoDTO.getTodaycharge20() == null) {
-			userInfoDTO.setTodaycharge20(0L);
-		}
-		if (userInfoDTO.getTodaycharge50() == null) {
-			userInfoDTO.setTodaycharge50(0L);
-		}
+
 		if (userInfoDTO.getValid3user() == null) {
 			userInfoDTO.setValid3user(0L);
 		}

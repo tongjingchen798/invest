@@ -2,7 +2,10 @@ package io.renren.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import io.renren.common.constant.Constant;
 import io.renren.common.service.impl.BaseServiceImpl;
 import io.renren.dao.MyInvestmentDao;
@@ -30,7 +33,7 @@ import java.util.Map;
  * @author Mark sunlightcs@gmail.com
  */
 @Service
-public class MyInvestmentServiceImpl extends BaseServiceImpl<MyInvestmentDao, InvestmentRecordEntity> implements MyInvestmentService {
+public class MyInvestmentServiceImpl extends ServiceImpl<MyInvestmentDao, InvestmentRecordEntity> implements MyInvestmentService {
 
     @Autowired
     private MyInvestmentDao myInvestmentDao;
@@ -44,21 +47,18 @@ public class MyInvestmentServiceImpl extends BaseServiceImpl<MyInvestmentDao, In
     @Override
     public MyInvestmentPageData<MyInvestmentDTO> queryPageData(Map<String, Object> params) {
         try {
-            // 构建查询条件
-            QueryWrapper<InvestmentRecordEntity> queryWrapper = buildQueryWrapper(params);
-            
-            // 使用 BaseServiceImpl 的标准分页处理
-            Page<InvestmentRecordEntity> pageResult = (Page<InvestmentRecordEntity>) baseDao.selectPage(
-                getPage(params, "order_date", false),
-                queryWrapper
+            // 使用 MyBatis-Plus 分页
+            Page<MyInvestmentDTO> page = new Page<>(
+                (Integer) params.get(Constant.PAGE), 
+                (Integer) params.get(Constant.LIMIT)
             );
             
-            // 转换为DTO
-            List<MyInvestmentDTO> dtoList = convertToDto(pageResult.getRecords());
+            // 执行分页查询（使用自定义SQL）
+            IPage<MyInvestmentDTO> pageResult = myInvestmentDao.selectPage(page, params);
             
             // 构建分页数据
             MyInvestmentPageData<MyInvestmentDTO> pageData = new MyInvestmentPageData<>();
-            pageData.setList(dtoList);
+            pageData.setList(pageResult.getRecords());
             pageData.setTotal((int) pageResult.getTotal());
             pageData.setSum(new HashMap<>()); // 暂时设置为空对象，可根据需要添加汇总信息
             

@@ -99,10 +99,10 @@ public class OrderServiceImpl implements OrderService {
 			// 7. 记录账变明细
 			recordBalanceDetail(userId, dto.getAmount(), orderNumber, project.getInvestName(), balanceResult.get("originalBalance"));
 			
-			// 8. 更新项目投资金额和参与人数
+			// 8. 更新项目参与人数
 			int projectUpdateRows = projectDao.updateInvestmentAmount(dto.getInvestId(), dto.getAmount());
 			if (projectUpdateRows == 0) {
-				throw new RuntimeException("更新项目投资金额失败");
+				throw new RuntimeException("更新项目参与人数失败");
 			}
 			
 			// 9. 更新用户表中的投资相关字段（项目数、总本金等）

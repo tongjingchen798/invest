@@ -3,54 +3,43 @@
 
 <mapper namespace="io.renren.dao.MyInvestmentDao">
 
-    <!-- 查询总数 -->
-    <select id="selectTotal" resultType="int">
-        SELECT COUNT(*)
-        FROM tb_investment_record ir
-        WHERE ir.user_id = #{userId}
-        <if test="status != null">
-            AND ir.status = #{status}
-        </if>
-    </select>
-
-    <!-- 分页查询列表 -->
-    <select id="selectList" resultType="io.renren.dto.MyInvestmentDTO">
-        SELECT 
-            ir.id,
-            ir.user_id as userId,
-            ir.project_id as investId,
-            p.invest_name as investName,
-            p.img,
-            ir.investment_amount as investmentAmount,
-            ir.order_id as orderId,
-            ir.order_abbr as orderAbbr,
-            DATE_FORMAT(ir.order_date, '%Y-%m-%d %H:%i:%s') as orderDate,
-            ir.profit_amount as profitAmount,
-            CASE 
-                WHEN ir.profit_date IS NOT NULL 
-                THEN DATE_FORMAT(ir.profit_date, '%Y-%m-%d %H:%i:%s') 
-                ELSE NULL 
-            END as profitDate,
-            ir.profit_interest as profitInterest,
-            ir.profit_principal as profitPrincipal,
-            ir.status,
-            COALESCE(ir.cycle, p.cycle) as cycle,
-            COALESCE(ir.cycle_type, p.cycle_type) as cycleType,
-            ir.ddsy,
-            ir.invest_count as investCount,
-            COALESCE(ir.rush_minute, p.rush_minute) as rushMinute,
-            ir.agent,
-            ir.salesmanid,
-            u.mobile
+    <!-- 分页查询投资列表 -->
+    <select id="selectPage" resultType="io.renren.dto.MyInvestmentDTO">
+        SELECT
+        ir.id,
+        ir.user_id as userId,
+        ir.project_id as investId,
+        p.invest_name as investName,
+        p.img,
+        ir.investment_amount as investmentAmount,
+        ir.order_id as orderId,
+        ir.order_abbr as orderAbbr,
+        DATE_FORMAT(ir.order_date, '%Y-%m-%d %H:%i:%s') as orderDate,
+        ir.profit_amount as profitAmount,
+        CASE
+        WHEN ir.profit_date IS NOT NULL
+        THEN DATE_FORMAT(ir.profit_date, '%Y-%m-%d %H:%i:%s')
+        ELSE NULL
+        END as profitDate,
+        ir.profit_interest as profitInterest,
+        ir.profit_principal as profitPrincipal,
+        ir.status,
+        COALESCE(ir.cycle, p.cycle) as cycle,
+        COALESCE(ir.cycle_type, p.cycle_type) as cycleType,
+        ir.ddsy,
+        ir.invest_count as investCount,
+        COALESCE(ir.rush_minute, p.rush_minute) as rushMinute,
+        ir.agent,
+        ir.salesmanid,
+        u.mobile
         FROM tb_investment_record ir
         LEFT JOIN tb_project p ON ir.project_id = p.invest_id
         LEFT JOIN tb_user u ON ir.user_id = u.id
-        WHERE ir.user_id = #{userId}
-        <if test="status != null">
-            AND ir.status = #{status}
+        WHERE ir.user_id = #{params.userId}
+        <if test="params.status != null">
+            AND ir.status = #{params.status}
         </if>
         ORDER BY ir.order_date DESC
-        LIMIT #{offset}, #{limit}
     </select>
 
 </mapper>
