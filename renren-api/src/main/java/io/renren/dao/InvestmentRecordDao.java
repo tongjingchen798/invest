@@ -67,4 +67,32 @@ public interface InvestmentRecordDao extends BaseMapper<InvestmentRecordEntity> 
 	 * @return 记录总数
 	 */
 	int selectCountByUserId(Map<String, Object> params);
+
+	/**
+	 * 查询用户待收利息金额
+	 * @param userId 用户ID
+	 * @return 待收利息金额
+	 */
+	Long selectPendingInterestByUserId(@Param("userId") Long userId);
+
+	/**
+	 * 查询用户待收本金金额
+	 * @param userId 用户ID
+	 * @return 待收本金金额
+	 */
+	Long selectPendingPrincipalByUserId(@Param("userId") Long userId);
+
+	/**
+	 * 查询用户已收利息金额
+	 * @param userId 用户ID
+	 * @return 已收利息金额
+	 */
+	Long selectReceivedInterestByUserId(@Param("userId") Long userId);
+
+	/**
+	 * 查询用户已收本金金额
+	 * @param userId 用户ID
+	 * @return 已收本金金额
+	 */
+	Long selectReceivedPrincipalByUserId(@Param("userId") Long userId);
 }

@@ -24,6 +24,9 @@ import io.renren.service.MyInvestmentService;
 import io.renren.service.BalanceDetailService;
 import io.renren.service.TeamPointsDetailService;
 import io.renren.service.ProfitEndedService;
+import io.renren.dao.UserDao;
+import io.renren.dao.InvestmentRecordDao;
+import io.renren.dao.WithdrawOrderDao;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -63,6 +66,15 @@ public class ApiPersonalCenterController {
 
     @Autowired
     private ProfitEndedService profitEndedService;
+
+    @Autowired
+    private UserDao userDao;
+    
+    @Autowired
+    private InvestmentRecordDao investmentRecordDao;
+    
+    @Autowired
+    private WithdrawOrderDao withdrawOrderDao;
 
     @Login
     @PostMapping("BalanceTransfers")
@@ -133,14 +145,26 @@ public class ApiPersonalCenterController {
             balanceDTO.setCashwithdrawable(user.getCashwithdrawable() != null ? user.getCashwithdrawable() : 0L); // 可提现
             balanceDTO.setCumulative(user.getHistoryProfit() != null ? user.getHistoryProfit() : 0L);       // 累计收益
             balanceDTO.setCzAmount(user.getChargeSum() != null ? user.getChargeSum() : 0L);         // 累计充值
-            balanceDTO.setDsAmount(0L);         // 待收利息 - 需要从投资记录表查询
-            balanceDTO.setDsbjAmount(0L);       // 待收本金 - 需要从投资记录表查询
+            
+            // 从投资记录表查询投资相关数据
+            Long dsAmount = investmentRecordDao.selectPendingInterestByUserId(user.getId());         // 待收利息
+            Long dsbjAmount = investmentRecordDao.selectPendingPrincipalByUserId(user.getId());     // 待收本金
+            Long ysAmount = investmentRecordDao.selectReceivedInterestByUserId(user.getId());        // 已收利息
+            Long ysbjAmount = investmentRecordDao.selectReceivedPrincipalByUserId(user.getId());    // 已收本金
+            
+            balanceDTO.setDsAmount(dsAmount != null ? dsAmount : 0L);
+            balanceDTO.setDsbjAmount(dsbjAmount != null ? dsbjAmount : 0L);
+            balanceDTO.setYsAmount(ysAmount != null ? ysAmount : 0L);
+            balanceDTO.setYsbjAmount(ysbjAmount != null ? ysbjAmount : 0L);
+            
             balanceDTO.setJrAmount(user.getTodayProfit() != null ? user.getTodayProfit() : 0L);         // 今日收益
             balanceDTO.setTzAmount(user.getHistoryInvestment() != null ? user.getHistoryInvestment() : 0L);         // 累计投资
-            balanceDTO.setYsAmount(0L);         // 已收利息 - 需要从投资记录表查询
-            balanceDTO.setYsbjAmount(0L);       // 已收本金 - 需要从投资记录表查询
             balanceDTO.setYtxAmount(user.getWithdrawSum() != null ? user.getWithdrawSum() : 0L);        // 已提现
-            balanceDTO.setZztxAmount(0L);       // 正在提现 - 需要从提现记录表查询
+            
+            // 从提现记录表查询正在提现金额
+            Long zztxAmount = withdrawOrderDao.selectPendingWithdrawAmountByUserId(user.getId());
+            balanceDTO.setZztxAmount(zztxAmount != null ? zztxAmount : 0L);
+            
             balanceDTO.setWheelTimes(0);        // 转盘次数 - 需要从转盘记录表查询
             balanceDTO.setUpdateDate(new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date()));
             

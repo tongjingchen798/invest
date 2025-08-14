@@ -22,4 +22,12 @@ public interface WithdrawOrderDao extends BaseDao<WithdrawOrderEntity> {
      * @return 提现次数
      */
     Long selectCountByUserId(@Param("userId") Long userId);
+
+    /**
+     * 查询用户正在提现金额
+     *
+     * @param userId 用户ID
+     * @return 正在提现金额
+     */
+    Long selectPendingWithdrawAmountByUserId(@Param("userId") Long userId);
 }

@@ -53,4 +53,11 @@
         WHERE user_id = #{userId}
     </select>
 
+    <!-- 查询用户正在提现金额 -->
+    <select id="selectPendingWithdrawAmountByUserId" resultType="long">
+        SELECT COALESCE(SUM(inputamount), 0) 
+        FROM tb_withdraw_order 
+        WHERE user_id = #{userId} AND state IN (0, 1)
+    </select>
+
 </mapper>

@@ -82,4 +82,31 @@
 		</if>
 	</select>
 
+	<!-- 查询用户待收利息金额 -->
+	<select id="selectPendingInterestByUserId" resultType="long">
+		SELECT COALESCE(SUM(ddsy), 0) 
+		FROM tb_investment_record 
+		WHERE user_id = #{userId} AND status = 0
+	</select>
+
+	<!-- 查询用户待收本金金额 -->
+	<select id="selectPendingPrincipalByUserId" resultType="long">
+		SELECT COALESCE(SUM(investment_amount), 0) 
+		FROM tb_investment_record 
+		WHERE user_id = #{userId} AND status = 0
+	</select>
+
+	<!-- 查询用户已收利息金额 -->
+	<select id="selectReceivedInterestByUserId" resultType="long">
+		SELECT COALESCE(SUM(profit_interest), 0) 
+		FROM tb_investment_record 
+		WHERE user_id = #{userId} AND status = 1
+	</select>
+
+	<!-- 查询用户已收本金金额 -->
+	<select id="selectReceivedPrincipalByUserId" resultType="long">
+		SELECT COALESCE(SUM(profit_principal), 0) 
+		FROM tb_investment_record 
+		WHERE user_id = #{userId} AND status = 1
+	</select>
 </mapper>
