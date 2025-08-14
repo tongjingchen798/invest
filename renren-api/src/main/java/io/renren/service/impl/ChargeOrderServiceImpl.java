@@ -50,15 +50,6 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
             ChargeOrderDetailDTO detailDTO = new ChargeOrderDetailDTO();
             BeanUtils.copyProperties(latestOrder, detailDTO);
             
-            // 格式化日期字段
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            if (latestOrder.getChargeTime() != null) {
-                detailDTO.setChargeTime(sdf.format(latestOrder.getChargeTime()));
-            }
-            if (latestOrder.getCreateTime() != null) {
-                detailDTO.setCreateTime(sdf.format(latestOrder.getCreateTime()));
-            }
-            
             return detailDTO;
             
         } catch (Exception e) {
@@ -164,15 +155,6 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
         for (ChargeOrderEntity order : chargeOrders) {
             ChargeOrderDetailDTO dto = new ChargeOrderDetailDTO();
             BeanUtils.copyProperties(order, dto);
-            
-            // 格式化日期字段
-            if (order.getChargeTime() != null) {
-                dto.setChargeTime(sdf.format(order.getChargeTime()));
-            }
-            if (order.getCreateTime() != null) {
-                dto.setCreateTime(sdf.format(order.getCreateTime()));
-            }
-            
             dtoList.add(dto);
         }
         
@@ -283,36 +265,11 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
      */
     private ChargeOrderDetailDTO createDefaultChargeOrderDetail(Long userId) {
         ChargeOrderDetailDTO detailDTO = new ChargeOrderDetailDTO();
-        
-        // 设置默认值
-        detailDTO.setAgent("");
         detailDTO.setAmount(0L);
-        detailDTO.setChannel("");
-        detailDTO.setChannelType("");
-        detailDTO.setChannelid(0L);
-        detailDTO.setChargeId(0L);
-        detailDTO.setChargeTime("");
-        detailDTO.setCreateTime("");
-        detailDTO.setInfoIp("");
-        detailDTO.setMerchantid(0L);
-        detailDTO.setMerchantname("");
-        detailDTO.setMobile("");
-        detailDTO.setOperCode("");
-        detailDTO.setOrderno("");
-        detailDTO.setPlatform("");
-        detailDTO.setRealAmount(0L);
-        detailDTO.setRemark("");
-        detailDTO.setSalesmanid("");
-        detailDTO.setSourcetypeName("");
-        detailDTO.setState(0);
-        detailDTO.setThreeorderNo("");
         detailDTO.setURealAmout(0L);
-        detailDTO.setUamout(0L);
         detailDTO.setUprice(0L);
-        detailDTO.setUserId(userId);
         detailDTO.setWalletAddr("");
         detailDTO.setWalletId(0L);
-        
         return detailDTO;
     }
 }

@@ -200,7 +200,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, UserEntity> implem
 	public boolean updatePasswordByUserId(Long userId, String newPassword) {
 		try {
 			// 根据用户ID查找用户
-			UserEntity user = getUserByUserId(userId);
+			UserEntity user = baseDao.getUserByUserId(userId);
 			if (user == null) {
 				return false;
 			}
@@ -226,7 +226,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, UserEntity> implem
 	public UserDataSummaryDTO getUserDataSummary(Long userId) {
 		try {
 			// 根据用户ID查找用户
-			UserEntity user = getUserByUserId(userId);
+			UserEntity user = baseDao.getUserByUserId(userId);
 			if (user == null) {
 				return null;
 			}

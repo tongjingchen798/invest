@@ -3,6 +3,7 @@
 package io.renren.resolver;
 
 import io.renren.annotation.LoginUser;
+import io.renren.dao.UserDao;
 import io.renren.entity.UserEntity;
 import io.renren.interceptor.AuthorizationInterceptor;
 import io.renren.service.UserService;
@@ -23,7 +24,7 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 @Component
 public class LoginUserHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
     @Autowired
-    private UserService userService;
+    private UserDao userDao;
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
@@ -40,7 +41,7 @@ public class LoginUserHandlerMethodArgumentResolver implements HandlerMethodArgu
         }
 
         //获取用户信息
-        UserEntity user = userService.getUserByUserId((Long)object);
+        UserEntity user = userDao.getUserByUserId((Long)object);
 
         return user;
     }
