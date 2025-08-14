@@ -16,6 +16,7 @@ import io.renren.dto.UserDataSummaryDTO;
 import io.renren.service.TokenService;
 import io.renren.service.UserService;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,10 +34,6 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, UserEntity> implem
 		return baseDao.getUserByMobile(mobile);
 	}
 
-	@Override
-	public UserEntity getUserByUserId(Long userId) {
-		return baseDao.getUserByUserId(userId);
-	}
 
 	@Override
 	public Map<String, Object> login(LoginDTO dto) {
@@ -61,7 +58,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, UserEntity> implem
 	@Override
 	public UserInfoDTO getUserInfoWithSuperior(Long userId) {
 		// 获取用户基本信息
-		UserEntity user = getUserByUserId(userId);
+		UserEntity user = baseDao.getUserByUserId(userId);
 		if (user == null) {
 			return null;
 		}
@@ -71,8 +68,8 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, UserEntity> implem
 		BeanUtils.copyProperties(user, userInfoDTO);
 
 		// 如果用户有上级，获取上级用户信息
-		if (user.getSuperiorId() != null) {
-			UserEntity superiorUser = getUserByUserId(user.getSuperiorId());
+		if (StringUtils.isNotBlank(user.getSuperiorCode())) {
+			UserEntity superiorUser = baseDao.getUserByInviteCode(user.getSuperiorCode());
 			if (superiorUser != null) {
 				// 创建上级用户信息DTO
 				SuperiorUserInfoDTO superiorInfo = new SuperiorUserInfoDTO();

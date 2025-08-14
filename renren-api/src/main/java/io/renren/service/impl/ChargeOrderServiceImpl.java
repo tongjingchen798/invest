@@ -68,6 +68,27 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
     }
 
     @Override
+    public ChargeOrderDetailDTO getChargeOrderDetailByOrderNo(String orderNo) {
+        try {
+            // 根据订单号查询充值订单
+            ChargeOrderEntity order = chargeOrderDao.selectByOrderno(orderNo);
+            if (order == null) {
+                throw new RuntimeException("订单不存在: " + orderNo);
+            }
+            
+            // 转换为DTO
+            ChargeOrderDetailDTO detailDTO = new ChargeOrderDetailDTO();
+            BeanUtils.copyProperties(order, detailDTO);
+            
+            return detailDTO;
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("获取充值订单详情失败: " + e.getMessage());
+        }
+    }
+
+    @Override
     public List<ChargeOrderEntity> getChargeOrdersByUserId(Long userId) {
         return chargeOrderDao.selectByUserId(userId);
     }

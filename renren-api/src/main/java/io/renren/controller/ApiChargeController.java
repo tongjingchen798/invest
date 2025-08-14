@@ -7,6 +7,7 @@ import io.renren.common.validator.ValidatorUtils;
 import io.renren.dto.ChargeOrderDetailDTO;
 import io.renren.dto.ChargeRequestDTO;
 import io.renren.dto.ChargePageData;
+import io.renren.dto.ChargeResponseDTO;
 import io.renren.entity.UserEntity;
 import io.renren.enums.ChargeTypeEnum;
 import io.renren.service.ChargeOrderService;
@@ -15,6 +16,11 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Random;
 
 /**
  * 充值订单接口
@@ -33,11 +39,11 @@ public class ApiChargeController {
     
     @Login
     @PostMapping("orderdetail")
-    @ApiOperation("获取充值订单详情")
-    public Result<ChargeOrderDetailDTO> getChargeOrderDetail(@LoginUser UserEntity user) {
+    @ApiOperation("获取usdt充值订单详情")
+    public Result<ChargeOrderDetailDTO> getChargeOrderDetail(@ApiParam(value = "订单号", required = true) @RequestParam String orderNo) {
         try {
-            // 获取用户充值订单详情
-            ChargeOrderDetailDTO detail = chargeOrderService.getChargeOrderDetail(user.getId());
+            // 根据订单号获取充值订单详情
+            ChargeOrderDetailDTO detail = chargeOrderService.getChargeOrderDetailByOrderNo(orderNo);
             return new Result<ChargeOrderDetailDTO>().ok(detail);
             
         } catch (Exception e) {
@@ -48,7 +54,7 @@ public class ApiChargeController {
     @Login
     @PostMapping("charge")
     @ApiOperation("前端充值")
-    public Result<String> charge(
+    public Result<ChargeResponseDTO> charge(
             @ApiParam(value = "充值金额", required = true) @RequestParam Long amount,
             @ApiParam(value = "充值类型 1银行卡 2虚拟币 3 upi 4 Paytm", required = true) @RequestParam Integer chargeType,
             @ApiParam(value = "支付通道主键") @RequestParam(required = false) Long channelid,
@@ -56,19 +62,34 @@ public class ApiChargeController {
         try {
             // 参数验证
             if (amount == null || amount <= 0) {
-                return new Result<String>().error("充值金额必须大于0");
+                return new Result<ChargeResponseDTO>().error("充值金额必须大于0");
             }
             if (!ChargeTypeEnum.isValid(chargeType)) {
-                return new Result<String>().error("充值类型无效");
+                return new Result<ChargeResponseDTO>().error("充值类型无效");
             }
 
             // 创建充值订单
             String orderno = chargeOrderService.createChargeOrder(user.getId(), amount, chargeType, channelid);
-            //TODO 返回还没确认 应该返回支付url 或者 支付二维码
-            return new Result<String>().ok(orderno);
+            
+            // 构建充值响应数据
+            ChargeResponseDTO responseDTO = new ChargeResponseDTO();
+            responseDTO.setOrderNo(orderno);
+            responseDTO.setPOrderNo(orderno);
+            //三方返回的u数量 TODO 等接口返回
+            responseDTO.setUamount(BigDecimal.ZERO);
+            
+            // 构建支付链接
+            String payUrl = buildPayUrl(orderno, amount, String.valueOf(channelid));
+            responseDTO.setPayUrl(payUrl);
+            
+            // 生成商户号
+            String merchantNo = generateMerchantNo();
+            responseDTO.setMerchantNo(merchantNo);
+
+            return new Result<ChargeResponseDTO>().ok(responseDTO);
             
         } catch (Exception e) {
-            return new Result<String>().error("充值失败: " + e.getMessage());
+            return new Result<ChargeResponseDTO>().error("充值失败: " + e.getMessage());
         }
     }
 
@@ -96,5 +117,37 @@ public class ApiChargeController {
         } catch (Exception e) {
             return new Result<ChargePageData>().error("获取资金明细失败: " + e.getMessage());
         }
+    }
+
+    /**
+     * 生成订单号
+     */
+    private String generateOrderNo() {
+        // 生成订单号逻辑，格式：TP + 年月日时分秒 + 3位随机数
+        SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmmss");
+        String timestamp = sdf.format(new Date());
+        String random = String.format("%03d", new Random().nextInt(1000));
+        return "TP" + timestamp + random;
+    }
+
+    /**
+     * 构建支付链接
+     */
+    private String buildPayUrl(String orderNo, Long amount, String channelid) {
+        // 这里需要根据实际的支付网关配置来构建支付链接
+        // 示例：https://pay-v2.bankkpay.com/cashier?orderId=订单号&amount=金额
+        String baseUrl = "https://pay-v2.bankkpay.com/cashier";
+        return String.format("%s?orderId=%s&amount=%d", baseUrl, orderNo, amount);
+    }
+
+    /**
+     * 生成商户号
+     */
+    private String generateMerchantNo() {
+        // 生成商户号逻辑，格式：R + 年月日时分秒 + 4位随机数
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+        String timestamp = sdf.format(new Date());
+        String random = String.format("%04d", new Random().nextInt(10000));
+        return "R" + timestamp + random;
     }
 }

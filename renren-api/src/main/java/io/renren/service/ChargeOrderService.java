@@ -25,6 +25,13 @@ public interface ChargeOrderService extends BaseService<ChargeOrderEntity> {
     ChargeOrderDetailDTO getChargeOrderDetail(Long userId);
 
     /**
+     * 根据订单号获取充值订单详情
+     * @param orderNo 订单号
+     * @return 充值订单详情
+     */
+    ChargeOrderDetailDTO getChargeOrderDetailByOrderNo(String orderNo);
+
+    /**
      * 根据用户ID查询充值订单列表
      * @param userId 用户ID
      * @return 充值订单列表

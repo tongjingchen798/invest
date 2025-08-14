@@ -19,7 +19,6 @@ public interface UserService extends BaseService<UserEntity> {
 
 	UserEntity getByMobile(String mobile);
 
-	UserEntity getUserByUserId(Long userId);
 
 	/**
 	 * 用户登录
