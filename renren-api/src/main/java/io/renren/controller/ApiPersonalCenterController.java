@@ -270,16 +270,37 @@ public class ApiPersonalCenterController {
             @ApiParam(value = "每页显示记录数", required = true) @RequestParam(Constant.LIMIT) Integer limit,
             @ApiParam(value = "当前页码，从1开始", required = true) @RequestParam(Constant.PAGE) Integer page,
             @ApiParam(value = "状态 0:正在生产 1:生产结束", required = true) @RequestParam Integer status,
+            @ApiParam(value = "排序方式，可选值(asc、desc)") @RequestParam(value = Constant.ORDER, required = false) String order,
+            @ApiParam(value = "排序字段") @RequestParam(value = Constant.ORDER_FIELD, required = false) String orderField,
             @LoginUser UserEntity user) {
         
         try {
+            // 参数验证
+            if (page == null || page < 1) {
+                return new Result<MyInvestmentPageData<MyInvestmentDTO>>().error("页码必须大于0");
+            }
+            if (limit == null || limit < 1 || limit > 100) {
+                return new Result<MyInvestmentPageData<MyInvestmentDTO>>().error("每页记录数必须在1-100之间");
+            }
+            if (status == null || (status != 0 && status != 1)) {
+                return new Result<MyInvestmentPageData<MyInvestmentDTO>>().error("状态参数无效，只能是0(正在生产)或1(生产结束)");
+            }
+
+            // 构建查询参数
             Map<String, Object> params = new HashMap<>();
             params.put(Constant.PAGE, page);
             params.put(Constant.LIMIT, limit);
+            params.put(Constant.ORDER, order);
+            params.put(Constant.ORDER_FIELD, orderField);
             params.put("status", status);
             params.put("userId", user.getId().toString());
 
+            // 查询分页数据
             MyInvestmentPageData<MyInvestmentDTO> pageData = myInvestmentService.queryPageData(params);
+            
+            if (pageData == null) {
+                return new Result<MyInvestmentPageData<MyInvestmentDTO>>().error("查询结果为空");
+            }
             
             return new Result<MyInvestmentPageData<MyInvestmentDTO>>().ok(pageData);
             
