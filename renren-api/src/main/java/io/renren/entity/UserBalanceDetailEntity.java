@@ -66,7 +66,7 @@ public class UserBalanceDetailEntity implements Serializable {
     private String channel;
 
     /**
-     * 表单用户ID
+     * 返佣来源,谁返给userid的
      */
     private Long formUserId;
 
@@ -101,29 +101,26 @@ public class UserBalanceDetailEntity implements Serializable {
     private Long salesmanId;
 
     /**
-     * 状态：0-禁用，1-启用
+     * 状态 0:交易失败 1:正常
      */
     private Integer status;
 
     /**
-     * 流水ID
+     * 交易流水id
      */
     private String streamId;
+
 
     /**
      * 交易后金额（分）
      */
-    private Long amountAfterTransaction;
-
-    /**
-     * 交易金额（分）
-     */
     private Long transactionAmount;
 
+
     /**
-     * 优惠券金额（分）
+     * 使用金额（分）
      */
-    private Long couponAmount;
+    private Long useAmount;
 
     /**
      * 创建时间
