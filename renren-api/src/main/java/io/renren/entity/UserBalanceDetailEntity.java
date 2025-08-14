@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -36,6 +37,7 @@ public class UserBalanceDetailEntity implements Serializable {
     /**
      * 交易时间
      */
+    @JsonFormat(pattern = "MM/dd/yyyy HH:mm:ss", timezone = "GMT+8")
     private Date transactionDate;
 
     /**

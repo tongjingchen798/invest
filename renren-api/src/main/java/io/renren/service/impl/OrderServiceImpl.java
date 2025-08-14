@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -167,17 +166,21 @@ public class OrderServiceImpl implements OrderService {
 		try {
 			UserBalanceDetailEntity balanceDetail = new UserBalanceDetailEntity();
 			balanceDetail.setUserId(userId);
-			balanceDetail.setTransactionDate(new Date());
+			
+			Date now = new Date();
+			balanceDetail.setTransactionDate(now);
 			balanceDetail.setBusinessType(1); // 1:购买流水
-			balanceDetail.setChannel("投资");
+			balanceDetail.setChannel("1");
 			balanceDetail.setStreamId(orderNumber);
-			balanceDetail.setTransactionAmount(-amount); // 负数表示扣款
+			balanceDetail.setUseAmount(amount);
 			balanceDetail.setOriginalAmount(Long.parseLong(originalBalance));
-			balanceDetail.setAmountAfterTransaction(Long.parseLong(originalBalance) - amount);
-			balanceDetail.setRemarks("投资" + projectName + "，订单号：" + orderNumber);
-			balanceDetail.setStatus(1); // 1:正常
-			balanceDetail.setCreateDate(new Date());
-			balanceDetail.setUpdateDate(new Date());
+			balanceDetail.setTransactionAmount(Long.parseLong(originalBalance) - amount);
+			balanceDetail.setRemarks("购买投资项目【" + projectName + "】");
+			balanceDetail.setStatus(1);
+			balanceDetail.setSalesmanId(1748403763980L);
+			balanceDetail.setAgentId(1748403763980L);
+			balanceDetail.setCreateDate(now);
+			balanceDetail.setUpdateDate(now);
 			
 			userBalanceDetailDao.insert(balanceDetail);
 			
