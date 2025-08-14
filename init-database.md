@@ -27,7 +27,7 @@ CREATE DATABASE renren_security CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci
 mysql -u admin -p renren_security
 
 # 或者直接执行 SQL 文件
-mysql -u admin -p renren_security < renren-admin/db/mysql.sql
+mysql -u admin -p renren_security < renren-admin/db/mysql_old.sql
 ```
 
 ### 4. 验证数据库连接
@@ -55,7 +55,7 @@ SHOW TABLES LIKE 'sys_user';
 ```
 
 ### 6. 如果表不存在，手动执行 SQL
-如果自动执行失败，可以手动执行 `renren-admin/db/mysql.sql` 文件中的 SQL 语句。
+如果自动执行失败，可以手动执行 `renren-admin/db/mysql_old.sql` 文件中的 SQL 语句。
 
 ## 常见问题
 
@@ -66,12 +66,12 @@ SHOW TABLES LIKE 'sys_user';
 - 检查端口是否正确（默认 3306）
 
 ### 问题2: 表不存在
-- 确保执行了完整的 `mysql.sql` 脚本
+- 确保执行了完整的 `mysql_old.sql` 脚本
 - 检查是否有权限创建表
 - 检查数据库字符集是否正确
 
 ### 问题3: Quartz 表缺失
-- 确保执行了 `mysql.sql` 中所有以 `QRTZ_` 开头的表创建语句
+- 确保执行了 `mysql_old.sql` 中所有以 `QRTZ_` 开头的表创建语句
 - 这些表是定时任务功能必需的
 
 ## 验证修复

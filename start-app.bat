@@ -18,7 +18,7 @@ echo MySQL 服务状态正常
 echo.
 echo 2. 检查数据库连接...
 echo 请确保已创建数据库: renren_security
-echo 请确保已执行初始化脚本: renren-admin/db/mysql.sql
+echo 请确保已执行初始化脚本: renren-admin/db/mysql_old.sql
 echo.
 
 echo 3. 启动应用...
