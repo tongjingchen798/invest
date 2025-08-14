@@ -1,6 +1,7 @@
 package io.renren.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.renren.dao.InvestmentRecordDao;
 import io.renren.dao.ProjectDao;
 import io.renren.dao.UserBalanceDetailDao;
@@ -42,10 +43,14 @@ public class ProfitEndedServiceImpl implements ProfitEndedService {
         try {
             ProfitEndedDTO profitEndedDTO = new ProfitEndedDTO();
             
-            // 查询用户的所有投资记录
+            // 使用分页查询优化大数据量场景
+            Page<InvestmentRecordEntity> page = new Page<>(1, 1000); // 设置较大的页面大小
             QueryWrapper<InvestmentRecordEntity> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("user_id", userId);
-            List<InvestmentRecordEntity> investmentRecords = investmentRecordDao.selectList(queryWrapper);
+            queryWrapper.eq("user_id", userId)
+                       .orderByDesc("create_time");
+            
+            Page<InvestmentRecordEntity> result = investmentRecordDao.selectPage(page, queryWrapper);
+            List<InvestmentRecordEntity> investmentRecords = result.getRecords();
             
             // 初始化统计数据
             long totalPrincipal = 0;        // 总本金
@@ -151,10 +156,14 @@ public class ProfitEndedServiceImpl implements ProfitEndedService {
             calendar.add(Calendar.DAY_OF_MONTH, 1);
             Date todayEnd = calendar.getTime();
             
-            // 查询投资中项目统计
+            // 使用分页查询优化投资中项目统计
+            Page<InvestmentRecordEntity> page = new Page<>(1, 1000); // 设置较大的页面大小
             QueryWrapper<InvestmentRecordEntity> investmentQuery = new QueryWrapper<>();
-            investmentQuery.eq("user_id", userId);
-            List<InvestmentRecordEntity> investmentRecords = investmentRecordDao.selectList(investmentQuery);
+            investmentQuery.eq("user_id", userId)
+                          .orderByDesc("create_time");
+            
+            Page<InvestmentRecordEntity> result = investmentRecordDao.selectPage(page, investmentQuery);
+            List<InvestmentRecordEntity> investmentRecords = result.getRecords();
             
             // 初始化统计数据
             long totalPrincipal = 0;        // 总本金
@@ -219,7 +228,8 @@ public class ProfitEndedServiceImpl implements ProfitEndedService {
      */
     private long getTodayProfitFromBalanceDetail(Long userId, Date todayStart, Date todayEnd) {
         try {
-            // 查询今日收益相关的账变记录
+            // 使用分页查询优化账变记录查询
+            Page<UserBalanceDetailEntity> page = new Page<>(1, 1000); // 设置较大的页面大小
             QueryWrapper<UserBalanceDetailEntity> profitQuery = new QueryWrapper<>();
             profitQuery.eq("user_id", userId)
                       .in("busi_type", Arrays.asList(
@@ -230,9 +240,11 @@ public class ProfitEndedServiceImpl implements ProfitEndedService {
                           BusinessTypeEnum.TASK_REWARD.getCode(),      // 任务奖励
                           BusinessTypeEnum.SIGN_IN_REWARD.getCode()    // 签到奖励
                       ))
-                      .between("transaction_date", todayStart, todayEnd);
+                      .between("transaction_date", todayStart, todayEnd)
+                      .orderByDesc("transaction_date");
             
-            List<UserBalanceDetailEntity> todayProfits = userBalanceDetailDao.selectList(profitQuery);
+            Page<UserBalanceDetailEntity> result = userBalanceDetailDao.selectPage(page, profitQuery);
+            List<UserBalanceDetailEntity> todayProfits = result.getRecords();
             
             // 计算今日收益总额
             return todayProfits.stream()
