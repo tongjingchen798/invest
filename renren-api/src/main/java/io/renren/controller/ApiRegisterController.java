@@ -7,6 +7,7 @@ import io.renren.common.validator.ValidatorUtils;
 import io.renren.entity.UserEntity;
 import io.renren.dto.RegisterDTO;
 import io.renren.service.UserService;
+import io.renren.service.ReferralRewardService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Date;
 
@@ -28,9 +30,13 @@ import java.util.Date;
 @RestController
 @RequestMapping("/api")
 @Api(tags="注册接口")
+@Slf4j
 public class ApiRegisterController {
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private ReferralRewardService referralRewardService;
 
     @PostMapping("register")
     @ApiOperation("注册")
@@ -55,6 +61,21 @@ public class ApiRegisterController {
         
         user.setCreateDate(new Date());
         userService.insert(user);
+
+        // 处理推荐返利
+        try {
+            if (dto.getInviteCode() != null && !dto.getInviteCode().trim().isEmpty()) {
+                boolean rewardSuccess = referralRewardService.processReferralReward(user.getId(), dto.getInviteCode());
+                if (rewardSuccess) {
+                    log.info("用户 {} 注册成功，推荐人返利处理成功", user.getId());
+                } else {
+                    log.warn("用户 {} 注册成功，但推荐人返利处理失败", user.getId());
+                }
+            }
+        } catch (Exception e) {
+            log.error("处理推荐返利时发生异常，用户ID: {}", user.getId(), e);
+            // 不影响注册流程，只记录日志
+        }
 
         return new Result();
     }

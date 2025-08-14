@@ -10,6 +10,7 @@ import io.renren.service.BalanceDetailService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import lombok.extern.slf4j.Slf4j;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -22,6 +23,7 @@ import java.util.*;
  * @date 2024-01-01 00:00:00
  */
 @Service
+@Slf4j
 public class BalanceDetailServiceImpl implements BalanceDetailService {
 
     @Autowired
@@ -124,5 +126,55 @@ public class BalanceDetailServiceImpl implements BalanceDetailService {
         sum.put("totalCount", details.size());
         
         return sum;
+    }
+
+    @Override
+    public boolean recordReferralReward(Long userId, Long amount, Long newUserId) {
+        try {
+            UserBalanceDetailEntity detail = new UserBalanceDetailEntity();
+            
+            // 设置基本信息
+            detail.setUserId(userId);
+            detail.setTransactionAmount(amount);
+            detail.setOriginalAmount(amount);
+            detail.setUseAmount(0L);
+            detail.setStatus(1); // 成功状态
+            
+            // 设置业务类型：14邀请福利
+            detail.setBusinessType(14);
+            
+            // 设置交易时间
+            detail.setTransactionDate(new Date());
+            detail.setCreateDate(new Date());
+            detail.setUpdateDate(new Date());
+            
+            // 设置备注信息
+            detail.setRemarks("推荐用户注册成功，获得返利");
+            
+            // 设置关联用户ID（新注册用户）
+            if (newUserId != null) {
+                detail.setFormUserId(newUserId);
+            }
+            
+            // 生成流水ID（推荐返利 + 时间戳 + 用户ID）
+            String streamId = "REF_" + System.currentTimeMillis() + "_" + userId;
+            detail.setStreamId(streamId);
+            
+            // 保存到数据库
+            int result = userBalanceDetailDao.insert(detail);
+            
+            if (result > 0) {
+                log.info("记录推荐返利流水成功，用户ID: {}, 返利金额: {} 分，新用户ID: {}, 流水ID: {}", 
+                    userId, amount, newUserId, streamId);
+                return true;
+            } else {
+                log.error("记录推荐返利流水失败，用户ID: {}, 返利金额: {} 分", userId, amount);
+                return false;
+            }
+            
+        } catch (Exception e) {
+            log.error("记录推荐返利流水异常，用户ID: {}, 返利金额: {} 分", userId, amount, e);
+            return false;
+        }
     }
 }
