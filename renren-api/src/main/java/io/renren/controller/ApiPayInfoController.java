@@ -57,16 +57,6 @@ public class ApiPayInfoController {
         // 参数校验
         ValidatorUtils.validateEntity(dto);
 
-        // 验证银行账号格式（简单验证）
-        if (StringUtils.isNotBlank(dto.getPayNo()) && dto.getPayNo().length() < 10) {
-            return new Result().error("银行账号格式不正确");
-        }
-        
-        // 验证手机号格式（简单验证）
-        if (StringUtils.isNotBlank(dto.getMobile()) && !dto.getMobile().matches("^1[3-9]\\d{9}$")) {
-            return new Result().error("手机号格式不正确");
-        }
-
         // 检查是否已存在相同的银行账号
         QueryWrapper<PayInfoEntity> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("pay_no", dto.getPayNo())
