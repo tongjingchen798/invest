@@ -513,9 +513,9 @@ public class ChargeCallbackServiceImpl implements ChargeCallbackService {
             // 移除货币符号和逗号
             String cleanAmount = amountStr.replaceAll("[^\\d.]", "");
             
-            // 转换为分（假设输入是元）
+            // 转换为卢比
             double amount = Double.parseDouble(cleanAmount);
-            return (long) (amount * 100);
+            return (long) (amount * 0.01);
             
         } catch (Exception e) {
             log.warn("解析金额失败：{}", amountStr, e);

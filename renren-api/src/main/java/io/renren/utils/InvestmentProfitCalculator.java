@@ -92,10 +92,7 @@ public class InvestmentProfitCalculator {
                     break;
             }
             
-            // 转换为分（四舍五入）
-            Long totalProfit = profitAmount.multiply(new BigDecimal("100"))
-                                         .setScale(0, RoundingMode.HALF_UP)
-                                         .longValue();
+            Long totalProfit = profitAmount.longValue();
             
             log.debug("计算总收益金额：投资金额={}分, 周期={}天, 类型={}, 收益率={}, 总收益={}分", 
                      investmentAmount, cycle, cycleType, conversion, totalProfit);

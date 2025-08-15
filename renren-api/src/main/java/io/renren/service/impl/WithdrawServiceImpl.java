@@ -12,12 +12,15 @@ import io.renren.dto.WithdrawQueryDTO;
 import io.renren.entity.UserEntity;
 import io.renren.entity.WithdrawOrderEntity;
 import io.renren.service.WithdrawService;
+import io.renren.utils.WithdrawRuleValidator;
+import io.renren.utils.WithdrawRuleValidator.ValidationResult;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -40,6 +43,9 @@ public class WithdrawServiceImpl implements WithdrawService {
 
     @Autowired
     private UserDao userDao;
+
+    @Autowired
+    private WithdrawRuleValidator withdrawRuleValidator;
 
     // 订单号生成器
     private static final AtomicLong orderNoGenerator = new AtomicLong(System.currentTimeMillis());
@@ -144,28 +150,30 @@ public class WithdrawServiceImpl implements WithdrawService {
             if (user == null) {
                 throw new RuntimeException("用户不存在");
             }
-            
+
 //            // 验证支付密码
 //            if (!validatePayPassword(user, requestDTO.getPayPassword())) {
 //                throw new RuntimeException("支付密码错误");
 //            }
-            
+
             // 检查佣金余额
             if (user.getCommissionBalance() == null || user.getCommissionBalance() < requestDTO.getAmount()) {
                 throw new RuntimeException("佣金余额不足");
             }
             
-            // 检查提现金额限制
-            if (requestDTO.getAmount() < 1000) { // 最小提现金额10元（1000分）
-                throw new RuntimeException("提现金额不能少于10元");
+            // 验证提现规则
+            ValidationResult ruleResult = withdrawRuleValidator.validateAllRules(userId, new BigDecimal(requestDTO.getAmount()));
+            if (!ruleResult.isValid()) {
+                throw new RuntimeException(ruleResult.getErrorMessage());
             }
             
             // 生成订单号
             String orderNo = generateOrderNo();
             
-            // 计算手续费和实际到账金额（假设手续费为1%）
-            long handFee = requestDTO.getAmount() / 100; // 1%手续费
-            long realAmount = requestDTO.getAmount() - handFee;
+            // 计算手续费和实际到账金额（5%手续费）
+            BigDecimal amount = new BigDecimal(requestDTO.getAmount());
+            BigDecimal handFee = withdrawRuleValidator.calculateFee(amount);
+            BigDecimal realAmount = withdrawRuleValidator.calculateRealAmount(amount);
             
             // 创建提现订单
             WithdrawOrderEntity withdrawOrder = new WithdrawOrderEntity();
@@ -175,8 +183,8 @@ public class WithdrawServiceImpl implements WithdrawService {
             withdrawOrder.setUsername(user.getUsername());
             withdrawOrder.setAmount(requestDTO.getAmount());
             withdrawOrder.setInputamount(requestDTO.getAmount());
-            withdrawOrder.setHandFee(handFee);
-            withdrawOrder.setRealAmount(realAmount);
+            withdrawOrder.setHandFee(handFee.longValue());
+            withdrawOrder.setRealAmount(realAmount.longValue());
             withdrawOrder.setPayNo(requestDTO.getPayNo());
             withdrawOrder.setPayName(user.getUsername());
             withdrawOrder.setWithdrawType(2); // 佣金提现
@@ -197,8 +205,8 @@ public class WithdrawServiceImpl implements WithdrawService {
             Map<String, Object> result = new HashMap<>();
             result.put("orderNo", orderNo);
             result.put("amount", requestDTO.getAmount());
-            result.put("handFee", handFee);
-            result.put("realAmount", realAmount);
+            result.put("handFee", handFee.longValue());
+            result.put("realAmount", realAmount.longValue());
             result.put("status", "待审核");
             result.put("message", "佣金提现申请提交成功");
             

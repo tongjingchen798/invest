@@ -98,10 +98,16 @@ investment:
       # 8-15天的日收益率
       second-week-rate: 0.0015
       # 16天以后的日收益率
-      later-rate: 0.002
-    # 拼团的收益率配置
-    group-buy-rate:
-      # 基础年化收益率
-      base-annual-rate: 0.10
-      # 拼团奖励比例
-      group-bonus-rate: 0.02
+
+# 提现规则配置
+withdraw:
+  # 单笔最低提现额度（卢比*100）
+  min-amount: 20000
+  # 单笔最高提现额度（卢比*100）
+  max-amount: 10000000
+  # 提现手续费率（百分比）
+  fee-rate: 5
+  # 手续费计算方式：true为按比例，false为固定金额
+  percentage-fee: true
+  # 固定手续费金额（卢比），当percentage-fee为false时使用
+  fixed-fee: 0
