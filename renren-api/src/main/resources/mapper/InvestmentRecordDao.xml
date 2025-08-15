@@ -118,18 +118,6 @@
 		ORDER BY user_id
 	</select>
 
-	<!-- 批量更新投资记录状态和收益信息 -->
-	<update id="batchUpdateStatusAndProfit">
-		UPDATE tb_investment_record 
-		SET status = 1,
-			profit_amount = #{profitAmount},
-			profit_date = #{profitDate},
-			update_date = #{profitDate}
-		WHERE id IN
-		<foreach collection="investmentIds" item="id" open="(" separator="," close=")">
-			#{id}
-		</foreach>
-	</update>
 
 	<!-- 根据状态查询投资记录数量 -->
 	<select id="selectCountByStatus" resultType="int">

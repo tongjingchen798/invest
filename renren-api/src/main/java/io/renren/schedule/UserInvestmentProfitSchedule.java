@@ -6,6 +6,7 @@ import io.renren.entity.ProjectEntity;
 import io.renren.entity.UserBalanceDetailEntity;
 import io.renren.entity.UserEntity;
 import io.renren.enums.BusinessTypeEnum;
+import io.renren.utils.InvestmentProfitCalculator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -175,13 +176,27 @@ public class UserInvestmentProfitSchedule {
                 log.debug("投资项目 {} 没有收益，跳过处理", record.getId());
                 return;
             }
-            
-            // 3. 更新投资记录状态
-            updateInvestmentRecordStatus(record.getId(), profitAmount);
-            
+
             // 4. 更新用户余额
             updateUserBalance(record.getUserId(), profitAmount);
+
+            // 判断投资是否到期（是否是最后一期）
+            boolean isMatured = InvestmentProfitCalculator.isInvestmentMatured(
+                record.getOrderDate(), record.getCycle()
+            );
             
+            if (isMatured) {
+                log.debug("投资项目 {} 已到期，更新状态为已收益", record.getId());
+                // 更新投资记录状态为已收益
+                record.setStatus(1);
+                investmentRecordDao.updateById(record);
+            } else {
+                log.debug("投资项目 {} 未到期，当前为第 {} 期，总周期 {} 天", 
+                         record.getId(), 
+                         InvestmentProfitCalculator.calculateInvestmentDays(record.getOrderDate()) + 1,
+                         record.getCycle());
+            }
+
             // 5. 记录账变
             recordProfitDetail(record, profitAmount);
             
@@ -603,25 +618,25 @@ public class UserInvestmentProfitSchedule {
         }
     }
     
-    /**
-     * 更新投资记录状态
-     * 
-     * @param investmentId 投资记录ID
-     * @param profitAmount 收益金额
-     */
-    private void updateInvestmentRecordStatus(Long investmentId, BigDecimal profitAmount) {
-        log.debug("更新投资记录 {} 状态，收益金额: {}", investmentId, profitAmount);
-        
-        try {
-             investmentRecordDao.updateStatusAndProfit(investmentId, profitAmount, new Date());
-            
-            log.debug("投资记录 {} 状态更新完成", investmentId);
-            
-        } catch (Exception e) {
-            log.error("更新投资记录 {} 状态失败", investmentId, e);
-            throw e;
-        }
-    }
+//    /**
+//     * 更新投资记录状态
+//     *
+//     * @param investmentId 投资记录ID
+//     * @param profitAmount 收益金额
+//     */
+//    private void updateInvestmentRecordStatus(Long investmentId, BigDecimal profitAmount) {
+//        log.debug("更新投资记录 {} 状态，收益金额: {}", investmentId, profitAmount);
+//
+//        try {
+//             investmentRecordDao.updateStatusAndProfit(investmentId, profitAmount, new Date());
+//
+//            log.debug("投资记录 {} 状态更新完成", investmentId);
+//
+//        } catch (Exception e) {
+//            log.error("更新投资记录 {} 状态失败", investmentId, e);
+//            throw e;
+//        }
+//    }
     
     /**
      * 更新用户余额和收益相关字段
@@ -633,7 +648,7 @@ public class UserInvestmentProfitSchedule {
         log.debug("更新用户 {} 余额和收益字段，收益金额: {}", userId, profitAmount);
         
         try {
-            // 将收益金额转换为分（数据库存储单位）
+            // 将收益金额转换为分
             Long profitAmountInCents = profitAmount.multiply(new BigDecimal("100")).longValue();
             
             // 更新用户可用余额

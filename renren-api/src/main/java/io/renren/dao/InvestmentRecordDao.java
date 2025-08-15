@@ -122,16 +122,6 @@ public interface InvestmentRecordDao extends BaseMapper<InvestmentRecordEntity> 
 							 @Param("profitAmount") BigDecimal profitAmount, 
 							 @Param("profitDate") Date profitDate);
 
-	/**
-	 * 批量更新投资记录状态和收益信息
-	 * @param investmentIds 投资记录ID列表
-	 * @param profitAmount 收益金额
-	 * @param profitDate 收益日期
-	 * @return 影响行数
-	 */
-	int batchUpdateStatusAndProfit(@Param("investmentIds") List<Long> investmentIds, 
-								  @Param("profitAmount") BigDecimal profitAmount, 
-								  @Param("profitDate") Date profitDate);
 
 	/**
 	 * 根据状态查询投资记录数量

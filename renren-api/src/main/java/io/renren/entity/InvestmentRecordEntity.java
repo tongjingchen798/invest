@@ -86,7 +86,7 @@ public class InvestmentRecordEntity implements Serializable {
 	 */
 	private Long ddsy;
 	/**
-	 * 投资次数
+	 * 投资次数（用来计算投了几笔）
 	 */
 	private Integer investCount;
 	/**
