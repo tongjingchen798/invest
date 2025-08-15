@@ -16,6 +16,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -61,7 +62,7 @@ public class ApiRegisterController {
         UserEntity user = new UserEntity();
         user.setMobile(dto.getMobile());
         // 如果提供了真实姓名，使用真实姓名，否则使用手机号作为用户名
-        user.setUsername(dto.getUsername() != null ? dto.getUsername() : dto.getMobile());
+        user.setUsername(dto.getMobile());
         user.setPassword(DigestUtils.sha256Hex(dto.getPassword()));
         
         // 设置新字段
