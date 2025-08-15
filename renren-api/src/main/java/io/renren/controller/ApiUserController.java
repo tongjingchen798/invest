@@ -5,6 +5,7 @@ package io.renren.controller;
 import io.renren.annotation.LoginUser;
 import io.renren.common.utils.Result;
 import io.renren.common.validator.ValidatorUtils;
+import io.renren.dao.InvestmentRecordDao;
 import io.renren.dto.BalanceDTO;
 import io.renren.dto.ChangePasswordDTO;
 import io.renren.dto.ChangeTwoPasswordDTO;
@@ -31,6 +32,9 @@ public class ApiUserController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private InvestmentRecordDao investmentRecordDao;
+
     @GetMapping("/userInfo")
     @ApiOperation("获取用户信息")
     public Result<UserInfoDTO> getUserInfo(@LoginUser UserEntity user) {
@@ -53,14 +57,13 @@ public class ApiUserController {
                 return new Result<BalanceDTO>().error("用户不存在");
             }
             
-            // 构建余额DTO，从用户实体中获取相关字段
             BalanceDTO balanceDTO = new BalanceDTO();
             balanceDTO.setId(userBalance.getId());
             balanceDTO.setUserId(userBalance.getId());
-            
-            // 余额相关字段
             balanceDTO.setAssets(userBalance.getAssets() != null ? userBalance.getAssets() : 0L);
-            balanceDTO.setBalance(userBalance.getBalance() != null ? userBalance.getBalance() : 0L);
+            Long dsAmount = investmentRecordDao.selectPendingInterestByUserId(user.getId());         // 待收利息
+            Long balance=balanceDTO.getAssets()+user.getCashwithdrawable()+dsAmount;
+            balanceDTO.setBalance(balance);
             balanceDTO.setCashwithdrawable(userBalance.getCashwithdrawable() != null ? userBalance.getCashwithdrawable() : 0L);
             
             // 累计收益 = 代收收益 + 已收收益

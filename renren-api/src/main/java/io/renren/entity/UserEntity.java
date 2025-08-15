@@ -238,6 +238,7 @@ public class UserEntity implements Serializable {
 	/**
 	 * 我的资产=余额+可提现+等待收益
 	 */
+	@TableField(exist = false)
 	private Long balance;
 
 	/**

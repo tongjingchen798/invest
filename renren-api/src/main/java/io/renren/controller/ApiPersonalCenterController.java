@@ -140,14 +140,15 @@ public class ApiPersonalCenterController {
             BalanceDTO balanceDTO = new BalanceDTO();
             balanceDTO.setId(user.getId());
             balanceDTO.setUserId(user.getId());
-            balanceDTO.setAssets(user.getBalance() != null ? user.getBalance() : 0L);           // 可用余额
-            balanceDTO.setBalance(user.getBalance() != null ? user.getBalance() : 0L);          // 账户余额
+            balanceDTO.setAssets(user.getAssets() != null ? user.getAssets() : 0L);           // 可用余额
+            Long dsAmount = investmentRecordDao.selectPendingInterestByUserId(user.getId());         // 待收利息
+            Long balance=balanceDTO.getAssets()+user.getCashwithdrawable()+dsAmount;
+            balanceDTO.setBalance(balance);
             balanceDTO.setCashwithdrawable(user.getCashwithdrawable() != null ? user.getCashwithdrawable() : 0L); // 可提现
             balanceDTO.setCumulative(user.getHistoryProfit() != null ? user.getHistoryProfit() : 0L);       // 累计收益
             balanceDTO.setCzAmount(user.getChargeSum() != null ? user.getChargeSum() : 0L);         // 累计充值
             
             // 从投资记录表查询投资相关数据
-            Long dsAmount = investmentRecordDao.selectPendingInterestByUserId(user.getId());         // 待收利息
             Long dsbjAmount = investmentRecordDao.selectPendingPrincipalByUserId(user.getId());     // 待收本金
             Long ysAmount = investmentRecordDao.selectReceivedInterestByUserId(user.getId());        // 已收利息
             Long ysbjAmount = investmentRecordDao.selectReceivedPrincipalByUserId(user.getId());    // 已收本金

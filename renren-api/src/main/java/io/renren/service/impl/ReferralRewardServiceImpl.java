@@ -113,11 +113,10 @@ public class ReferralRewardServiceImpl implements ReferralRewardService {
             }
 
             // 更新推荐人的余额和佣金余额
-            Long currentBalance = referrer.getAssets() != null ? referrer.getAssets() : 0L;
+            Long currentAssets = referrer.getAssets() != null ? referrer.getAssets() : 0L;
             Long currentCommissionBalance = referrer.getCommissionBalance() != null ? referrer.getCommissionBalance() : 0L;
-            referrer.setAssets(referrer.getAssets() + rewardAmount);
-            //balance字段待定 可能表里不需要存
-            referrer.setBalance(currentBalance + rewardAmount);
+            referrer.setAssets(currentAssets + rewardAmount);
+            Long assets= currentAssets + rewardAmount; //更新后可用金额
             referrer.setCommissionBalance(currentCommissionBalance + rewardAmount);
 
             // 更新推荐人信息
@@ -128,7 +127,7 @@ public class ReferralRewardServiceImpl implements ReferralRewardService {
             }
 
             // 记录推荐返利到资金明细表
-            balanceDetailService.recordReferralReward(referrerId, rewardAmount, newUserId);
+            balanceDetailService.recordReferralReward(currentAssets,assets,referrerId, rewardAmount, newUserId);
 
             log.info("推荐人 {} 获得推荐返利 {} 分，当前余额: {} 分，佣金余额: {} 分", 
                 referrerId, rewardAmount, referrer.getBalance(), referrer.getCommissionBalance());

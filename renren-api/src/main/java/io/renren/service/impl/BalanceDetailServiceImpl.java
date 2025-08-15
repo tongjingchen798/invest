@@ -129,26 +129,20 @@ public class BalanceDetailServiceImpl implements BalanceDetailService {
     }
 
     @Override
-    public boolean recordReferralReward(Long userId, Long amount, Long newUserId) {
+    public boolean recordReferralReward(Long currentAssets,Long assets,Long userId, Long amount, Long newUserId) {
         try {
             UserBalanceDetailEntity detail = new UserBalanceDetailEntity();
-            
+            detail.setBusinessType(14);
             // 设置基本信息
             detail.setUserId(userId);
-            detail.setTransactionAmount(amount);
-            detail.setOriginalAmount(amount);
-            detail.setUseAmount(0L);
+            detail.setOriginalAmount(currentAssets);
+            detail.setUseAmount(amount);
+            detail.setTransactionAmount(assets);
             detail.setStatus(1); // 成功状态
-            
-            // 设置业务类型：14邀请福利
-            detail.setBusinessType(14);
-            
             // 设置交易时间
             detail.setTransactionDate(new Date());
             detail.setCreateDate(new Date());
             detail.setUpdateDate(new Date());
-            
-            // 设置备注信息
             detail.setRemarks("推荐用户注册成功，获得返利");
             
             // 设置关联用户ID（新注册用户）
@@ -156,11 +150,10 @@ public class BalanceDetailServiceImpl implements BalanceDetailService {
                 detail.setFormUserId(newUserId);
             }
             
-            // 生成流水ID（推荐返利 + 时间戳 + 用户ID）
-            String streamId = "REF_" + System.currentTimeMillis() + "_" + userId;
+            // 生成流水ID
+            String streamId =  userId.toString();
             detail.setStreamId(streamId);
             
-            // 保存到数据库
             int result = userBalanceDetailDao.insert(detail);
             
             if (result > 0) {

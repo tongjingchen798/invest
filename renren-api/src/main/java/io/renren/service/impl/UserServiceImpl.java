@@ -96,7 +96,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, UserEntity> implem
 
 		// 设置计算字段
 		if (userInfoDTO.getAssets() == null) {
-			userInfoDTO.setAssets(user.getBalance());
+			userInfoDTO.setAssets(user.getAssets());
 		}
 		if (userInfoDTO.getJrProfit() == null) {
 			userInfoDTO.setJrProfit(user.getTodayProfit());
