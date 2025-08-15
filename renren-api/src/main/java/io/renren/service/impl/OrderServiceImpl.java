@@ -10,6 +10,7 @@ import io.renren.entity.ProjectEntity;
 import io.renren.entity.UserBalanceDetailEntity;
 import io.renren.entity.UserEntity;
 import io.renren.service.OrderService;
+import io.renren.utils.InvestmentProfitCalculator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -78,18 +79,33 @@ public class OrderServiceImpl implements OrderService {
 			InvestmentRecordEntity investmentRecord = new InvestmentRecordEntity();
 			investmentRecord.setUserId(userId);
 			investmentRecord.setProjectId(dto.getInvestId());
+			investmentRecord.setInvestName(project.getInvestName());
 			investmentRecord.setInvestmentAmount(dto.getAmount());
 			investmentRecord.setOrderId(Long.parseLong(orderNumber));
 			investmentRecord.setOrderAbbr(orderNumber.substring(orderNumber.length() - 8));
 			investmentRecord.setOrderDate(new Date());
 			investmentRecord.setStatus(0); // 0:未收益
-			investmentRecord.setCycle(project.getCycle());
-			investmentRecord.setCycleType(project.getCycleType());
-			investmentRecord.setDdsy(0L); // 等待收益
+			// 计算收益结束时间和总收益金额
+			Date orderDate = investmentRecord.getOrderDate();
+			Integer cycle = project.getCycle();
+			Integer cycleType = project.getCycleType();
+			String conversion = project.getConversion();
+			// 计算收益结束时间
+			Date profitEndDate = InvestmentProfitCalculator.calculateProfitEndDate(orderDate, cycle);
+			investmentRecord.setProfitDate(profitEndDate);
+			
+			// 计算总收益金额
+			Long totalProfit = InvestmentProfitCalculator.calculateTotalProfit(
+				dto.getAmount(), cycle, cycleType, conversion
+			);
+			investmentRecord.setProfitAmount(totalProfit);
+			investmentRecord.setCycle(cycle);
+			investmentRecord.setCycleType(cycleType);
+			investmentRecord.setDdsy(totalProfit); // 等待收益金额
 			investmentRecord.setInvestCount(dto.getCount());
 			investmentRecord.setRushMinute(project.getRushMinute());
-			investmentRecord.setAgent(""); // 代理信息
-			investmentRecord.setSalesmanid(""); // 销售员ID
+			investmentRecord.setAgent("1748403717627"); // 代理信息
+			investmentRecord.setSalesmanid("1748403763980"); // 销售员ID
 			investmentRecord.setCreateDate(new Date());
 			investmentRecord.setUpdateDate(new Date());
 			

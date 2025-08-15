@@ -32,6 +32,11 @@ public class InvestmentRecordEntity implements Serializable {
 	 * 项目ID
 	 */
 	private Long projectId;
+
+	/**
+	 * 项目名称
+	 */
+	private String investName;
 	/**
 	 * 投资金额(分)
 	 */
