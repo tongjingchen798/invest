@@ -37,17 +37,17 @@ public class SwaggerConfig{
             //.apis(RequestHandlerSelectors.basePackage("io.renren.controller"))
             .paths(PathSelectors.any())
             .build()
-            .extensions(openApiExtensionResolver.buildExtensions("Renren"))
+            .extensions(openApiExtensionResolver.buildExtensions("投资项目"))
             .directModelSubstitute(java.util.Date.class, String.class)
             .securitySchemes(security());
     }
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-            .title("人人开源")
-            .description("renren-api模块接口文档")
-            .termsOfServiceUrl("https://www.renren.io")
-            .version("5.x")
+            .title("")
+            .description("接口文档")
+            .termsOfServiceUrl("")
+            .version("1.0")
             .build();
     }
 
