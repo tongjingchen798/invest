@@ -4,8 +4,10 @@ package io.renren.controller;
 
 import io.renren.common.utils.Result;
 import io.renren.common.validator.ValidatorUtils;
+import io.renren.entity.TokenEntity;
 import io.renren.entity.UserEntity;
 import io.renren.dto.RegisterDTO;
+import io.renren.service.TokenService;
 import io.renren.service.UserService;
 import io.renren.service.ReferralRewardService;
 import io.renren.utils.InviteCodeGenerator;
@@ -23,6 +25,8 @@ import org.springframework.web.bind.annotation.RestController;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 注册接口
@@ -40,9 +44,12 @@ public class ApiRegisterController {
     @Autowired
     private ReferralRewardService referralRewardService;
 
+    @Autowired
+    private TokenService tokenService;
+
     @PostMapping("register")
     @ApiOperation("注册")
-    public Result register(@RequestBody RegisterDTO dto){
+    public Result<Map<String, Object>> register(@RequestBody RegisterDTO dto){
         //表单校验
         ValidatorUtils.validateEntity(dto);
 
@@ -82,8 +89,12 @@ public class ApiRegisterController {
             log.error("处理推荐返利时发生异常，用户ID: {}", user.getId(), e);
             // 不影响注册流程，只记录日志
         }
-
-        return new Result();
+        //获取登录token
+        TokenEntity tokenEntity = tokenService.createToken(user.getId());
+        Map<String, Object> map = new HashMap<>(2);
+        map.put("token", tokenEntity.getToken());
+        map.put("expire", tokenEntity.getExpireDate().getTime() - System.currentTimeMillis());
+        return new Result().ok(map);
     }
 
     @PostMapping("verificationBnkCode")
