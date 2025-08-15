@@ -238,4 +238,12 @@ public interface UserDao extends BaseDao<UserEntity> {
             "charge_sum = charge_sum + #{amount} " +
             "WHERE id = #{userId}")
     int updateAllRechargeFields(@Param("userId") Long userId, @Param("amount") Long amount);
+
+    /**
+     * 检查手机号是否已存在
+     * @param mobile 手机号
+     * @return 存在返回1，不存在返回0
+     */
+    @Select("SELECT COUNT(1) FROM tb_user WHERE mobile = #{mobile}")
+    int checkMobileExists(@Param("mobile") String mobile);
 }

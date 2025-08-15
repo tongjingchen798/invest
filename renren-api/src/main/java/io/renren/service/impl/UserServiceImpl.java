@@ -244,4 +244,13 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, UserEntity> implem
 			return null;
 		}
 	}
+
+	@Override
+	public boolean isMobileRegistered(String mobile) {
+		try {
+			return baseDao.checkMobileExists(mobile) > 0;
+		} catch (Exception e) {
+			return true;
+		}
+	}
 }

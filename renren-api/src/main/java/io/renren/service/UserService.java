@@ -56,4 +56,11 @@ public interface UserService extends BaseService<UserEntity> {
 	 * @return 用户数据汇总DTO
 	 */
 	UserDataSummaryDTO getUserDataSummary(Long userId);
+
+	/**
+	 * 检查手机号是否已注册
+	 * @param mobile 手机号
+	 * @return 已注册返回true，未注册返回false
+	 */
+	boolean isMobileRegistered(String mobile);
 }

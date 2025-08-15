@@ -53,6 +53,11 @@ public class ApiRegisterController {
         //表单校验
         ValidatorUtils.validateEntity(dto);
 
+        // 检查手机号是否已经注册（使用高效方法）
+        if (userService.isMobileRegistered(dto.getMobile())) {
+            return new Result().error("该手机号已经注册，请直接登录或使用其他手机号");
+        }
+
         UserEntity user = new UserEntity();
         user.setMobile(dto.getMobile());
         // 如果提供了真实姓名，使用真实姓名，否则使用手机号作为用户名
