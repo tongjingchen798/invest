@@ -4,11 +4,10 @@
 <mapper namespace="io.renren.dao.InvestmentRecordDao">
 
 	<resultMap type="io.renren.entity.InvestmentRecordEntity" id="investmentRecordMap">
-		<result property="id" column="id"/>
+		<result property="orderId" column="order_id"/>
 		<result property="userId" column="user_id"/>
 		<result property="projectId" column="project_id"/>
 		<result property="investmentAmount" column="investment_amount"/>
-		<result property="orderId" column="order_id"/>
 		<result property="orderAbbr" column="order_abbr"/>
 		<result property="orderDate" column="order_date"/>
 		<result property="profitAmount" column="profit_amount"/>

@@ -90,7 +90,7 @@ public class MyInvestmentServiceImpl extends ServiceImpl<MyInvestmentDao, Invest
             MyInvestmentDTO dto = new MyInvestmentDTO();
             
             // 基础字段映射
-            dto.setId(entity.getId() != null ? entity.getId().intValue() : null);
+            dto.setId(entity.getOrderId() != null ? entity.getOrderId().intValue() : null);
             dto.setUserId(entity.getUserId() != null ? entity.getUserId().intValue() : null);
             dto.setInvestId(entity.getProjectId() != null ? entity.getProjectId().intValue() : null);
             dto.setOrderId(entity.getOrderId() != null ? entity.getOrderId().intValue() : null);

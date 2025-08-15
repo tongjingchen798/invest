@@ -20,10 +20,10 @@ public class InvestmentRecordEntity implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * 主键ID
+	 * 主键ID 订单IDs
 	 */
 	@TableId
-	private Long id;
+	private Long orderId;
 	/**
 	 * 用户ID
 	 */
@@ -41,10 +41,7 @@ public class InvestmentRecordEntity implements Serializable {
 	 * 投资金额(分)
 	 */
 	private Long investmentAmount;
-	/**
-	 * 订单ID
-	 */
-	private Long orderId;
+
 	/**
 	 * 订单号简称
 	 */

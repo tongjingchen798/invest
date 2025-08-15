@@ -81,7 +81,6 @@ public class OrderServiceImpl implements OrderService {
 			investmentRecord.setProjectId(dto.getInvestId());
 			investmentRecord.setInvestName(project.getInvestName());
 			investmentRecord.setInvestmentAmount(dto.getAmount());
-			investmentRecord.setOrderId(Long.parseLong(orderNumber));
 			investmentRecord.setOrderAbbr(orderNumber.substring(orderNumber.length() - 8));
 			investmentRecord.setOrderDate(new Date());
 			investmentRecord.setStatus(0); // 0:未收益
@@ -131,7 +130,7 @@ public class OrderServiceImpl implements OrderService {
 			result.put("status", "success");
 			result.put("message", "下单成功");
 			result.put("orderNumber", orderNumber);
-			result.put("investmentId", investmentRecord.getId().toString());
+			result.put("investmentId", investmentRecord.getOrderId().toString());
 			
 		} catch (Exception e) {
 			result.put("status", "error");
@@ -160,7 +159,7 @@ public class OrderServiceImpl implements OrderService {
 			Long currentAssets = user.getAssets() != null ? user.getAssets() : 0L;
 			if (currentAssets < amount) {
 				result.put("status", "error");
-				result.put("message", "可用余额不足，当前可用余额: " + (currentAssets / 100.0) + "元，需要: " + (amount / 100.0) + "元");
+				result.put("message", "可用余额不足，当前可用余额: " + currentAssets + "分，需要: " + (amount / 100.0) + "元");
 				return result;
 			}
 			

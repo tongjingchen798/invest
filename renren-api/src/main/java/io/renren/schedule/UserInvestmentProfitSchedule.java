@@ -141,7 +141,7 @@ public class UserInvestmentProfitSchedule {
                 try {
                     calculateInvestmentProfit(record);
                 } catch (Exception e) {
-                    log.error("计算投资项目 {} 收益失败，用户ID: {}", record.getId(), userId, e);
+                    log.error("计算投资项目 {} 收益失败，用户ID: {}", record.getOrderId(), userId, e);
                     // 继续处理下一个投资项目
                 }
             }
@@ -160,12 +160,12 @@ public class UserInvestmentProfitSchedule {
      * @param record 投资记录
      */
     private void calculateInvestmentProfit(InvestmentRecordEntity record) {
-        log.debug("开始计算投资项目 {} 的收益", record.getId());
+        log.debug("开始计算投资项目 {} 的收益", record.getOrderId());
         
         try {
             // 1. 检查投资状态，只处理未收益的投资
             if (record.getStatus() != null && record.getStatus() == 1) {
-                log.debug("投资项目 {} 已经收益，跳过处理", record.getId());
+                log.debug("投资项目 {} 已经收益，跳过处理", record.getOrderId());
                 return;
             }
             
@@ -173,7 +173,7 @@ public class UserInvestmentProfitSchedule {
             BigDecimal profitAmount = calculateProfitAmount(record);
             
             if (profitAmount.compareTo(BigDecimal.ZERO) <= 0) {
-                log.debug("投资项目 {} 没有收益，跳过处理", record.getId());
+                log.debug("投资项目 {} 没有收益，跳过处理", record.getOrderId());
                 return;
             }
 
@@ -186,13 +186,13 @@ public class UserInvestmentProfitSchedule {
             );
             
             if (isMatured) {
-                log.debug("投资项目 {} 已到期，更新状态为已收益", record.getId());
+                log.debug("投资项目 {} 已到期，更新状态为已收益", record.getOrderId());
                 // 更新投资记录状态为已收益
                 record.setStatus(1);
                 investmentRecordDao.updateById(record);
             } else {
                 log.debug("投资项目 {} 未到期，当前为第 {} 期，总周期 {} 天", 
-                         record.getId(), 
+                         record.getOrderId(),
                          InvestmentProfitCalculator.calculateInvestmentDays(record.getOrderDate()) + 1,
                          record.getCycle());
             }
@@ -200,10 +200,10 @@ public class UserInvestmentProfitSchedule {
             // 5. 记录账变
             recordProfitDetail(record, profitAmount);
             
-            log.debug("投资项目 {} 收益计算完成，收益金额: {}", record.getId(), profitAmount);
+            log.debug("投资项目 {} 收益计算完成，收益金额: {}", record.getOrderId(), profitAmount);
             
         } catch (Exception e) {
-            log.error("计算投资项目 {} 收益失败", record.getId(), e);
+            log.error("计算投资项目 {} 收益失败", record.getOrderId(), e);
             throw e;
         }
     }
@@ -215,17 +215,17 @@ public class UserInvestmentProfitSchedule {
      * @return 收益金额
      */
     private BigDecimal calculateProfitAmount(InvestmentRecordEntity record) {
-        log.debug("计算投资项目 {} 的收益金额", record.getId());
+        log.debug("计算投资项目 {} 的收益金额", record.getOrderId());
         
         try {
             // 1. 验证投资记录的基本信息
             if (record.getInvestmentAmount() == null || record.getInvestmentAmount() <= 0) {
-                log.warn("投资项目 {} 投资金额无效", record.getId());
+                log.warn("投资项目 {} 投资金额无效", record.getOrderId());
                 return BigDecimal.ZERO;
             }
             
             if (record.getOrderDate() == null) {
-                log.warn("投资项目 {} 投资日期无效", record.getId());
+                log.warn("投资项目 {} 投资日期无效", record.getOrderId());
                 return BigDecimal.ZERO;
             }
             
@@ -236,12 +236,12 @@ public class UserInvestmentProfitSchedule {
             BigDecimal profitAmount = calculateProfitByCycleType(record, investmentAmount);
             
             log.debug("投资项目 {} 收益计算：投资金额={}, 收益金额={}", 
-                     record.getId(), investmentAmount, profitAmount);
+                     record.getOrderId(), investmentAmount, profitAmount);
             
             return profitAmount;
             
         } catch (Exception e) {
-            log.error("计算投资项目 {} 收益金额失败", record.getId(), e);
+            log.error("计算投资项目 {} 收益金额失败", record.getOrderId(), e);
             return BigDecimal.ZERO;
         }
     }
@@ -260,7 +260,7 @@ public class UserInvestmentProfitSchedule {
             if (record.getProjectId() != null) {
                 project = projectDao.selectProjectById(record.getProjectId());
                 if (project == null) {
-                    log.warn("投资项目 {} 对应的项目 {} 不存在，使用默认配置", record.getId(), record.getProjectId());
+                    log.warn("投资项目 {} 对应的项目 {} 不存在，使用默认配置", record.getOrderId(), record.getProjectId());
                 }
             }
             
@@ -280,7 +280,7 @@ public class UserInvestmentProfitSchedule {
             int investmentDays = calculateInvestmentDays(record.getOrderDate());
             
             log.debug("投资项目 {} 周期类型：{}, 周期：{}天, 投资天数：{}天", 
-                     record.getId(), cycleType, cycle, investmentDays);
+                     record.getOrderId(), cycleType, cycle, investmentDays);
             
             BigDecimal profitAmount = BigDecimal.ZERO;
             
@@ -312,7 +312,7 @@ public class UserInvestmentProfitSchedule {
             return profitAmount;
             
         } catch (Exception e) {
-            log.error("根据周期类型计算收益失败，投资项目ID: {}", record.getId(), e);
+            log.error("根据周期类型计算收益失败，投资项目ID: {}", record.getOrderId(), e);
             return BigDecimal.ZERO;
         }
     }
@@ -698,7 +698,7 @@ public class UserInvestmentProfitSchedule {
      * @param profitAmount 收益金额
      */
     private void recordProfitDetail(InvestmentRecordEntity record, BigDecimal profitAmount) {
-        log.debug("记录投资项目 {} 的投资收益账变，金额：{}", record.getId(), profitAmount);
+        log.debug("记录投资项目 {} 的投资收益账变，金额：{}", record.getOrderId(), profitAmount);
         
         try {
             // 金额：收益金额（转换为分）
@@ -714,7 +714,7 @@ public class UserInvestmentProfitSchedule {
             userBalanceDetail.setChannel("1");
 
             // 设置交易流水ID
-            userBalanceDetail.setStreamId(record.getId().toString());
+            userBalanceDetail.setStreamId(record.getOrderId().toString());
 
             // 设置使用金额（签到奖励金额）
             userBalanceDetail.setUseAmount(profitAmountInCents);
@@ -731,13 +731,13 @@ public class UserInvestmentProfitSchedule {
 
             // 插入账变记录
             userBalanceDetailDao.insert(userBalanceDetail);
-            log.debug("投资项目 {} 投资收益账变记录完成，金额：{}", record.getId(), profitAmount);
+            log.debug("投资项目 {} 投资收益账变记录完成，金额：{}", record.getOrderId(), profitAmount);
             
             // 更新用户余额和收益字段
             updateUserBalance(record.getUserId(), profitAmount);
             
         } catch (Exception e) {
-            log.error("记录投资项目 {} 投资收益账变失败", record.getId(), e);
+            log.error("记录投资项目 {} 投资收益账变失败", record.getOrderId(), e);
             throw e;
         }
     }
