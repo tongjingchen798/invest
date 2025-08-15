@@ -72,4 +72,99 @@ public interface UserDao extends BaseDao<UserEntity> {
             "total_principal = total_principal + #{amount} " +
             "WHERE id = #{userId}")
     int updateAllInvestmentFields(@Param("userId") Long userId, @Param("amount") Long amount);
+
+    /**
+     * 更新用户可用余额（增加收益）
+     * @param userId 用户ID
+     * @param amount 收益金额（分）
+     * @return 影响行数
+     */
+    @Update("UPDATE tb_user SET assets = assets + #{amount} WHERE id = #{userId}")
+    int addUserBalance(@Param("userId") Long userId, @Param("amount") Long amount);
+
+    /**
+     * 更新用户今日收益
+     * @param userId 用户ID
+     * @param amount 收益金额（分）
+     * @return 影响行数
+     */
+    @Update("UPDATE tb_user SET today_profit = today_profit + #{amount} WHERE id = #{userId}")
+    int addTodayProfit(@Param("userId") Long userId, @Param("amount") Long amount);
+
+    /**
+     * 更新用户历史收益
+     * @param userId 用户ID
+     * @param amount 收益金额（分）
+     * @return 影响行数
+     */
+    @Update("UPDATE tb_user SET history_profit = history_profit + #{amount} WHERE id = #{userId}")
+    int addHistoryProfit(@Param("userId") Long userId, @Param("amount") Long amount);
+
+    /**
+     * 更新用户总收益
+     * @param userId 用户ID
+     * @param amount 收益金额（分）
+     * @return 影响行数
+     */
+    @Update("UPDATE tb_user SET total_profit = total_profit + #{amount} WHERE id = #{userId}")
+    int addTotalProfit(@Param("userId") Long userId, @Param("amount") Long amount);
+
+    /**
+     * 更新用户收益相关字段（综合更新）
+     * @param userId 用户ID
+     * @param amount 收益金额（分）
+     * @return 影响行数
+     */
+    @Update("UPDATE tb_user SET " +
+            "assets = assets + #{amount}, " +
+            "today_profit = today_profit + #{amount}, " +
+            "history_profit = history_profit + #{amount}, " +
+            "total_profit = total_profit + #{amount} " +
+            "WHERE id = #{userId}")
+    int updateAllProfitFields(@Param("userId") Long userId, @Param("amount") Long amount);
+
+    /**
+     * 更新用户佣金余额
+     * @param userId 用户ID
+     * @param amount 佣金金额（分）
+     * @return 影响行数
+     */
+    @Update("UPDATE tb_user SET commission_balance = commission_balance + #{amount} WHERE id = #{userId}")
+    int addCommissionBalance(@Param("userId") Long userId, @Param("amount") Long amount);
+
+    /**
+     * 更新用户历史佣金余额
+     * @param userId 用户ID
+     * @param amount 佣金金额（分）
+     * @return 影响行数
+     */
+    @Update("UPDATE tb_user SET history_commission_balance = history_commission_balance + #{amount} WHERE id = #{userId}")
+    int addHistoryCommissionBalance(@Param("userId") Long userId, @Param("amount") Long amount);
+
+    /**
+     * 更新用户佣金相关字段（综合更新）
+     * @param userId 用户ID
+     * @param amount 佣金金额（分）
+     * @return 影响行数
+     */
+    @Update("UPDATE tb_user SET " +
+            "commission_balance = commission_balance + #{amount}, " +
+            "history_commission_balance = history_commission_balance + #{amount} " +
+            "WHERE id = #{userId}")
+    int updateAllCommissionFields(@Param("userId") Long userId, @Param("amount") Long amount);
+
+    /**
+     * 重置用户今日收益（每日定时任务调用）
+     * @return 影响行数
+     */
+    @Update("UPDATE tb_user SET today_profit = 0, today_investment = 0")
+    int resetTodayFields();
+
+    /**
+     * 获取用户当前余额信息
+     * @param userId 用户ID
+     * @return 用户余额信息
+     */
+    @Select("SELECT id, assets, balance, commission_balance, today_profit, history_profit, total_profit FROM tb_user WHERE id = #{userId}")
+    UserEntity getUserBalanceInfo(@Param("userId") Long userId);
 }

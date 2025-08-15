@@ -613,9 +613,7 @@ public class UserInvestmentProfitSchedule {
         log.debug("更新投资记录 {} 状态，收益金额: {}", investmentId, profitAmount);
         
         try {
-            // 这里应该调用DAO更新投资记录状态
-            // 更新状态为已收益，设置收益金额和收益日期
-            // investmentRecordDao.updateStatusAndProfit(investmentId, profitAmount, new Date());
+             investmentRecordDao.updateStatusAndProfit(investmentId, profitAmount, new Date());
             
             log.debug("投资记录 {} 状态更新完成", investmentId);
             
@@ -626,23 +624,54 @@ public class UserInvestmentProfitSchedule {
     }
     
     /**
-     * 更新用户余额
+     * 更新用户余额和收益相关字段
      * 
      * @param userId 用户ID
      * @param profitAmount 收益金额
      */
     private void updateUserBalance(Long userId, BigDecimal profitAmount) {
-        log.debug("更新用户 {} 余额，收益金额: {}", userId, profitAmount);
+        log.debug("更新用户 {} 余额和收益字段，收益金额: {}", userId, profitAmount);
         
         try {
-            // 这里应该调用用户服务更新余额
-            // 将收益金额添加到用户余额中
-            // userService.addBalance(userId, profitAmount);
+            // 将收益金额转换为分（数据库存储单位）
+            Long profitAmountInCents = profitAmount.multiply(new BigDecimal("100")).longValue();
             
-            log.debug("用户 {} 余额更新完成", userId);
+            // 更新用户可用余额
+            int balanceResult = userDao.addUserBalance(userId, profitAmountInCents);
+            if (balanceResult > 0) {
+                log.debug("用户 {} 可用余额更新成功，增加: {} 分", userId, profitAmountInCents);
+            } else {
+                log.warn("用户 {} 可用余额更新失败", userId);
+            }
+            
+            // 更新用户今日收益
+            int todayProfitResult = userDao.addTodayProfit(userId, profitAmountInCents);
+            if (todayProfitResult > 0) {
+                log.debug("用户 {} 今日收益更新成功，增加: {} 分", userId, profitAmountInCents);
+            } else {
+                log.warn("用户 {} 今日收益更新失败", userId);
+            }
+            
+            // 更新用户历史收益
+            int historyProfitResult = userDao.addHistoryProfit(userId, profitAmountInCents);
+            if (historyProfitResult > 0) {
+                log.debug("用户 {} 历史收益更新成功，增加: {} 分", userId, profitAmountInCents);
+            } else {
+                log.warn("用户 {} 历史收益更新失败", userId);
+            }
+            
+            // 更新用户总收益
+            int totalProfitResult = userDao.addTotalProfit(userId, profitAmountInCents);
+            if (totalProfitResult > 0) {
+                log.debug("用户 {} 总收益更新成功，增加: {} 分", userId, profitAmountInCents);
+            } else {
+                log.warn("用户 {} 总收益更新失败", userId);
+            }
+            
+            log.debug("用户 {} 余额和收益字段更新完成", userId);
             
         } catch (Exception e) {
-            log.error("更新用户 {} 余额失败", userId, e);
+            log.error("更新用户 {} 余额和收益字段失败", userId, e);
             throw e;
         }
     }
@@ -689,9 +718,42 @@ public class UserInvestmentProfitSchedule {
             userBalanceDetailDao.insert(userBalanceDetail);
             log.debug("投资项目 {} 投资收益账变记录完成，金额：{}", record.getId(), profitAmount);
             
+            // 更新用户余额和收益字段
+            updateUserBalance(record.getUserId(), profitAmount);
+            
         } catch (Exception e) {
             log.error("记录投资项目 {} 投资收益账变失败", record.getId(), e);
             throw e;
+        }
+    }
+    
+    /**
+     * 每天0点重置用户今日收益和投资字段
+     */
+    @Scheduled(cron = "0 0 0 * * ?")
+    public void resetTodayFields() {
+        log.info("开始重置用户今日收益和投资字段...");
+        
+        try {
+            int result = userDao.resetTodayFields();
+            log.info("用户今日字段重置完成，影响用户数: {}", result);
+        } catch (Exception e) {
+            log.error("重置用户今日字段失败", e);
+        }
+    }
+    
+    /**
+     * 获取用户余额信息（用于调试和监控）
+     * 
+     * @param userId 用户ID
+     * @return 用户余额信息
+     */
+    public UserEntity getUserBalanceInfo(Long userId) {
+        try {
+            return userDao.getUserBalanceInfo(userId);
+        } catch (Exception e) {
+            log.error("获取用户 {} 余额信息失败", userId, e);
+            return null;
         }
     }
 }

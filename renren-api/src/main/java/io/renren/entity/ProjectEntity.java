@@ -92,7 +92,7 @@ public class ProjectEntity implements Serializable {
     private Long totalProfit;
 
     /**
-     * 总成本(本金+收益)
+     * (本金+收益)
      */
     private Long totalCost;
 

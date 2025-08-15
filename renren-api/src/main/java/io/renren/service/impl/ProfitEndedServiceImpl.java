@@ -233,12 +233,7 @@ public class ProfitEndedServiceImpl implements ProfitEndedService {
             QueryWrapper<UserBalanceDetailEntity> profitQuery = new QueryWrapper<>();
             profitQuery.eq("user_id", userId)
                       .in("busi_type", Arrays.asList(
-                          BusinessTypeEnum.INCOME.getCode(),           // 收益
-                          BusinessTypeEnum.COMMISSION_A.getCode(),     // 返佣A
-                          BusinessTypeEnum.COMMISSION_B.getCode(),     // 返佣B
-                          BusinessTypeEnum.PROJECT_COMMISSION_SELF.getCode(), // 项目返自己
-                          BusinessTypeEnum.TASK_REWARD.getCode(),      // 任务奖励
-                          BusinessTypeEnum.SIGN_IN_REWARD.getCode()    // 签到奖励
+                          BusinessTypeEnum.INCOME.getCode()
                       ))
                       .between("transaction_date", todayStart, todayEnd)
                       .orderByDesc("transaction_date");
