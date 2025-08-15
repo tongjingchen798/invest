@@ -14,11 +14,11 @@
         ir.investment_amount as investmentAmount,
         ir.order_id as orderId,
         ir.order_abbr as orderAbbr,
-        DATE_FORMAT(ir.order_date, '%Y-%m-%d %H:%i:%s') as orderDate,
+        DATE_FORMAT(ir.order_date, '%m/%d/%Y %H:%i:%s') as orderDate,
         ir.profit_amount as profitAmount,
         CASE
         WHEN ir.profit_date IS NOT NULL
-        THEN DATE_FORMAT(ir.profit_date, '%Y-%m-%d %H:%i:%s')
+        THEN DATE_FORMAT(ir.profit_date, '%m/%d/%Y %H:%i:%s')
         ELSE NULL
         END as profitDate,
         ir.profit_interest as profitInterest,
