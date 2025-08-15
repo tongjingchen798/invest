@@ -79,3 +79,29 @@ mybatis-plus:
     prefix:
     blobType: BLOB
     boolValue: TRUE
+
+# 投资收益配置
+investment:
+  profit:
+    # 到期收益含本金的年化收益率
+    maturity-annual-rate: 0.12
+    # 每日返本金到期收益的年化收益率
+    daily-return-annual-rate: 0.08
+    # 不返本金的年化收益率
+    no-principal-annual-rate: 0.15
+    # 复利产品的日收益率
+    compound-daily-rate: 0.0003
+    # 阶梯日益的收益率配置
+    stepped-daily-rate:
+      # 前7天的日收益率
+      first-week-rate: 0.001
+      # 8-15天的日收益率
+      second-week-rate: 0.0015
+      # 16天以后的日收益率
+      later-rate: 0.002
+    # 拼团的收益率配置
+    group-buy-rate:
+      # 基础年化收益率
+      base-annual-rate: 0.10
+      # 拼团奖励比例
+      group-bonus-rate: 0.02

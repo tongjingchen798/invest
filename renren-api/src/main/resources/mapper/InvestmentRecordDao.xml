@@ -109,4 +109,12 @@
 		FROM tb_investment_record 
 		WHERE user_id = #{userId} AND status = 1
 	</select>
+	
+	<!-- 查询所有有投资记录的用户ID（去重） -->
+	<select id="selectDistinctUserIdsWithInvestment" resultType="long">
+		SELECT DISTINCT user_id 
+		FROM tb_investment_record 
+		WHERE investment_amount > 0
+		ORDER BY user_id
+	</select>
 </mapper>

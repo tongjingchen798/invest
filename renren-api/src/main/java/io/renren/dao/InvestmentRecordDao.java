@@ -74,6 +74,12 @@ public interface InvestmentRecordDao extends BaseMapper<InvestmentRecordEntity> 
 	 * @return 待收利息金额
 	 */
 	Long selectPendingInterestByUserId(@Param("userId") Long userId);
+	
+	/**
+	 * 查询所有有投资记录的用户ID（去重）
+	 * @return 用户ID列表
+	 */
+	List<Long> selectDistinctUserIdsWithInvestment();
 
 	/**
 	 * 查询用户待收本金金额
