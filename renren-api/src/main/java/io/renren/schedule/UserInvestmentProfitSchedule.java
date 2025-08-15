@@ -743,11 +743,11 @@ public class UserInvestmentProfitSchedule {
     }
     
     /**
-     * 每天0点重置用户今日收益和投资字段
+     * 每天0点重置用户今日收益、投资和充值字段
      */
     @Scheduled(cron = "0 0 0 * * ?")
     public void resetTodayFields() {
-        log.info("开始重置用户今日收益和投资字段...");
+        log.info("开始重置用户今日收益、投资和充值字段...");
         
         try {
             int result = userDao.resetTodayFields();

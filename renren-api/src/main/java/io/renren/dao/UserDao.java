@@ -154,10 +154,10 @@ public interface UserDao extends BaseDao<UserEntity> {
     int updateAllCommissionFields(@Param("userId") Long userId, @Param("amount") Long amount);
 
     /**
-     * 重置用户今日收益（每日定时任务调用）
+     * 重置用户今日收益和充值字段（每日定时任务调用）
      * @return 影响行数
      */
-    @Update("UPDATE tb_user SET today_profit = 0, today_investment = 0")
+    @Update("UPDATE tb_user SET today_profit = 0, today_investment = 0, today_recharge = 0, today_recharge_cnt = 0")
     int resetTodayFields();
 
     /**
@@ -167,4 +167,75 @@ public interface UserDao extends BaseDao<UserEntity> {
      */
     @Select("SELECT id, assets, balance, commission_balance, today_profit, history_profit, total_profit FROM tb_user WHERE id = #{userId}")
     UserEntity getUserBalanceInfo(@Param("userId") Long userId);
+
+    /**
+     * 更新用户今日充值次数
+     * @param userId 用户ID
+     * @return 影响行数
+     */
+    @Update("UPDATE tb_user SET today_recharge_cnt = today_recharge_cnt + 1 WHERE id = #{userId}")
+    int addTodayRechargeCount(@Param("userId") Long userId);
+
+    /**
+     * 更新用户历史充值次数
+     * @param userId 用户ID
+     * @return 影响行数
+     */
+    @Update("UPDATE tb_user SET historychargecnt = historychargecnt + 1 WHERE id = #{userId}")
+    int addHistoryRechargeCount(@Param("userId") Long userId);
+
+    /**
+     * 更新用户充值次数相关字段（综合更新）
+     * @param userId 用户ID
+     * @return 影响行数
+     */
+    @Update("UPDATE tb_user SET " +
+            "today_recharge_cnt = today_recharge_cnt + 1, " +
+            "historychargecnt = historychargecnt + 1 " +
+            "WHERE id = #{userId}")
+    int updateAllRechargeCountFields(@Param("userId") Long userId);
+
+    /**
+     * 更新用户今日充值金额
+     * @param userId 用户ID
+     * @param amount 充值金额（分）
+     * @return 影响行数
+     */
+    @Update("UPDATE tb_user SET today_recharge = today_recharge + #{amount} WHERE id = #{userId}")
+    int addTodayRechargeAmount(@Param("userId") Long userId, @Param("amount") Long amount);
+
+    /**
+     * 更新用户累计充值金额
+     * @param userId 用户ID
+     * @param amount 充值金额（分）
+     * @return 影响行数
+     */
+    @Update("UPDATE tb_user SET charge_sum = charge_sum + #{amount} WHERE id = #{userId}")
+    int addChargeSum(@Param("userId") Long userId, @Param("amount") Long amount);
+
+    /**
+     * 更新用户充值金额相关字段（综合更新）
+     * @param userId 用户ID
+     * @param amount 充值金额（分）
+     * @return 影响行数
+     */
+    @Update("UPDATE tb_user SET " +
+            "today_recharge = today_recharge + #{amount}, " +
+            "charge_sum = charge_sum + #{amount} " +
+            "WHERE id = #{userId}")
+    int updateAllRechargeAmountFields(@Param("userId") Long userId, @Param("amount") Long amount);
+
+    /**
+     * 更新用户充值相关字段（次数+金额，综合更新）
+     * @param userId 用户ID
+     * @param amount 充值金额（分）
+     * @return 影响行数
+     */
+    @Update("UPDATE tb_user SET " +
+            "today_recharge_cnt = today_recharge_cnt + 1, " +
+            "historychargecnt = historychargecnt + 1, " +
+            "today_recharge = today_recharge + #{amount}, " +
+            "charge_sum = charge_sum + #{amount} " +
+            "WHERE id = #{userId}")
+    int updateAllRechargeFields(@Param("userId") Long userId, @Param("amount") Long amount);
 }

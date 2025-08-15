@@ -399,16 +399,16 @@ public class ChargeCallbackServiceImpl implements ChargeCallbackService {
                 return false;
             }
 
-            // 3. 更新用户余额
-            int balanceResult = userDao.updateBalance(order.getUserId(), amount);
+            // 3. 更新用户可用余额
+            int balanceResult = userDao.addUserBalance(order.getUserId(), amount);
             if (balanceResult <= 0) {
                 log.error("更新用户余额失败，用户ID：{}，金额：{}", order.getUserId(), amount);
-                throw new RuntimeException("更新用户余额失败");
+                return false;
             }
 
-            // 4. 更新用户充值统计
-            int chargeSumResult = userDao.updateChargeSum(order.getUserId(), amount);
-            if (chargeSumResult <= 0) {
+            // 4. 更新用户充值统计（次数+金额，综合更新）
+            int rechargeResult = userDao.updateAllRechargeFields(order.getUserId(), amount);
+            if (rechargeResult <= 0) {
                 log.error("更新用户充值统计失败，用户ID：{}，金额：{}", order.getUserId(), amount);
                 throw new RuntimeException("更新用户充值统计失败");
             }
@@ -422,7 +422,7 @@ public class ChargeCallbackServiceImpl implements ChargeCallbackService {
                 // 账变记录失败不影响主流程
             }
 
-            log.info("充值成功处理完成，订单号：{}，用户ID：{}，金额：{}", orderNo, order.getUserId(), amount);
+            log.info("充值成功处理完成，订单号：{}，用户ID：{}，金额：{}，已更新充值次数和金额", orderNo, order.getUserId(), amount);
             return true;
             
         } catch (Exception e) {
