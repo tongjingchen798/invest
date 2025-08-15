@@ -8,6 +8,8 @@ import io.renren.entity.UserEntity;
 import io.renren.dto.RegisterDTO;
 import io.renren.service.UserService;
 import io.renren.service.ReferralRewardService;
+import io.renren.utils.InviteCodeGenerator;
+import io.renren.utils.IpAddressUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -54,11 +56,15 @@ public class ApiRegisterController {
         if (dto.getTwoPwd() != null) {
             user.setTwoPwd(DigestUtils.sha256Hex(dto.getTwoPwd()));
         }
-        user.setInviteCode(dto.getInviteCode());
+        user.setUpinviteCode(dto.getInviteCode());
+        String newInviteCode = InviteCodeGenerator.generateInviteCode();
+        user.setInviteCode(newInviteCode);
         user.setAgent(dto.getAgent());
         user.setChannel(dto.getChannel());
         user.setEquipment(dto.getEquipment());
-        
+        // 获取用户注册IP地址
+        String registerIp = IpAddressUtil.getClientIpAddress();
+        user.setRegisterIp(registerIp);
         user.setCreateDate(new Date());
         userService.insert(user);
 
