@@ -74,4 +74,12 @@ public interface InvestmentProfitDetailDao extends BaseMapper<InvestmentProfitDe
 	 * @return 记录总数
 	 */
 	int selectCountByUserId(Map<String, Object> params);
+	
+	/**
+	 * 检查指定投资记录今天是否已经派发过收益
+	 * @param investmentId 投资记录ID
+	 * @param profitDate 收益日期
+	 * @return 记录数量
+	 */
+	int selectCountByInvestmentIdAndDate(@Param("investmentId") Long investmentId, @Param("profitDate") String profitDate);
 }

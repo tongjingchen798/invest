@@ -84,5 +84,13 @@
 			AND status = #{status}
 		</if>
 	</select>
+	
+	<!-- 检查指定投资记录今天是否已经派发过收益 -->
+	<select id="selectCountByInvestmentIdAndDate" resultType="int">
+		SELECT COUNT(*) 
+		FROM tb_investment_profit_detail 
+		WHERE investment_id = #{investmentId} 
+		AND DATE(profit_date) = #{profitDate}
+	</select>
 
 </mapper>

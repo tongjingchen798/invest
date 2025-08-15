@@ -17,8 +17,10 @@ import io.renren.config.InvestmentProfitConfig;
 import io.renren.dao.InvestmentRecordDao;
 import io.renren.dao.ProjectDao;
 import io.renren.dao.UserDao;
+import io.renren.dao.InvestmentProfitDetailDao;
 import io.renren.entity.InvestmentRecordEntity;
 import io.renren.entity.ProjectEntity;
+import io.renren.entity.InvestmentProfitDetailEntity;
 import io.renren.service.BalanceDetailService;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -52,6 +54,10 @@ public class UserInvestmentProfitSchedule {
 
     @Autowired
     private UserBalanceDetailDao userBalanceDetailDao;
+
+    @Autowired
+    private InvestmentProfitDetailDao investmentProfitDetailDao;
+
 
     /**
      * 每天9点半执行用户投资收益计算
@@ -177,10 +183,13 @@ public class UserInvestmentProfitSchedule {
                 return;
             }
 
-            // 4. 更新用户余额
+            // 4. 记录每日投资收益明细
+            recordInvestmentProfitDetail(record, profitAmount);
+
+            // 5. 更新用户余额
             updateUserBalance(record.getUserId(), profitAmount);
 
-            // 判断投资是否到期（是否是最后一期）
+            // 6. 判断投资是否到期（是否是最后一期）
             boolean isMatured = InvestmentProfitCalculator.isInvestmentMatured(
                 record.getOrderDate(), record.getCycle()
             );
@@ -197,7 +206,7 @@ public class UserInvestmentProfitSchedule {
                          record.getCycle());
             }
 
-            // 5. 记录账变
+            // 7. 记录账变
             recordProfitDetail(record, profitAmount);
             
             log.debug("投资项目 {} 收益计算完成，收益金额: {}", record.getOrderId(), profitAmount);
@@ -618,26 +627,53 @@ public class UserInvestmentProfitSchedule {
         }
     }
     
-//    /**
-//     * 更新投资记录状态
-//     *
-//     * @param investmentId 投资记录ID
-//     * @param profitAmount 收益金额
-//     */
-//    private void updateInvestmentRecordStatus(Long investmentId, BigDecimal profitAmount) {
-//        log.debug("更新投资记录 {} 状态，收益金额: {}", investmentId, profitAmount);
-//
-//        try {
-//             investmentRecordDao.updateStatusAndProfit(investmentId, profitAmount, new Date());
-//
-//            log.debug("投资记录 {} 状态更新完成", investmentId);
-//
-//        } catch (Exception e) {
-//            log.error("更新投资记录 {} 状态失败", investmentId, e);
-//            throw e;
-//        }
-//    }
     
+    /**
+     * 记录每日投资收益明细
+     * 
+     * @param record 投资记录
+     * @param profitAmount 收益金额
+     */
+    private void recordInvestmentProfitDetail(InvestmentRecordEntity record, BigDecimal profitAmount) {
+        log.debug("记录投资项目 {} 的每日投资收益明细，金额：{}", record.getOrderId(), profitAmount);
+        
+        try {
+            // 检查今天是否已经派发过收益，防止重复派发
+            String today = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new Date());
+            int existingCount = investmentProfitDetailDao.selectCountByInvestmentIdAndDate(record.getOrderId(), today);
+            
+            if (existingCount > 0) {
+                log.info("投资项目 {} 今天已经派发过收益，跳过记录", record.getOrderId());
+                return;
+            }
+            
+            // 将收益金额转换为分
+            Long profitAmountInCents = profitAmount.multiply(new BigDecimal("100")).longValue();
+            
+            // 创建投资收益明细记录
+            InvestmentProfitDetailEntity profitDetail = new InvestmentProfitDetailEntity();
+            profitDetail.setInvestmentId(record.getOrderId());
+            profitDetail.setUserId(record.getUserId());
+            profitDetail.setProjectId(record.getProjectId());
+            profitDetail.setProfitType(1); // 1:利息
+            profitDetail.setProfitAmount(profitAmountInCents);
+            profitDetail.setProfitDate(new Date());
+            profitDetail.setStatus(1); // 1:已到账
+            profitDetail.setRemark("每日投资收益【" + record.getInvestName() + "】");
+            profitDetail.setCreateDate(new Date());
+            profitDetail.setUpdateDate(new Date());
+            
+            // 插入投资收益明细记录
+            investmentProfitDetailDao.insert(profitDetail);
+            
+            log.debug("投资项目 {} 每日投资收益明细记录完成，金额：{}", record.getOrderId(), profitAmount);
+            
+        } catch (Exception e) {
+            log.error("记录投资项目 {} 每日投资收益明细失败", record.getOrderId(), e);
+            throw e;
+        }
+    }
+
     /**
      * 更新用户余额和收益相关字段
      * 
