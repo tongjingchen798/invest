@@ -172,27 +172,42 @@ if (record.getInvestmentAmount() == null || record.getInvestmentAmount() <= 0) {
     return BigDecimal.ZERO;
 }
 
-// 2. 计算投资天数
+// 2. 获取项目信息
+ProjectEntity project = projectDao.selectProjectById(record.getProjectId());
+
+// 3. 计算投资天数
 int investmentDays = calculateInvestmentDays(record.getOrderDate());
 
-// 3. 根据周期类型选择计算算法
+// 4. 根据周期类型选择计算算法，优先使用项目配置的收益率
 switch (record.getCycleType()) {
     case 1: // 到期收益含本金
-        profitAmount = calculateMaturityProfit(investmentAmount, cycle, investmentDays);
+        profitAmount = calculateMaturityProfit(investmentAmount, cycle, investmentDays, project);
         break;
     case 2: // 每日返本金到期收益
-        profitAmount = calculateDailyReturnProfit(investmentAmount, cycle, investmentDays);
+        profitAmount = calculateDailyReturnProfit(investmentAmount, cycle, investmentDays, project);
         break;
     // ... 其他类型
 }
 
-// 4. 记录账变流水
+// 5. 记录账变流水
 recordProfitDetail(record, profitAmount);
 ```
 
-### 3. 配置参数说明
+### 3. 收益率配置说明
 
-所有收益率参数都可以在 `application.yml` 中配置：
+#### 3.1 项目级配置（优先）
+
+系统优先使用项目表中配置的收益率参数：
+
+- **`conversion`字段**: 项目收益率配置，支持多种格式：
+  - `12%` - 百分比格式
+  - `0.12` - 小数格式
+  - `12%年化` - 年化收益率
+  - `0.1%日` - 日收益率
+
+#### 3.2 系统默认配置（备用）
+
+当项目没有配置收益率时，使用系统默认配置：
 
 ```yaml
 investment:
@@ -209,6 +224,12 @@ investment:
       base-annual-rate: 0.10          # 10%年化收益率
       group-bonus-rate: 0.02          # 2%拼团奖励
 ```
+
+#### 3.3 收益率优先级
+
+1. **项目配置收益率** (`tb_project.conversion`) - 最高优先级
+2. **系统默认收益率** (`application.yml`) - 备用配置
+3. **硬编码默认值** - 兜底配置
 
 ## 数据库查询说明
 
@@ -332,6 +353,7 @@ public void conditionalTask() {
   - `UserInvestmentProfitScheduleTest.java` - 基本功能测试
   - `UserInvestmentProfitScheduleDatabaseTest.java` - 数据库查询测试
   - `InvestmentProfitCalculationTest.java` - 收益计算逻辑测试
+  - `ProjectProfitRateTest.java` - 项目收益率配置测试
 
 ## 测试说明
 

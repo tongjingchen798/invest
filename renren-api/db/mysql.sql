@@ -924,66 +924,66 @@ INSERT INTO `tb_coupon` VALUES (1, 'xxx理财投资产品优惠券', '描述描�
 INSERT INTO `tb_coupon` VALUES (2, 'xxx流彩李新宇看了几个防控论文集', '平稳见公婆而进入该管家婆二级各个人陪乳杆菌陪人几个人屁股', '2023-01-11 23:10:18', '2023-01-11', '2023-01-24', '2023-01-12 00:37:56', 1, 1, 10000, 1611305052584599555);
 INSERT INTO `tb_coupon` VALUES (3, 'xxxxx这是一个过期的优惠券', '优惠券过期了过期了过期了', '2022-12-30 23:22:12', '2022-12-31', '2023-01-10', '2023-01-12 00:37:54', 1, 1, 20000, 1611305052584599556);
 
--- ----------------------------
--- Table structure for tb_invest_project
--- ----------------------------
-DROP TABLE IF EXISTS `tb_invest_project`;
-CREATE TABLE `tb_invest_project`  (
-  `invest_id` bigint NOT NULL,
-  `project_type` tinyint(1) NOT NULL DEFAULT 1 COMMENT '项目类型（1:固定金额投资,2:进度周期投资）',
-  `cycle_type` tinyint(1) NOT NULL DEFAULT 1 COMMENT '周期类型（1:每天返还,2:到期返还）',
-  `invest_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '项目名称',
-  `scale_amount` bigint NOT NULL DEFAULT 0 COMMENT '项目规模金额(分为单位)',
-  `conversion` int NOT NULL DEFAULT 0 COMMENT '项目转化',
-  `cycle` int NOT NULL DEFAULT 1 COMMENT '项目周期',
-  `repayment_mode` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '还款方式',
-  `mechanism` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '担保机构',
-  `progress_amount` bigint NOT NULL COMMENT '进度金额，如果project_type等于1 无需理会',
-  `project_describe` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '项目描述',
-  `project_explain` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '项目说明',
-  `status` tinyint NULL DEFAULT 1 COMMENT '状态  0：停用   1：正常',
-  `create_date` datetime NULL DEFAULT NULL COMMENT '创建时间',
-  `update_date` datetime NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
-  `sys_update_user_id` bigint NULL DEFAULT NULL COMMENT '修改人',
-  `sys_create_user_id` bigint NULL DEFAULT NULL COMMENT '创建人id',
-  `type_id` bigint NULL DEFAULT NULL COMMENT '项目分类id',
-  `img` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '项目图片',
-  `copies_type` int NULL DEFAULT 0 COMMENT '是否可购买多分 0不可购买 1可购买',
-  PRIMARY KEY (`invest_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of tb_invest_project
--- ----------------------------
-INSERT INTO `tb_invest_project` VALUES (1611305052584599554, 1, 1, '医疗器材啥啥的', 200000000, 2, 3, '按天付收益，到期还本金', '某某大帅哥担保有限公司', 0, '结算时间：今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的', '结算时间：今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的', 1, '2023-01-11 21:16:17', '2023-01-11 21:41:31', 1, 1, 1611305052584599554, 'https://up.enterdesk.com/edpic_source/b0/d1/f3/b0d1f35504e4106d48c84434f2298ada.jpg', 0);
-INSERT INTO `tb_invest_project` VALUES (1611305052584599555, 2, 1, '健生器材啥啥的', 3000000, 5, 10, '按天付收益，到期还本金', '某某某担保有限公司', 30000, '结算时间：今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的', '结算时间：今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的', 1, '2023-01-11 21:16:23', '2023-01-11 21:42:54', 1, 1, 1611305052584599555, 'https://up.enterdesk.com/edpic/75/dc/50/75dc50577d3d3d2bd5fd8db728e7bf77.jpg', 0);
-INSERT INTO `tb_invest_project` VALUES (1611305052584599556, 2, 2, '农家猪脚饭投资', 300000000, 20, 30, '按天付收益，到期还本金', '大帅哥担保公司', 5000000, '结算时间：今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的', '结算时间：今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的', 1, '2023-01-11 21:16:23', '2023-01-11 21:43:13', 1, 1, 1611305052584599556, 'https://img1.baidu.com/it/u=3323688473,1779373562&fm=253&fmt=auto?w=500&h=281', 0);
-INSERT INTO `tb_invest_project` VALUES (1611305052584599557, 1, 2, '哥的魔力投资', 500000, 10, 20, '按天付收益，到期还本金', '猪脚饭担保', 0, '结算时间：今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的', '结算时间：今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的', 1, '2023-01-11 21:16:23', '2023-01-11 21:43:15', 1, 1, 1611305052584599557, 'https://up.enterdesk.com/edpic_source/be/c9/63/bec9639dd358ab674ed3735da64d78c7.jpg', 0);
-
--- ----------------------------
--- Table structure for tb_invest_project_type
--- ----------------------------
-DROP TABLE IF EXISTS `tb_invest_project_type`;
-CREATE TABLE `tb_invest_project_type`  (
-  `type_id` bigint NOT NULL,
-  `type_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '分类名称',
-  `status` tinyint NULL DEFAULT 1 COMMENT '状态  0：停用   1：正常',
-  `create_date` datetime NULL DEFAULT NULL COMMENT '创建时间',
-  `update_date` datetime NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
-  `sys_update_user_id` bigint NULL DEFAULT NULL COMMENT '修改人',
-  `sys_create_user_id` bigint NULL DEFAULT NULL COMMENT '创建人id',
-  `sort` int NOT NULL DEFAULT 0 COMMENT '排序',
-  PRIMARY KEY (`type_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of tb_invest_project_type
--- ----------------------------
-INSERT INTO `tb_invest_project_type` VALUES (1611305052584599554, '新手专区', 1, '2023-01-11 21:31:24', '2023-01-11 22:46:26', 1, 1, 1);
-INSERT INTO `tb_invest_project_type` VALUES (1611305052584599555, '精选专区', 1, '2023-01-11 21:31:47', '2023-01-11 22:39:50', 1, 1, 2);
-INSERT INTO `tb_invest_project_type` VALUES (1611305052584599556, 'VIP专区', 1, '2023-01-11 21:32:07', '2023-01-11 22:39:52', 1, 1, 4);
-INSERT INTO `tb_invest_project_type` VALUES (1611305052584599557, '福利专区', 1, '2023-01-11 21:32:29', '2023-01-11 22:39:52', 1, 1, 3);
-
+-- -- ----------------------------
+-- -- Table structure for tb_invest_project
+-- -- ----------------------------
+-- DROP TABLE IF EXISTS `tb_invest_project`;
+-- CREATE TABLE `tb_invest_project`  (
+--   `invest_id` bigint NOT NULL,
+--   `project_type` tinyint(1) NOT NULL DEFAULT 1 COMMENT '项目类型（1:固定金额投资,2:进度周期投资）',
+--   `cycle_type` tinyint(1) NOT NULL DEFAULT 1 COMMENT '周期类型（1:每天返还,2:到期返还）',
+--   `invest_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '项目名称',
+--   `scale_amount` bigint NOT NULL DEFAULT 0 COMMENT '项目规模金额(分为单位)',
+--   `conversion` int NOT NULL DEFAULT 0 COMMENT '项目转化',
+--   `cycle` int NOT NULL DEFAULT 1 COMMENT '项目周期',
+--   `repayment_mode` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '还款方式',
+--   `mechanism` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '担保机构',
+--   `progress_amount` bigint NOT NULL COMMENT '进度金额，如果project_type等于1 无需理会',
+--   `project_describe` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '项目描述',
+--   `project_explain` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '项目说明',
+--   `status` tinyint NULL DEFAULT 1 COMMENT '状态  0：停用   1：正常',
+--   `create_date` datetime NULL DEFAULT NULL COMMENT '创建时间',
+--   `update_date` datetime NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
+--   `sys_update_user_id` bigint NULL DEFAULT NULL COMMENT '修改人',
+--   `sys_create_user_id` bigint NULL DEFAULT NULL COMMENT '创建人id',
+--   `type_id` bigint NULL DEFAULT NULL COMMENT '项目分类id',
+--   `img` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '项目图片',
+--   `copies_type` int NULL DEFAULT 0 COMMENT '是否可购买多分 0不可购买 1可购买',
+--   PRIMARY KEY (`invest_id`) USING BTREE
+-- ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+--
+-- -- ----------------------------
+-- -- Records of tb_invest_project
+-- -- ----------------------------
+-- INSERT INTO `tb_invest_project` VALUES (1611305052584599554, 1, 1, '医疗器材啥啥的', 200000000, 2, 3, '按天付收益，到期还本金', '某某大帅哥担保有限公司', 0, '结算时间：今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的', '结算时间：今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的', 1, '2023-01-11 21:16:17', '2023-01-11 21:41:31', 1, 1, 1611305052584599554, 'https://up.enterdesk.com/edpic_source/b0/d1/f3/b0d1f35504e4106d48c84434f2298ada.jpg', 0);
+-- INSERT INTO `tb_invest_project` VALUES (1611305052584599555, 2, 1, '健生器材啥啥的', 3000000, 5, 10, '按天付收益，到期还本金', '某某某担保有限公司', 30000, '结算时间：今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的', '结算时间：今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的', 1, '2023-01-11 21:16:23', '2023-01-11 21:42:54', 1, 1, 1611305052584599555, 'https://up.enterdesk.com/edpic/75/dc/50/75dc50577d3d3d2bd5fd8db728e7bf77.jpg', 0);
+-- INSERT INTO `tb_invest_project` VALUES (1611305052584599556, 2, 2, '农家猪脚饭投资', 300000000, 20, 30, '按天付收益，到期还本金', '大帅哥担保公司', 5000000, '结算时间：今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的', '结算时间：今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的', 1, '2023-01-11 21:16:23', '2023-01-11 21:43:13', 1, 1, 1611305052584599556, 'https://img1.baidu.com/it/u=3323688473,1779373562&fm=253&fmt=auto?w=500&h=281', 0);
+-- INSERT INTO `tb_invest_project` VALUES (1611305052584599557, 1, 2, '哥的魔力投资', 500000, 10, 20, '按天付收益，到期还本金', '猪脚饭担保', 0, '结算时间：今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的', '结算时间：今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的今天天气很清凉是啥啥啥啥的', 1, '2023-01-11 21:16:23', '2023-01-11 21:43:15', 1, 1, 1611305052584599557, 'https://up.enterdesk.com/edpic_source/be/c9/63/bec9639dd358ab674ed3735da64d78c7.jpg', 0);
+--
+-- -- ----------------------------
+-- -- Table structure for tb_invest_project_type
+-- -- ----------------------------
+-- DROP TABLE IF EXISTS `tb_invest_project_type`;
+-- CREATE TABLE `tb_invest_project_type`  (
+--   `type_id` bigint NOT NULL,
+--   `type_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '分类名称',
+--   `status` tinyint NULL DEFAULT 1 COMMENT '状态  0：停用   1：正常',
+--   `create_date` datetime NULL DEFAULT NULL COMMENT '创建时间',
+--   `update_date` datetime NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
+--   `sys_update_user_id` bigint NULL DEFAULT NULL COMMENT '修改人',
+--   `sys_create_user_id` bigint NULL DEFAULT NULL COMMENT '创建人id',
+--   `sort` int NOT NULL DEFAULT 0 COMMENT '排序',
+--   PRIMARY KEY (`type_id`) USING BTREE
+-- ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+--
+-- -- ----------------------------
+-- -- Records of tb_invest_project_type
+-- -- ----------------------------
+-- INSERT INTO `tb_invest_project_type` VALUES (1611305052584599554, '新手专区', 1, '2023-01-11 21:31:24', '2023-01-11 22:46:26', 1, 1, 1);
+-- INSERT INTO `tb_invest_project_type` VALUES (1611305052584599555, '精选专区', 1, '2023-01-11 21:31:47', '2023-01-11 22:39:50', 1, 1, 2);
+-- INSERT INTO `tb_invest_project_type` VALUES (1611305052584599556, 'VIP专区', 1, '2023-01-11 21:32:07', '2023-01-11 22:39:52', 1, 1, 4);
+-- INSERT INTO `tb_invest_project_type` VALUES (1611305052584599557, '福利专区', 1, '2023-01-11 21:32:29', '2023-01-11 22:39:52', 1, 1, 3);
+--
 -- ----------------------------
 -- Table structure for tb_investment_profit_detail
 -- ----------------------------

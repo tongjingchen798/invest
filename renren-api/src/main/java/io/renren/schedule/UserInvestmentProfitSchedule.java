@@ -1,6 +1,8 @@
 package io.renren.schedule;
 
+import io.renren.dao.ProjectDao;
 import io.renren.dao.UserBalanceDetailDao;
+import io.renren.entity.ProjectEntity;
 import io.renren.entity.UserBalanceDetailEntity;
 import io.renren.entity.UserEntity;
 import io.renren.enums.BusinessTypeEnum;
@@ -12,8 +14,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import io.renren.config.InvestmentProfitConfig;
 import io.renren.dao.InvestmentRecordDao;
+import io.renren.dao.ProjectDao;
 import io.renren.dao.UserDao;
 import io.renren.entity.InvestmentRecordEntity;
+import io.renren.entity.ProjectEntity;
 import io.renren.service.BalanceDetailService;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -40,15 +44,14 @@ public class UserInvestmentProfitSchedule {
     private UserDao userDao;
     
     @Autowired
-    private BalanceDetailService balanceDetailService;
+    private InvestmentProfitConfig profitConfig;
     
     @Autowired
-    private InvestmentProfitConfig profitConfig;
-
+    private ProjectDao projectDao;
 
     @Autowired
     private UserBalanceDetailDao userBalanceDetailDao;
-    
+
     /**
      * 每天9点半执行用户投资收益计算
      * cron表达式：0 30 9 * * ? (秒 分 时 日 月 周)
@@ -87,15 +90,7 @@ public class UserInvestmentProfitSchedule {
         }
     }
     
-    /**
-     * 测试用的定时任务，每分钟执行一次（仅用于开发测试）
-     */
-    @Scheduled(fixedRate = 60000) // 每分钟执行一次
-    public void testSchedule() {
-        log.debug("测试定时任务执行，时间：{}", new Date());
-        // 这里可以添加测试逻辑
-    }
-    
+
     /**
      * 获取所有有投资的用户ID列表
      * 
@@ -245,12 +240,18 @@ public class UserInvestmentProfitSchedule {
      */
     private BigDecimal calculateProfitByCycleType(InvestmentRecordEntity record, BigDecimal investmentAmount) {
         try {
-            // 获取项目信息（这里需要注入ProjectDao来查询项目详情）
-            // ProjectEntity project = projectDao.selectById(record.getProjectId());
+            // 获取项目信息
+            ProjectEntity project = null;
+            if (record.getProjectId() != null) {
+                project = projectDao.selectProjectById(record.getProjectId());
+                if (project == null) {
+                    log.warn("投资项目 {} 对应的项目 {} 不存在，使用默认配置", record.getId(), record.getProjectId());
+                }
+            }
             
-            // 暂时使用投资记录中的信息
-            Integer cycleType = record.getCycleType();
-            Integer cycle = record.getCycle();
+            // 使用项目信息或投资记录中的信息
+            Integer cycleType = project != null ? project.getCycleType() : record.getCycleType();
+            Integer cycle = project != null ? project.getCycle() : record.getCycle();
             
             if (cycleType == null) {
                 cycleType = 1; // 默认到期收益含本金
@@ -270,26 +271,26 @@ public class UserInvestmentProfitSchedule {
             
             switch (cycleType) {
                 case 1: // 到期收益含本金
-                    profitAmount = calculateMaturityProfit(investmentAmount, cycle, investmentDays);
+                    profitAmount = calculateMaturityProfit(investmentAmount, cycle, investmentDays, project);
                     break;
                 case 2: // 每日返本金到期收益
-                    profitAmount = calculateDailyReturnProfit(investmentAmount, cycle, investmentDays);
+                    profitAmount = calculateDailyReturnProfit(investmentAmount, cycle, investmentDays, project);
                     break;
                 case 3: // 不返本金
-                    profitAmount = calculateNoPrincipalReturnProfit(investmentAmount, cycle, investmentDays);
+                    profitAmount = calculateNoPrincipalReturnProfit(investmentAmount, cycle, investmentDays, project);
                     break;
                 case 4: // 复利产品
-                    profitAmount = calculateCompoundInterestProfit(investmentAmount, cycle, investmentDays);
+                    profitAmount = calculateCompoundInterestProfit(investmentAmount, cycle, investmentDays, project);
                     break;
                 case 5: // 阶梯日益
-                    profitAmount = calculateSteppedDailyProfit(investmentAmount, cycle, investmentDays);
+                    profitAmount = calculateSteppedDailyProfit(investmentAmount, cycle, investmentDays, project);
                     break;
                 case 6: // 拼团
-                    profitAmount = calculateGroupBuyProfit(investmentAmount, cycle, investmentDays);
+                    profitAmount = calculateGroupBuyProfit(investmentAmount, cycle, investmentDays, project);
                     break;
                 default:
                     // 默认使用到期收益含本金的计算方式
-                    profitAmount = calculateMaturityProfit(investmentAmount, cycle, investmentDays);
+                    profitAmount = calculateMaturityProfit(investmentAmount, cycle, investmentDays, project);
                     break;
             }
             
@@ -325,11 +326,12 @@ public class UserInvestmentProfitSchedule {
      * @param investmentAmount 投资金额
      * @param cycle 项目周期
      * @param investmentDays 投资天数
+     * @param project 项目信息
      * @return 收益金额
      */
-    private BigDecimal calculateMaturityProfit(BigDecimal investmentAmount, Integer cycle, int investmentDays) {
-        // 使用配置的年化收益率
-        BigDecimal annualRate = profitConfig.getMaturityAnnualRate();
+    private BigDecimal calculateMaturityProfit(BigDecimal investmentAmount, Integer cycle, int investmentDays, ProjectEntity project) {
+        // 优先使用项目配置的收益率，如果没有则使用默认配置
+        BigDecimal annualRate = getProjectAnnualRate(project, "maturity");
         
         // 计算实际收益率：年化收益率 * 投资天数 / 365
         BigDecimal actualRate = annualRate.multiply(new BigDecimal(investmentDays))
@@ -344,11 +346,12 @@ public class UserInvestmentProfitSchedule {
      * @param investmentAmount 投资金额
      * @param cycle 项目周期
      * @param investmentDays 投资天数
+     * @param project 项目信息
      * @return 收益金额
      */
-    private BigDecimal calculateDailyReturnProfit(BigDecimal investmentAmount, Integer cycle, int investmentDays) {
-        // 使用配置的年化收益率
-        BigDecimal annualRate = profitConfig.getDailyReturnAnnualRate();
+    private BigDecimal calculateDailyReturnProfit(BigDecimal investmentAmount, Integer cycle, int investmentDays, ProjectEntity project) {
+        // 优先使用项目配置的收益率，如果没有则使用默认配置
+        BigDecimal annualRate = getProjectAnnualRate(project, "dailyReturn");
         BigDecimal dailyRate = annualRate.divide(new BigDecimal(365), 6, BigDecimal.ROUND_HALF_UP);
         
         return investmentAmount.multiply(dailyRate).multiply(new BigDecimal(investmentDays));
@@ -360,11 +363,12 @@ public class UserInvestmentProfitSchedule {
      * @param investmentAmount 投资金额
      * @param cycle 项目周期
      * @param investmentDays 投资天数
+     * @param project 项目信息
      * @return 收益金额
      */
-    private BigDecimal calculateNoPrincipalReturnProfit(BigDecimal investmentAmount, Integer cycle, int investmentDays) {
-        // 使用配置的年化收益率
-        BigDecimal annualRate = profitConfig.getNoPrincipalAnnualRate();
+    private BigDecimal calculateNoPrincipalReturnProfit(BigDecimal investmentAmount, Integer cycle, int investmentDays, ProjectEntity project) {
+        // 优先使用项目配置的收益率，如果没有则使用默认配置
+        BigDecimal annualRate = getProjectAnnualRate(project, "noPrincipal");
         BigDecimal actualRate = annualRate.multiply(new BigDecimal(investmentDays))
                                          .divide(new BigDecimal(365), 4, BigDecimal.ROUND_HALF_UP);
         
@@ -377,12 +381,13 @@ public class UserInvestmentProfitSchedule {
      * @param investmentAmount 投资金额
      * @param cycle 项目周期
      * @param investmentDays 投资天数
+     * @param project 项目信息
      * @return 收益金额
      */
-    private BigDecimal calculateCompoundInterestProfit(BigDecimal investmentAmount, Integer cycle, int investmentDays) {
+    private BigDecimal calculateCompoundInterestProfit(BigDecimal investmentAmount, Integer cycle, int investmentDays, ProjectEntity project) {
         // 复利计算：P * (1 + r)^n - P
-        // 使用配置的日收益率
-        BigDecimal dailyRate = profitConfig.getCompoundDailyRate();
+        // 优先使用项目配置的日收益率，如果没有则使用默认配置
+        BigDecimal dailyRate = getProjectDailyRate(project, "compound");
         BigDecimal compoundFactor = BigDecimal.ONE.add(dailyRate).pow(investmentDays);
         
         return investmentAmount.multiply(compoundFactor).subtract(investmentAmount);
@@ -394,20 +399,21 @@ public class UserInvestmentProfitSchedule {
      * @param investmentAmount 投资金额
      * @param cycle 项目周期
      * @param investmentDays 投资天数
+     * @param project 项目信息
      * @return 收益金额
      */
-    private BigDecimal calculateSteppedDailyProfit(BigDecimal investmentAmount, Integer cycle, int investmentDays) {
-        // 使用配置的阶梯收益率
+    private BigDecimal calculateSteppedDailyProfit(BigDecimal investmentAmount, Integer cycle, int investmentDays, ProjectEntity project) {
+        // 优先使用项目配置的阶梯收益率，如果没有则使用默认配置
         BigDecimal totalProfit = BigDecimal.ZERO;
         
         for (int day = 1; day <= investmentDays; day++) {
             BigDecimal dailyRate;
             if (day <= 7) {
-                dailyRate = profitConfig.getSteppedDailyRate().getFirstWeekRate();
+                dailyRate = getProjectDailyRate(project, "steppedFirstWeek");
             } else if (day <= 15) {
-                dailyRate = profitConfig.getSteppedDailyRate().getSecondWeekRate();
+                dailyRate = getProjectDailyRate(project, "steppedSecondWeek");
             } else {
-                dailyRate = profitConfig.getSteppedDailyRate().getLaterRate();
+                dailyRate = getProjectDailyRate(project, "steppedLater");
             }
             
             totalProfit = totalProfit.add(investmentAmount.multiply(dailyRate));
@@ -422,19 +428,179 @@ public class UserInvestmentProfitSchedule {
      * @param investmentAmount 投资金额
      * @param cycle 项目周期
      * @param investmentDays 投资天数
+     * @param project 项目信息
      * @return 收益金额
      */
-    private BigDecimal calculateGroupBuyProfit(BigDecimal investmentAmount, Integer cycle, int investmentDays) {
-        // 使用配置的拼团收益率
+    private BigDecimal calculateGroupBuyProfit(BigDecimal investmentAmount, Integer cycle, int investmentDays, ProjectEntity project) {
+        // 优先使用项目配置的拼团收益率，如果没有则使用默认配置
         // 拼团收益：基础收益 + 拼团奖励
-        BigDecimal baseAnnualRate = profitConfig.getGroupBuyRate().getBaseAnnualRate();
+        BigDecimal baseAnnualRate = getProjectAnnualRate(project, "groupBuyBase");
         BigDecimal baseProfit = baseAnnualRate.multiply(new BigDecimal(investmentDays))
                                              .divide(new BigDecimal(365), 4, BigDecimal.ROUND_HALF_UP);
         
         // 拼团奖励
-        BigDecimal groupBonus = profitConfig.getGroupBuyRate().getGroupBonusRate();
+        BigDecimal groupBonus = getProjectAnnualRate(project, "groupBuyBonus");
         
         return investmentAmount.multiply(baseProfit).add(investmentAmount.multiply(groupBonus));
+    }
+    
+    /**
+     * 从项目信息中获取年化收益率
+     * 
+     * @param project 项目信息
+     * @param rateType 收益率类型
+     * @return 年化收益率
+     */
+    private BigDecimal getProjectAnnualRate(ProjectEntity project, String rateType) {
+        try {
+            if (project != null && project.getConversion() != null) {
+                // 项目配置了收益率，使用项目配置
+                String conversion = project.getConversion();
+                log.debug("项目 {} 配置收益率: {}", project.getInvestId(), conversion);
+                
+                // 根据收益率类型和项目配置计算
+                switch (rateType) {
+                    case "maturity":
+                    case "dailyReturn":
+                    case "noPrincipal":
+                    case "groupBuyBase":
+                        // 这些类型都使用项目的基础收益率
+                        return parseProjectRate(conversion);
+                    default:
+                        break;
+                }
+            }
+            
+            // 项目没有配置收益率，使用默认配置
+            log.debug("使用默认收益率配置，类型: {}", rateType);
+            switch (rateType) {
+                case "maturity":
+                    return profitConfig.getMaturityAnnualRate();
+                case "dailyReturn":
+                    return profitConfig.getDailyReturnAnnualRate();
+                case "noPrincipal":
+                    return profitConfig.getNoPrincipalAnnualRate();
+                case "groupBuyBase":
+                    return profitConfig.getGroupBuyRate().getBaseAnnualRate();
+                case "groupBuyBonus":
+                    return profitConfig.getGroupBuyRate().getGroupBonusRate();
+                default:
+                    return profitConfig.getMaturityAnnualRate();
+            }
+        } catch (Exception e) {
+            log.warn("获取项目收益率失败，使用默认配置，类型: {}", rateType, e);
+            return profitConfig.getMaturityAnnualRate();
+        }
+    }
+    
+    /**
+     * 从项目信息中获取日收益率
+     * 
+     * @param project 项目信息
+     * @param rateType 收益率类型
+     * @return 日收益率
+     */
+    private BigDecimal getProjectDailyRate(ProjectEntity project, String rateType) {
+        try {
+            if (project != null && project.getConversion() != null) {
+                // 项目配置了收益率，使用项目配置
+                String conversion = project.getConversion();
+                log.debug("项目 {} 配置日收益率: {}", project.getInvestId(), conversion);
+                
+                // 根据收益率类型和项目配置计算
+                switch (rateType) {
+                    case "compound":
+                        // 复利产品使用项目的日收益率
+                        return parseProjectDailyRate(conversion);
+                    case "steppedFirstWeek":
+                    case "steppedSecondWeek":
+                    case "steppedLater":
+                        // 阶梯日益使用项目的日收益率
+                        return parseProjectDailyRate(conversion);
+                    default:
+                        break;
+                }
+            }
+            
+            // 项目没有配置收益率，使用默认配置
+            log.debug("使用默认日收益率配置，类型: {}", rateType);
+            switch (rateType) {
+                case "compound":
+                    return profitConfig.getCompoundDailyRate();
+                case "steppedFirstWeek":
+                    return profitConfig.getSteppedDailyRate().getFirstWeekRate();
+                case "steppedSecondWeek":
+                    return profitConfig.getSteppedDailyRate().getSecondWeekRate();
+                case "steppedLater":
+                    return profitConfig.getSteppedDailyRate().getLaterRate();
+                default:
+                    return profitConfig.getCompoundDailyRate();
+            }
+        } catch (Exception e) {
+            log.warn("获取项目日收益率失败，使用默认配置，类型: {}", rateType, e);
+            return profitConfig.getCompoundDailyRate();
+        }
+    }
+    
+    /**
+     * 解析项目配置的年化收益率
+     * 
+     * @param conversion 项目收益率配置字符串
+     * @return 年化收益率
+     */
+    private BigDecimal parseProjectRate(String conversion) {
+        try {
+            if (conversion == null || conversion.trim().isEmpty()) {
+                return profitConfig.getMaturityAnnualRate();
+            }
+            
+            // 移除百分号并转换为小数
+            String rateStr = conversion.replace("%", "").trim();
+            BigDecimal rate = new BigDecimal(rateStr);
+            
+            // 如果是百分比格式，转换为小数
+            if (conversion.contains("%")) {
+                rate = rate.divide(new BigDecimal("100"), 6, BigDecimal.ROUND_HALF_UP);
+            }
+            
+            return rate;
+        } catch (Exception e) {
+            log.warn("解析项目收益率失败: {}, 使用默认配置", conversion, e);
+            return profitConfig.getMaturityAnnualRate();
+        }
+    }
+    
+    /**
+     * 解析项目配置的日收益率
+     * 
+     * @param conversion 项目收益率配置字符串
+     * @return 日收益率
+     */
+    private BigDecimal parseProjectDailyRate(String conversion) {
+        try {
+            if (conversion == null || conversion.trim().isEmpty()) {
+                return profitConfig.getCompoundDailyRate();
+            }
+            
+            // 移除百分号并转换为小数
+            String rateStr = conversion.replace("%", "").trim();
+            BigDecimal rate = new BigDecimal(rateStr);
+            
+            // 如果是百分比格式，转换为小数
+            if (conversion.contains("%")) {
+                rate = rate.divide(new BigDecimal("100"), 6, BigDecimal.ROUND_HALF_UP);
+            }
+            
+            // 如果是年化收益率，转换为日收益率
+            if (conversion.contains("年") || conversion.contains("年化")) {
+                rate = rate.divide(new BigDecimal("365"), 6, BigDecimal.ROUND_HALF_UP);
+            }
+            
+            return rate;
+        } catch (Exception e) {
+            log.warn("解析项目日收益率失败: {}, 使用默认配置", conversion, e);
+            return profitConfig.getCompoundDailyRate();
+        }
     }
     
     /**
