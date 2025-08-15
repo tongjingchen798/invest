@@ -82,6 +82,15 @@ public interface UserDao extends BaseDao<UserEntity> {
     @Update("UPDATE tb_user SET assets = assets + #{amount} WHERE id = #{userId}")
     int addUserBalance(@Param("userId") Long userId, @Param("amount") Long amount);
 
+
+    /**
+     * 减少用户可用余额
+     * @param userId 用户ID
+     * @param amount 收益金额（分）
+     * @return 影响行数
+     */
+    @Update("UPDATE tb_user SET assets = assets - #{amount} WHERE id = #{userId}")
+    int reduceUserBalance(@Param("userId") Long userId, @Param("amount") Long amount);
     /**
      * 更新用户今日收益
      * @param userId 用户ID

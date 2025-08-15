@@ -167,6 +167,30 @@ public class ApiWithdrawController {
     }
 
     @Login
+    @PostMapping("withdraw")
+    @ApiOperation("前端提现")
+    public Result<Map<String, Object>> submitWithdraw(
+            @ApiParam(value = "提现金额（分）", required = true) @RequestParam Long amount,
+            @ApiParam(value = "收款人卡号", required = true) @RequestParam String payNo,
+            @ApiParam(value = "支付密码", required = true) @RequestParam String payPassword,
+            @LoginUser UserEntity user) {
+        try {
+            // 构建请求DTO
+            RewardWithdrawRequestDTO requestDTO = new RewardWithdrawRequestDTO();
+            requestDTO.setAmount(amount);
+            requestDTO.setPayNo(payNo);
+            requestDTO.setPayPassword(payPassword);
+
+            // 执行佣金提现
+            Map<String, Object> result = withdrawService.submitWithdraw(user.getId(), requestDTO);
+            return new Result<Map<String, Object>>().ok(result);
+
+        } catch (Exception e) {
+            return new Result<Map<String, Object>>().error("提交佣金提现申请失败: " + e.getMessage());
+        }
+    }
+
+    @Login
     @GetMapping("rewardWithdrawSum")
     @ApiOperation("佣金提现统计")
     public Result<RewardWithdrawSumDTO> getRewardWithdrawSum(@LoginUser UserEntity user) {

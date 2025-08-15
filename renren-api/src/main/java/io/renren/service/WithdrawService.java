@@ -50,6 +50,14 @@ public interface WithdrawService {
     Map<String, Object> submitRewardWithdraw(Long userId, RewardWithdrawRequestDTO requestDTO);
 
     /**
+     * 提现申请
+     * @param userId
+     * @param requestDTO
+     * @return
+     */
+    Map<String, Object> submitWithdraw(Long userId, RewardWithdrawRequestDTO requestDTO);
+
+    /**
      * 获取用户佣金提现统计
      *
      * @param userId 用户ID

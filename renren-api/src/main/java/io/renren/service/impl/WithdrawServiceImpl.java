@@ -219,6 +219,81 @@ public class WithdrawServiceImpl implements WithdrawService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Map<String, Object> submitWithdraw(Long userId, RewardWithdrawRequestDTO requestDTO) {
+        try {
+            UserEntity user = userDao.selectById(userId);
+            if (user == null) {
+                throw new RuntimeException("用户不存在");
+            }
+
+//            // 验证支付密码
+//            if (!validatePayPassword(user, requestDTO.getPayPassword())) {
+//                throw new RuntimeException("支付密码错误");
+//            }
+
+            // 检查佣金余额
+            if (user.getAssets() == null || user.getAssets() < requestDTO.getAmount() || user.getCashwithdrawable() < requestDTO.getAmount() ) {
+                throw new RuntimeException("余额不足");
+            }
+
+            // 验证提现规则
+            ValidationResult ruleResult = withdrawRuleValidator.validateAllRules(userId, new BigDecimal(requestDTO.getAmount()));
+            if (!ruleResult.isValid()) {
+                throw new RuntimeException(ruleResult.getErrorMessage());
+            }
+
+            // 生成订单号
+            String orderNo = generateOrderNo();
+
+            // 计算手续费和实际到账金额（5%手续费）
+            BigDecimal amount = new BigDecimal(requestDTO.getAmount());
+            BigDecimal handFee = withdrawRuleValidator.calculateFee(amount);
+            BigDecimal realAmount = withdrawRuleValidator.calculateRealAmount(amount);
+
+            // 创建提现订单
+            WithdrawOrderEntity withdrawOrder = new WithdrawOrderEntity();
+            withdrawOrder.setId(String.valueOf(System.currentTimeMillis()));
+            withdrawOrder.setUserId(userId.toString());
+            withdrawOrder.setMobile(user.getMobile());
+            withdrawOrder.setUsername(user.getUsername());
+            withdrawOrder.setAmount(requestDTO.getAmount());
+            withdrawOrder.setInputamount(requestDTO.getAmount());
+            withdrawOrder.setHandFee(handFee.longValue());
+            withdrawOrder.setRealAmount(realAmount.longValue());
+            withdrawOrder.setPayNo(requestDTO.getPayNo());
+            withdrawOrder.setPayName(user.getUsername());
+            withdrawOrder.setWithdrawType(1);
+            withdrawOrder.setState(0);
+            withdrawOrder.setOrderno(orderNo);
+            withdrawOrder.setCreateTime(new Date());
+            withdrawOrder.setWithdrawTime(new Date());
+            withdrawOrder.setRemark("余额提现申请");
+
+            // 保存提现订单
+            withdrawOrderDao.insert(withdrawOrder);
+
+            // 扣除用户可用余额 TODO 是否记录账变
+            userDao.reduceUserBalance(userId,amount.longValue());
+
+            // 构建返回结果
+            Map<String, Object> result = new HashMap<>();
+            result.put("orderNo", orderNo);
+            result.put("amount", requestDTO.getAmount());
+            result.put("handFee", handFee.longValue());
+            result.put("realAmount", realAmount.longValue());
+            result.put("status", "待审核");
+            result.put("message", "提现申请提交成功");
+
+            return result;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("提交佣金提现申请失败: " + e.getMessage());
+        }
+    }
+
+    @Override
     public RewardWithdrawSumDTO getRewardWithdrawSum(Long userId) {
         try {
             RewardWithdrawSumDTO sumDTO = new RewardWithdrawSumDTO();
