@@ -23,13 +23,19 @@ public class IssuesDTO {
     private String title;
 
     @ApiModelProperty(value = "描述")
-    private String content;
+    private String remark;
+
+    @ApiModelProperty(value = "图片地址")
+    private String logosAddr;
 
     @ApiModelProperty(value = "链接地址")
-    private String imagesAddr;
+    private String logosLinkaddr;
 
     @ApiModelProperty(value = "广告类型 1=LOG,2=轮播图，3=个人中心 4=弹窗广告")
     private Integer type;
+
+    @ApiModelProperty(value = "是否弹窗（根据type字段计算：4=弹窗广告）")
+    private Integer isPop;
 
     @ApiModelProperty(value = "排序")
     private Integer sort;

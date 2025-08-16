@@ -45,7 +45,18 @@ public class IssuesServiceImpl extends BaseServiceImpl<IssuesDao, IssuesEntity> 
     }
 
     public List<IssuesDTO> convertToDto(List<IssuesEntity> entityList) {
-        return ConvertUtils.sourceToTarget(entityList, IssuesDTO.class);
+        List<IssuesDTO> dtoList = ConvertUtils.sourceToTarget(entityList, IssuesDTO.class);
+        
+        // 计算isPop字段
+        for (IssuesDTO dto : dtoList) {
+            if (dto.getType() != null && dto.getType() == 4) {
+                dto.setIsPop(1); // 弹窗广告
+            } else {
+                dto.setIsPop(0); // 非弹窗广告
+            }
+        }
+        
+        return dtoList;
     }
 
     /**

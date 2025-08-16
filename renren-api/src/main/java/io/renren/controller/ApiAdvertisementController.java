@@ -1,9 +1,9 @@
 package io.renren.controller;
 
 import io.renren.common.utils.Result;
-import io.renren.dto.IssuesDTO;
-import io.renren.dto.IssuesPageData;
-import io.renren.service.IssuesService;
+import io.renren.dto.AdvertisementDTO;
+import io.renren.service.AdvertisementService;
+import io.renren.common.page.PageData;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -12,24 +12,23 @@ import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * 广告相关接口
+ * 广告素材相关接口
  *
  * @author renren
  * @email renren@gmail.com
- * @date 2024-01-01 00:00:00
+ * @date 2025-07-10 20:05:01
  */
 @RestController
 @RequestMapping("/api/advertisement")
-@Api(tags = "广告相关接口")
+@Api(tags = "广告素材相关接口")
 public class ApiAdvertisementController {
     
     @Resource
-    private IssuesService issuesService;
+    private AdvertisementService advertisementService;
 
     @GetMapping("page")
     @ApiOperation("首页LOG和轮播图查询和个人中心图片")
@@ -40,7 +39,7 @@ public class ApiAdvertisementController {
         @ApiImplicitParam(name = "orderField", value = "排序字段", paramType = "query", required = false, dataType = "string"),
         @ApiImplicitParam(name = "type", value = "广告类型 1=LOG,2=轮播图，3=个人中心 4=弹窗广告", paramType = "query", required = false, dataType = "string")
     })
-    public Result<IssuesPageData<IssuesDTO>> page(@ApiIgnore @RequestParam Map<String, Object> params) {
+    public Result<PageData<AdvertisementDTO>> page(@ApiIgnore @RequestParam Map<String, Object> params) {
         try {
             // 确保分页参数存在
             if (!params.containsKey("page")) {
@@ -51,42 +50,44 @@ public class ApiAdvertisementController {
             }
             
             // 调用服务层分页查询
-            IssuesPageData<IssuesDTO> pageData = issuesService.queryPageData(params);
-            return new Result<IssuesPageData<IssuesDTO>>().ok(pageData);
+            PageData<AdvertisementDTO> pageData = advertisementService.getPage(params);
+            return new Result<PageData<AdvertisementDTO>>().ok(pageData);
         } catch (Exception e) {
-            return new Result<IssuesPageData<IssuesDTO>>().error("查询失败：" + e.getMessage());
+            return new Result<PageData<AdvertisementDTO>>().error("查询失败：" + e.getMessage());
         }
     }
 
-    @GetMapping("listByType")
-    @ApiOperation("根据类型查询广告列表")
-    @ApiImplicitParam(name = "type", value = "广告类型 1=LOG,2=轮播图，3=个人中心 4=弹窗广告", paramType = "query", required = true, dataType = "int")
-    public Result<List<IssuesDTO>> listByType(@RequestParam Integer type) {
-        try {
-            Map<String, Object> params = new HashMap<>();
-            params.put("type", type.toString());
-            params.put("page", "1");
-            params.put("limit", "100"); // 设置较大的限制以获取所有该类型的广告
-            
-            IssuesPageData<IssuesDTO> pageData = issuesService.queryPageData(params);
-            return new Result<List<IssuesDTO>>().ok(pageData.getList());
-        } catch (Exception e) {
-            return new Result<List<IssuesDTO>>().error("查询失败：" + e.getMessage());
-        }
-    }
+    // @GetMapping("listByType")
+    // @ApiOperation("根据类型查询广告列表")
+    // @ApiImplicitParam(name = "type", value = "广告类型 1=LOG,2=轮播图，3=个人中心 4=弹窗广告", paramType = "query", required = true, dataType = "int")
+    // public Result<List<AdvertisementDTO>> listByType(@RequestParam Integer type) {
+    //     try {
+    //         List<AdvertisementDTO> advertisements = advertisementService.getByType(type);
+    //         return new Result<List<AdvertisementDTO>>().ok(advertisements);
+    //     } catch (Exception e) {
+    //         return new Result<List<AdvertisementDTO>>().error("查询失败：" + e.getMessage());
+    //     }
+    // }
 
-    @GetMapping("listEnabled")
-    @ApiOperation("查询所有启用的广告")
-    public Result<List<IssuesDTO>> listEnabled() {
-        try {
-            Map<String, Object> params = new HashMap<>();
-            params.put("page", "1");
-            params.put("limit", "100"); // 设置较大的限制以获取所有启用的广告
-            
-            IssuesPageData<IssuesDTO> pageData = issuesService.queryPageData(params);
-            return new Result<List<IssuesDTO>>().ok(pageData.getList());
-        } catch (Exception e) {
-            return new Result<List<IssuesDTO>>().error("查询失败：" + e.getMessage());
-        }
-    }
+    // @GetMapping("listEnabled")
+    // @ApiOperation("查询所有启用的广告")
+    // public Result<List<AdvertisementDTO>> listEnabled() {
+    //     try {
+    //         List<AdvertisementDTO> advertisements = advertisementService.getAllEnabled();
+    //         return new Result<List<AdvertisementDTO>>().ok(advertisements);
+    //     } catch (Exception e) {
+    //         return new Result<List<AdvertisementDTO>>().error("查询失败：" + e.getMessage());
+    //     }
+    // }
+
+    // @GetMapping("listEffective")
+    // @ApiOperation("查询当前生效的广告")
+    // public Result<List<AdvertisementDTO>> listEffective() {
+    //     try {
+    //         List<AdvertisementDTO> advertisements = advertisementService.getByEffectiveTime();
+    //         return new Result<List<AdvertisementDTO>>().ok(advertisements);
+    //     } catch (Exception e) {
+    //         return new Result<List<AdvertisementDTO>>().error("查询失败：" + e.getMessage());
+    //     }
+    // }
 }

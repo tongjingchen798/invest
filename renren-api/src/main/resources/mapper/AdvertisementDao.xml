@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.dao.AdvertisementDao">
+
+    <resultMap type="io.renren.entity.AdvertisementEntity" id="advertisementMap">
+        <result property="id" column="id"/>
+        <result property="type" column="type"/>
+        <result property="title" column="title"/>
+        <result property="logosAddr" column="logos_addr"/>
+        <result property="logosLinkaddr" column="logos_linkaddr"/>
+        <result property="remark" column="remark"/>
+        <result property="sxDate" column="sx_date"/>
+        <result property="hour" column="hour"/>
+        <result property="sort" column="sort"/>
+        <result property="status" column="status"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="creator" column="creator"/>
+        <result property="updater" column="updater"/>
+    </resultMap>
+
+    <!-- 根据类型查询启用的广告 -->
+    <select id="selectByType" resultMap="advertisementMap">
+        SELECT * FROM tb_advertisement 
+        WHERE type = #{type} AND status = 1
+        ORDER BY sort ASC, create_date DESC
+    </select>
+
+    <!-- 查询所有启用的广告 -->
+    <select id="selectEnabled" resultMap="advertisementMap">
+        SELECT * FROM tb_advertisement 
+        WHERE status = 1
+        ORDER BY sort ASC, create_date DESC
+    </select>
+
+    <!-- 根据生效时间查询广告 -->
+    <select id="selectByEffectiveTime" resultMap="advertisementMap">
+        SELECT * FROM tb_advertisement 
+        WHERE status = 1 
+        AND (sx_date IS NULL OR sx_date &lt;= #{currentTime})
+        ORDER BY sort ASC, create_date DESC
+    </select>
+
+</mapper>
