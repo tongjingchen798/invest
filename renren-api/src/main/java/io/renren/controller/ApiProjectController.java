@@ -7,16 +7,14 @@ import io.renren.common.utils.Result;
 import io.renren.common.validator.ValidatorUtils;
 import io.renren.dto.PlaceOrderDTO;
 import io.renren.dto.ProjectDTO;
+import io.renren.dto.ProjectDetailDTO;
 import io.renren.dto.ProjectTypeDTO;
 import io.renren.entity.ProjectEntity;
 import io.renren.entity.UserEntity;
 import io.renren.service.OrderService;
 import io.renren.service.ProjectService;
 import io.renren.service.ProjectTypeService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
@@ -97,6 +95,31 @@ public class ApiProjectController {
 			return new Result<PageData<ProjectEntity>>().error("查询失败：" + e.getMessage());
 		}
 	}
+
+    @GetMapping("/{projectId}")
+    @ApiOperation("获取项目详情")
+    public Result<ProjectDetailDTO> getProjectDetail(
+            @ApiParam(value = "项目ID", required = true) @PathVariable Long projectId) {
+
+        try {
+            // 参数验证
+            if (projectId == null || projectId <= 0) {
+                return new Result<ProjectDetailDTO>().error("项目ID无效");
+            }
+
+            // 获取项目详情
+            ProjectDetailDTO projectDetail = projectService.getProjectDetail(projectId);
+
+            if (projectDetail == null) {
+                return new Result<ProjectDetailDTO>().error("项目不存在");
+            }
+
+            return new Result<ProjectDetailDTO>().ok(projectDetail);
+
+        } catch (Exception e) {
+            return new Result<ProjectDetailDTO>().error("获取项目详情失败: " + e.getMessage());
+        }
+    }
 
 	
 }
