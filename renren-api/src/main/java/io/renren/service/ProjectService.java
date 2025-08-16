@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import io.renren.common.page.PageData;
 import io.renren.common.service.BaseService;
 import io.renren.dto.ProjectDTO;
+import io.renren.dto.ProjectDetailDTO;
 import io.renren.entity.ProjectEntity;
 
 import java.util.List;
@@ -31,5 +32,11 @@ public interface ProjectService extends BaseService<ProjectEntity> {
 	 * @return 分页数据
 	 */
 	PageData<ProjectEntity> getProjectPage(Map<String, Object> params);
-
+	
+	/**
+	 * 根据ID获取项目详情
+	 * @param projectId 项目ID
+	 * @return 项目详情DTO
+	 */
+	ProjectDetailDTO getProjectDetail(Long projectId);
 }

@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import io.renren.dto.ProjectDetailDTO;
 
 /**
  * 投资项目
@@ -65,6 +66,39 @@ public class ProjectServiceImpl extends BaseServiceImpl<ProjectDao, ProjectEntit
 		
 		// 转换为PageData
 		return new PageData<>(result.getRecords(), result.getTotal());
+	}
+	
+	@Override
+	public ProjectDetailDTO getProjectDetail(Long projectId) {
+		// 根据ID查询项目
+		ProjectEntity project = baseDao.selectById(projectId);
+		
+		if (project == null) {
+			return null;
+		}
+		
+		// 转换为DTO
+		ProjectDetailDTO detailDTO = new ProjectDetailDTO();
+		detailDTO.setInvestId(project.getInvestId() != null ? project.getInvestId().toString() : null);
+		detailDTO.setInvestName(project.getInvestName());
+		detailDTO.setAbbreviation(project.getAbbreviation());
+		detailDTO.setStatus(project.getStatus());
+		detailDTO.setInvestRepeat(project.getInvestRepeat());
+		detailDTO.setProjectType(project.getProjectType());
+		detailDTO.setCycleType(project.getCycleType());
+		detailDTO.setScaleAmount(project.getScaleAmount() != null ? project.getScaleAmount().toString() : null);
+		detailDTO.setCycle(project.getCycle());
+		detailDTO.setConversion(project.getConversion());
+		detailDTO.setPrincipalProfit(project.getPrincipalProfit() != null ? project.getPrincipalProfit().toString() : null);
+		detailDTO.setTotalProfit(project.getTotalProfit() != null ? project.getTotalProfit().toString() : null);
+		detailDTO.setTotalCost(project.getTotalCost() != null ? project.getTotalCost().toString() : null);
+		detailDTO.setTypeId(project.getTypeId() != null ? project.getTypeId().toString() : null);
+		detailDTO.setImg(project.getImg());
+		detailDTO.setProjectDescribe(project.getProjectDescribe());
+		detailDTO.setSort(project.getSort());
+		detailDTO.setVip(project.getVip());
+		
+		return detailDTO;
 	}
 	
 	/**
