@@ -159,7 +159,7 @@ public class OrderServiceImpl implements OrderService {
 			Long currentAssets = user.getAssets() != null ? user.getAssets() : 0L;
 			if (currentAssets < amount) {
 				result.put("status", "error");
-				result.put("message", "可用余额不足，当前可用余额: " + currentAssets + "分，需要: " + (amount / 100.0) + "元");
+				result.put("message", "可用余额不足，当前可用余额: " + currentAssets + "分，需要: " + (amount));
 				return result;
 			}
 			
