@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.project.dao.ProjectDao">
+
+    <resultMap type="io.renren.modules.project.entity.ProjectEntity" id="projectMap">
+        <result property="investId" column="invest_id"/>
+        <result property="investName" column="invest_name"/>
+        <result property="abbreviation" column="abbreviation"/>
+        <result property="status" column="status"/>
+        <result property="investRepeat" column="invest_repeat"/>
+        <result property="projectType" column="project_type"/>
+        <result property="cycleType" column="cycle_type"/>
+        <result property="scaleAmount" column="scale_amount"/>
+        <result property="cycle" column="cycle"/>
+        <result property="conversion" column="conversion"/>
+        <result property="principalProfit" column="principal_profit"/>
+        <result property="totalProfit" column="total_profit"/>
+        <result property="totalCost" column="total_cost"/>
+        <result property="typeId" column="type_id"/>
+        <result property="img" column="img"/>
+        <result property="couponId" column="coupon_id"/>
+        <result property="couponName" column="coupon_name"/>
+        <result property="projectDescribe" column="project_describe"/>
+        <result property="sort" column="sort"/>
+        <result property="vip" column="vip"/>
+        <result property="hour" column="hour"/>
+        <result property="expire" column="expire"/>
+        <result property="sjDate" column="sj_date"/>
+        <result property="xjDate" column="xj_date"/>
+        <result property="memberRegistrationTime" column="member_registration_time"/>
+        <result property="registerStartDate" column="register_start_date"/>
+        <result property="registerEndDate" column="register_end_date"/>
+        <result property="returnPrincipal" column="return_principal"/>
+        <result property="returnTo" column="return_to"/>
+        <result property="returnRatio" column="return_ratio"/>
+        <result property="returnProject" column="return_project"/>
+        <result property="returnToSup" column="return_to_sup"/>
+        <result property="returnRatioSup" column="return_ratio_sup"/>
+        <result property="returnProjectTo" column="return_project_to"/>
+        <result property="returnProjectToSup" column="return_project_to_sup"/>
+        <result property="returnInvest" column="return_invest"/>
+        <result property="returnInvestName" column="return_invest_name"/>
+        <result property="ret" column="ret"/>
+        <result property="marketDate" column="market_date"/>
+        <result property="rushWeek" column="rush_week"/>
+        <result property="rushHour" column="rush_hour"/>
+        <result property="rushMinute" column="rush_minute"/>
+        <result property="disFlag" column="dis_flag"/>
+        <result property="discount" column="discount"/>
+        <result property="discountStart" column="discount_start"/>
+        <result property="discountEnd" column="discount_end"/>
+        <result property="discountNum" column="discount_num"/>
+        <result property="discountVip" column="discount_vip"/>
+        <result property="joinNum" column="join_num"/>
+        <result property="groupLeaderRebate" column="group_leader_rebate"/>
+        <result property="groupMemberRebate" column="group_member_rebate"/>
+        <result property="groupTime" column="group_time"/>
+        <result property="rushbuyFalg" column="rushbuy_falg"/>
+        <result property="rushbuyStart" column="rushbuy_start"/>
+        <result property="rushbuyEnd" column="rushbuy_end"/>
+        <result property="rushbuyNum" column="rushbuy_num"/>
+        <result property="projectExplain" column="project_explain"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateDate" column="update_date"/>
+    </resultMap>
+
+    <!-- 根据ID查询项目详情 -->
+    <select id="selectProjectById" resultMap="projectMap">
+        SELECT * FROM tb_project WHERE invest_id = #{projectId}
+    </select>
+
+    <!-- 查询上架的项目列表 -->
+    <select id="selectActiveProjects" resultMap="projectMap">
+        SELECT * FROM tb_project WHERE status = 1 ORDER BY sort DESC, create_date DESC
+    </select>
+
+    <!-- 根据类型查询项目 -->
+    <select id="selectProjectsByType" resultMap="projectMap">
+        SELECT * FROM tb_project WHERE project_type = #{projectType} AND status = 1 ORDER BY sort DESC, create_date DESC
+    </select>
+
+    <!-- 根据周期类型查询项目 -->
+    <select id="selectProjectsByCycleType" resultMap="projectMap">
+        SELECT * FROM tb_project WHERE cycle_type = #{cycleType} AND status = 1 ORDER BY sort DESC, create_date DESC
+    </select>
+
+    <!-- 分页查询项目 -->
+    <select id="selectProjectsByPage" resultMap="projectMap">
+        SELECT * FROM tb_project
+        <where>
+            <if test="investName != null and investName != ''">
+                AND invest_name LIKE CONCAT('%', #{investName}, '%')
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="projectType != null">
+                AND project_type = #{projectType}
+            </if>
+            <if test="cycleType != null">
+                AND cycle_type = #{cycleType}
+            </if>
+        </where>
+        ORDER BY sort DESC, create_date DESC
+    </select>
+
+    <!-- 统计项目总数 -->
+    <select id="selectProjectCount" resultType="int">
+        SELECT COUNT(*) FROM tb_project
+        <where>
+            <if test="investName != null and investName != ''">
+                AND invest_name LIKE CONCAT('%', #{investName}, '%')
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="projectType != null">
+                AND project_type = #{projectType}
+            </if>
+            <if test="cycleType != null">
+                AND cycle_type = #{cycleType}
+            </if>
+        </where>
+    </select>
+
+    <!-- 更新项目投资金额 -->
+    <update id="updateInvestmentAmount">
+        UPDATE tb_project SET 
+            scale_amount = scale_amount + #{amount}
+        WHERE invest_id = #{projectId}
+    </update>
+
+</mapper>
