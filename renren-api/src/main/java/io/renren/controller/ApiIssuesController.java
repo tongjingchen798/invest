@@ -22,7 +22,7 @@ import java.util.Map;
  * @author NICO
  */
 @RestController
-@RequestMapping("/api/issues")
+@RequestMapping("/api/advertisement")
 @Api(tags = "广告/图片管理接口")
 public class ApiIssuesController {
     @Autowired
