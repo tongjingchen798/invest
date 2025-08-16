@@ -118,7 +118,7 @@ public class ProfitEndedServiceImpl implements ProfitEndedService {
             Page<InvestmentRecordEntity> page = new Page<>(1, 1000); // 设置较大的页面大小
             QueryWrapper<InvestmentRecordEntity> investmentQuery = new QueryWrapper<>();
             investmentQuery.eq("user_id", userId)
-                          .orderByDesc("create_time");
+                          .orderByDesc("create_date");
             
             Page<InvestmentRecordEntity> result = investmentRecordDao.selectPage(page, investmentQuery);
             List<InvestmentRecordEntity> investmentRecords = result.getRecords();
@@ -175,7 +175,7 @@ public class ProfitEndedServiceImpl implements ProfitEndedService {
             Page<UserBalanceDetailEntity> page = new Page<>(1, 1000); // 设置较大的页面大小
             QueryWrapper<UserBalanceDetailEntity> profitQuery = new QueryWrapper<>();
             profitQuery.eq("user_id", userId)
-                      .in("busi_type", Arrays.asList(
+                      .in("business_type", Arrays.asList(
                           BusinessTypeEnum.INCOME.getCode()
                       ))
                       .between("transaction_date", todayStart, todayEnd)

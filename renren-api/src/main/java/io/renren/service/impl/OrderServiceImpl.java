@@ -131,6 +131,8 @@ public class OrderServiceImpl implements OrderService {
 			result.put("message", "下单成功");
 			result.put("orderNumber", orderNumber);
 			result.put("investmentId", investmentRecord.getOrderId().toString());
+			result.put("investmentName", investmentRecord.getInvestName());
+			result.put("count", investmentRecord.getInvestCount().toString());
 			
 		} catch (Exception e) {
 			result.put("status", "error");
