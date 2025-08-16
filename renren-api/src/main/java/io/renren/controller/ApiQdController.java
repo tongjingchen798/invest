@@ -1,5 +1,6 @@
 package io.renren.controller;
 
+import io.renren.annotation.Login;
 import io.renren.annotation.LoginUser;
 import io.renren.common.utils.Result;
 import io.renren.dao.SignRewardConfigDao;
@@ -51,6 +52,7 @@ public class ApiQdController {
     @Autowired
     private UserBalanceDetailDao userBalanceDetailDao;
 
+    @Login
     @GetMapping("getUserQd")
     @ApiOperation("获取用户签到")
     public Result<UserQdDTO> getUserQd(@LoginUser UserEntity user) {
@@ -90,10 +92,11 @@ public class ApiQdController {
         }
     }
 
+    @Login
     @PostMapping("qd")
     @ApiOperation("立即签到")
     @Transactional
-    public Result<Map<String, Object>> signIn(@LoginUser UserEntity user, @RequestBody SignInRequestDTO request) {
+    public Result signIn(@LoginUser UserEntity user, @RequestBody SignInRequestDTO request) {
         try {
             // 获取当前日期
             LocalDate today = LocalDate.now();
@@ -215,19 +218,19 @@ public class ApiQdController {
                 userSignStatisticsDao.updateById(statistics);
             }
             
-            // 构建返回数据
-            Map<String, Object> data = new HashMap<>();
-            data.put("userId", user.getId());
-            data.put("signDate", today.toString());
-            data.put("continuousDays", newContinuousDays);
-            data.put("rewardAmount", rewardAmount);
-            data.put("rewardType", rewardType);
-            data.put("message", "签到成功！获得奖励" + rewardAmount + "分");
-            
-            return new Result<Map<String, Object>>().ok(data);
+//            // 构建返回数据
+//            Map<String, Object> data = new HashMap<>();
+//            data.put("userId", user.getId());
+//            data.put("signDate", today.toString());
+//            data.put("continuousDays", newContinuousDays);
+//            data.put("rewardAmount", rewardAmount);
+//            data.put("rewardType", rewardType);
+//            data.put("message", "签到成功！获得奖励" + rewardAmount + "分");
+
+            return new Result();
             
         } catch (Exception e) {
-            return new Result<Map<String, Object>>().error("签到失败: " + e.getMessage());
+            return new Result().error("签到失败: " + e.getMessage());
         }
     }
     
@@ -262,7 +265,8 @@ public class ApiQdController {
             default: return config.getOneDayqdtype();
         }
     }
-    
+
+    @Login
     @GetMapping("qddetail")
     @ApiOperation("个人中心日历签到记录")
     public Result<PageData<SignInRecordDTO>> getSignInRecords(
