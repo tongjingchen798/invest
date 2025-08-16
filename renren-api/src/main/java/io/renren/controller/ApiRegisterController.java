@@ -78,6 +78,10 @@ public class ApiRegisterController {
         // 获取用户注册IP地址
         String registerIp = IpAddressUtil.getClientIpAddress();
         user.setRegisterIp(registerIp);
+        user.setAgent("1748403763980");
+        user.setAgent("xiaolaohu");
+        user.setSalesmanid("1748403763980");
+        user.setSalesmanName("Doris");
         user.setCreateDate(new Date());
         userService.insert(user);
 
