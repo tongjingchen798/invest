@@ -18,20 +18,20 @@ import java.io.Serializable;
 public class ProfitEndedDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    @ApiModelProperty(value = "待收金额（分）")
-    private Long dsAmount;
-
-    @ApiModelProperty(value = "待收本金（分）")
-    private Long dsbjAmount;
-
-    @ApiModelProperty(value = "待收利息（分）")
-    private Long dslxAmount;
+//    @ApiModelProperty(value = "待收金额（分）")
+//    private Long dsAmount;
+//
+//    @ApiModelProperty(value = "待收本金（分）")
+//    private Long dsbjAmount;
+//
+//    @ApiModelProperty(value = "待收利息（分）")
+//    private Long dslxAmount;
 
     @ApiModelProperty(value = "项目数")
     private Long items;
 
-    @ApiModelProperty(value = "今日收益（分）")
-    private Long jrAmount;
+//    @ApiModelProperty(value = "今日收益（分）")
+//    private Long jrAmount;
 
     @ApiModelProperty(value = "今日收益（分）")
     private Long jrProfit;
@@ -41,10 +41,10 @@ public class ProfitEndedDTO implements Serializable {
 
     @ApiModelProperty(value = "总收益（分）")
     private Long totalProfit;
-
-    @ApiModelProperty(value = "已收利息（分）")
-    private Long ysAmount;
-
-    @ApiModelProperty(value = "已收本金（分）")
-    private Long ysbjAmount;
+//
+//    @ApiModelProperty(value = "已收利息（分）")
+//    private Long ysAmount;
+//
+//    @ApiModelProperty(value = "已收本金（分）")
+//    private Long ysbjAmount;
 }

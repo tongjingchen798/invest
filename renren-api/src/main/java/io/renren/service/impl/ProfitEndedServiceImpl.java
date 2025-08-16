@@ -55,25 +55,7 @@ public class ProfitEndedServiceImpl implements ProfitEndedService {
             // 初始化统计数据
             long totalPrincipal = 0;        // 总本金
             long totalProfit = 0;           // 总收益
-            long dsAmount = 0;              // 待收金额
-            long dsbjAmount = 0;            // 待收本金
-            long dslxAmount = 0;            // 待收利息
-            long ysAmount = 0;              // 已收利息
-            long ysbjAmount = 0;            // 已收本金
-            long jrAmount = 0;              // 今日收益
-            long jrProfit = 0;              // 今日收益（重复字段）
             long items = 0;                 // 项目数
-            
-            // 获取今日日期
-            Calendar calendar = Calendar.getInstance();
-            calendar.set(Calendar.HOUR_OF_DAY, 0);
-            calendar.set(Calendar.MINUTE, 0);
-            calendar.set(Calendar.SECOND, 0);
-            calendar.set(Calendar.MILLISECOND, 0);
-            Date todayStart = calendar.getTime();
-            
-            calendar.add(Calendar.DAY_OF_MONTH, 1);
-            Date todayEnd = calendar.getTime();
             
             for (InvestmentRecordEntity record : investmentRecords) {
                 if (record.getInvestmentAmount() != null) {
@@ -93,45 +75,21 @@ public class ProfitEndedServiceImpl implements ProfitEndedService {
                         
                         // 项目状态：0-进行中，1-已结束
                         if (project.getStatus() != null) {
-                            if (project.getStatus() == 0) {
-                                // 进行中的项目：待收
                                 if (record.getInvestmentAmount() != null) {
-                                    dsbjAmount += record.getInvestmentAmount();
+                                    totalPrincipal += record.getInvestmentAmount();
                                 }
                                 if (record.getProfitAmount() != null) {
-                                    dslxAmount += record.getProfitAmount();
-                                    dsAmount += record.getProfitAmount();
+                                    totalProfit += record.getProfitAmount();
                                 }
-                            } else if (project.getStatus() == 1) {
-                                // 已结束的项目：已收
-                                if (record.getInvestmentAmount() != null) {
-                                    ysbjAmount += record.getInvestmentAmount();
-                                }
-                                if (record.getProfitAmount() != null) {
-                                    ysAmount += record.getProfitAmount();
-                                }
-                            }
                         }
                     }
                 }
             }
             
-            // 从账变记录查询今日收益
-            jrAmount = getTodayProfitFromBalanceDetail(userId, todayStart, todayEnd);
-            jrProfit = jrAmount;
-            
             // 设置统计数据
-            profitEndedDTO.setDsAmount(dsAmount);
-            profitEndedDTO.setDsbjAmount(dsbjAmount);
-            profitEndedDTO.setDslxAmount(dslxAmount);
             profitEndedDTO.setItems(items);
-            profitEndedDTO.setJrAmount(jrAmount);
-            profitEndedDTO.setJrProfit(jrProfit);
             profitEndedDTO.setTotalPrincipal(totalPrincipal);
             profitEndedDTO.setTotalProfit(totalProfit);
-            profitEndedDTO.setYsAmount(ysAmount);
-            profitEndedDTO.setYsbjAmount(ysbjAmount);
-            
             return profitEndedDTO;
             
         } catch (Exception e) {
@@ -168,11 +126,6 @@ public class ProfitEndedServiceImpl implements ProfitEndedService {
             // 初始化统计数据
             long totalPrincipal = 0;        // 总本金
             long totalProfit = 0;           // 总收益
-            long dsAmount = 0;              // 待收金额
-            long dsbjAmount = 0;            // 待收本金
-            long dslxAmount = 0;            // 待收利息
-            long ysAmount = 0;              // 已收利息（投资中项目无已收）
-            long ysbjAmount = 0;            // 已收本金（投资中项目无已收）
             long items = 0;                 // 项目数
             
             for (InvestmentRecordEntity record : investmentRecords) {
@@ -186,13 +139,10 @@ public class ProfitEndedServiceImpl implements ProfitEndedService {
                             
                             if (record.getInvestmentAmount() != null) {
                                 totalPrincipal += record.getInvestmentAmount();
-                                dsbjAmount += record.getInvestmentAmount(); // 待收本金
                             }
                             
                             if (record.getProfitAmount() != null) {
                                 totalProfit += record.getProfitAmount();
-                                dslxAmount += record.getProfitAmount(); // 待收利息
-                                dsAmount += record.getProfitAmount();   // 待收金额
                             }
                         }
                     }
@@ -204,17 +154,10 @@ public class ProfitEndedServiceImpl implements ProfitEndedService {
             long jrProfit = jrAmount;
             
             // 设置统计数据
-            profitEndedDTO.setDsAmount(dsAmount);
-            profitEndedDTO.setDsbjAmount(dsbjAmount);
-            profitEndedDTO.setDslxAmount(dslxAmount);
             profitEndedDTO.setItems(items);
-            profitEndedDTO.setJrAmount(jrAmount);
             profitEndedDTO.setJrProfit(jrProfit);
             profitEndedDTO.setTotalPrincipal(totalPrincipal);
             profitEndedDTO.setTotalProfit(totalProfit);
-            profitEndedDTO.setYsAmount(ysAmount);
-            profitEndedDTO.setYsbjAmount(ysbjAmount);
-            
             return profitEndedDTO;
             
         } catch (Exception e) {
