@@ -44,14 +44,8 @@ public class ApiBankController {
             @ApiParam(value = "排序字段") @RequestParam(value = Constant.ORDER_FIELD, required = false) String orderField,
             @ApiParam(value = "状态 0：停用 1：正常") @RequestParam(required = false) Integer state) {
         
-        Map<String, Object> params = new HashMap<>();
-        params.put(Constant.PAGE, page);
-        params.put(Constant.LIMIT, limit);
-        params.put(Constant.ORDER, order);
-        params.put(Constant.ORDER_FIELD, orderField);
-        params.put("state", state);
-
-        BankPageData<BankDTO> pageData = bankService.queryPageData(params);
+        // 直接使用MyBatis-Plus分页，无需构建Map
+        BankPageData<BankDTO> pageData = bankService.queryPageData(page, limit, order, orderField, state);
         
         return new Result<BankPageData<BankDTO>>().ok(pageData);
     }

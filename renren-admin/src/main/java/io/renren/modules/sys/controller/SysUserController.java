@@ -30,6 +30,8 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
+import io.swagger.annotations.ApiParam;
+
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
@@ -62,10 +64,19 @@ public class SysUserController {
 		@ApiImplicitParam(name = "deptId", value = "部门ID", paramType = "query", dataType="String")
 	})
 	@RequiresPermissions("sys:user:page")
-	public Result<PageData<SysUserDTO>> page(@ApiIgnore @RequestParam Map<String, Object> params){
-		PageData<SysUserDTO> page = sysUserService.page(params);
+	public Result<PageData<SysUserDTO>> page(
+			@ApiParam(value = "当前页码，从1开始", required = true) @RequestParam(Constant.PAGE) Integer page,
+			@ApiParam(value = "每页显示记录数", required = true) @RequestParam(Constant.LIMIT) Integer limit,
+			@ApiParam(value = "用户名", required = false) @RequestParam(required = false) String username,
+			@ApiParam(value = "性别", required = false) @RequestParam(required = false) String gender,
+			@ApiParam(value = "部门ID", required = false) @RequestParam(required = false) String deptId,
+			@ApiParam(value = "排序方式，可选值(asc、desc)", required = false) @RequestParam(value = Constant.ORDER, required = false) String order,
+			@ApiParam(value = "排序字段", required = false) @RequestParam(value = Constant.ORDER_FIELD, required = false) String orderField) {
+		
+		// 直接使用MyBatis-Plus分页，无需构建Map
+		PageData<SysUserDTO> pageData = sysUserService.page(page, limit, username, gender, deptId, order, orderField);
 
-		return new Result<PageData<SysUserDTO>>().ok(page);
+		return new Result<PageData<SysUserDTO>>().ok(pageData);
 	}
 
 	@GetMapping("{id}")

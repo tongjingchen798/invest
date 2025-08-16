@@ -2,7 +2,9 @@
 
 package io.renren.modules.sys.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.renren.common.constant.Constant;
 import io.renren.common.page.PageData;
 import io.renren.common.service.impl.BaseServiceImpl;
@@ -58,6 +60,70 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDao, SysUserEntit
 
 		return getPageData(list, page.getTotal(), SysUserDTO.class);
 	}
+	
+	@Override
+	public PageData<SysUserDTO> page(Integer page, Integer limit, String username, String gender, String deptId, String order, String orderField) {
+		// 创建MyBatis-Plus分页对象
+		Page<SysUserEntity> pageParam = new Page<>(page, limit);
+		
+		// 构建查询条件
+		QueryWrapper<SysUserEntity> queryWrapper = new QueryWrapper<>();
+		
+		// 只查询非超级管理员用户
+		queryWrapper.eq("super_admin", 0);
+		
+		// 用户名模糊查询
+		if (StringUtils.isNotBlank(username)) {
+			queryWrapper.like("username", username);
+		}
+		
+		// 部门ID筛选
+		if (StringUtils.isNotBlank(deptId)) {
+			queryWrapper.eq("dept_id", deptId);
+		}
+		
+		// 性别筛选
+		if (StringUtils.isNotBlank(gender)) {
+			queryWrapper.eq("gender", gender);
+		}
+		
+		// 普通管理员，只能查询所属部门及子部门的数据
+		UserDetail user = SecurityUser.getUser();
+		if(user.getSuperAdmin() == SuperAdminEnum.NO.value()) {
+			List<Long> deptIdList = sysDeptService.getSubDeptIdList(user.getDeptId());
+			if (deptIdList != null && !deptIdList.isEmpty()) {
+				queryWrapper.in("dept_id", deptIdList);
+			}
+		}
+		
+		// 排序处理
+		if (StringUtils.isNotBlank(orderField)) {
+			if (Constant.DESC.equalsIgnoreCase(order)) {
+				queryWrapper.orderByDesc(orderField);
+			} else {
+				queryWrapper.orderByAsc(orderField);
+			}
+		} else {
+			// 默认按创建时间倒序排序
+			queryWrapper.orderByDesc(Constant.CREATE_DATE);
+		}
+		
+		// 执行分页查询
+		IPage<SysUserEntity> pageResult = baseDao.selectPage(pageParam, queryWrapper);
+		
+		// 转换为DTO
+		List<SysUserDTO> dtoList = ConvertUtils.sourceToTarget(pageResult.getRecords(), SysUserDTO.class);
+		
+		// 设置部门名称
+		for (SysUserDTO dto : dtoList) {
+			if (dto.getDeptId() != null) {
+				// 这里可以根据需要查询部门名称
+				// dto.setDeptName(deptService.getDeptName(dto.getDeptId()));
+			}
+		}
+		
+		return new PageData<>(dtoList, pageResult.getTotal());
+	}
 
 	@Override
 	public List<SysUserDTO> list(Map<String, Object> params) {
@@ -89,53 +155,28 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDao, SysUserEntit
 	@Transactional(rollbackFor = Exception.class)
 	public void save(SysUserDTO dto) {
 		SysUserEntity entity = ConvertUtils.sourceToTarget(dto, SysUserEntity.class);
-
-		//密码加密
-		String password = PasswordUtils.encode(entity.getPassword());
-		entity.setPassword(password);
-
-		//保存用户
-		entity.setSuperAdmin(SuperAdminEnum.NO.value());
+		entity.setPassword(PasswordUtils.encode(entity.getPassword()));
 		insert(entity);
-
-		//保存角色用户关系
-		sysRoleUserService.saveOrUpdate(entity.getId(), dto.getRoleIdList());
 	}
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public void update(SysUserDTO dto) {
 		SysUserEntity entity = ConvertUtils.sourceToTarget(dto, SysUserEntity.class);
-
-		//密码加密
-		if(StringUtils.isBlank(dto.getPassword())){
-			entity.setPassword(null);
-		}else{
-			String password = PasswordUtils.encode(entity.getPassword());
-			entity.setPassword(password);
-		}
-
-		//更新用户
 		updateById(entity);
-
-		//更新角色用户关系
-		sysRoleUserService.saveOrUpdate(entity.getId(), dto.getRoleIdList());
-	}
-
-	@Override
-	public void delete(Long[] ids) {
-		//删除用户
-		baseDao.deleteBatchIds(Arrays.asList(ids));
-
-		//删除角色用户关系
-		sysRoleUserService.deleteByUserIds(ids);
 	}
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)
-	public void updatePassword(Long id, String newPassword) {
-		newPassword = PasswordUtils.encode(newPassword);
+	public void delete(Long[] ids) {
+		//删除用户
+		deleteBatchIds(Arrays.asList(ids));
+		//删除用户角色关系
+		sysRoleUserService.deleteByUserIds(ids);
+	}
 
+	@Override
+	public void updatePassword(Long id, String newPassword) {
 		baseDao.updatePassword(id, newPassword);
 	}
 
@@ -148,5 +189,4 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDao, SysUserEntit
 	public List<Long> getUserIdListByDeptId(List<Long> deptIdList) {
 		return baseDao.getUserIdListByDeptId(deptIdList);
 	}
-
 }
