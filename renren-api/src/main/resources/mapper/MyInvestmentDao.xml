@@ -6,7 +6,7 @@
     <!-- 分页查询投资列表 -->
     <select id="selectPage" resultType="io.renren.dto.MyInvestmentDTO">
         SELECT
-        ir.id,
+        ir.order_id,
         ir.user_id as userId,
         ir.project_id as investId,
         p.invest_name as investName,

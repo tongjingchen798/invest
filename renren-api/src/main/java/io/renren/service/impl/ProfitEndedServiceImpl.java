@@ -46,8 +46,7 @@ public class ProfitEndedServiceImpl implements ProfitEndedService {
             // 使用分页查询优化大数据量场景
             Page<InvestmentRecordEntity> page = new Page<>(1, 1000); // 设置较大的页面大小
             QueryWrapper<InvestmentRecordEntity> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("user_id", userId)
-                       .orderByDesc("create_time");
+            queryWrapper.eq("user_id", userId);
             
             Page<InvestmentRecordEntity> result = investmentRecordDao.selectPage(page, queryWrapper);
             List<InvestmentRecordEntity> investmentRecords = result.getRecords();

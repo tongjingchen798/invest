@@ -268,9 +268,9 @@ public class ApiPersonalCenterController {
             if (limit == null || limit < 1 || limit > 100) {
                 return new Result<MyInvestmentPageData<MyInvestmentDTO>>().error("每页记录数必须在1-100之间");
             }
-            if (status == null || (status != 0 && status != 1)) {
-                return new Result<MyInvestmentPageData<MyInvestmentDTO>>().error("状态参数无效，只能是0(正在生产)或1(生产结束)");
-            }
+//            if (status == null || (status != 0 && status != 1)) {
+//                return new Result<MyInvestmentPageData<MyInvestmentDTO>>().error("状态参数无效，只能是0(正在生产)或1(生产结束)");
+//            }
 
             // 直接使用MyBatis-Plus分页，无需构建Map
             MyInvestmentPageData<MyInvestmentDTO> pageData = myInvestmentService.queryPageData(
