@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
 
@@ -255,4 +256,24 @@ public interface UserDao extends BaseDao<UserEntity> {
      */
     @Select("SELECT COUNT(1) FROM tb_user WHERE mobile = #{mobile}")
     int checkMobileExists(@Param("mobile") String mobile);
+
+    /**
+     * 根据邀请码查询用户
+     * @param inviteCode 邀请码
+     * @return 用户信息
+     */
+    @Select("SELECT * FROM tb_user WHERE invite_code = #{inviteCode}")
+    UserEntity selectByInviteCode(@Param("inviteCode") String inviteCode);
+
+    /**
+     * 更新用户佣金相关字段
+     * @param userId 用户ID
+     * @param commissionAmount 佣金金额（分）
+     */
+    @Update("UPDATE tb_user SET " +
+            "commission_balance = commission_balance + #{commissionAmount}, " +
+            "history_commission_balance = history_commission_balance + #{commissionAmount}, " +
+            "today_commission = today_commission + #{commissionAmount} " +
+            "WHERE id = #{userId}")
+    int updateCommissionFields(@Param("userId") Long userId, @Param("commissionAmount") long commissionAmount);
 }

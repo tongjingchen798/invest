@@ -111,3 +111,14 @@ withdraw:
   percentage-fee: true
   # 固定手续费金额（卢比），当percentage-fee为false时使用
   fixed-fee: 0
+
+# 佣金配置
+commission:
+  # 1级直属推荐佣金比例（百分比）
+  first-level-rate: 7
+  # 2级推荐佣金比例（百分比）
+  second-level-rate: 3
+  # 是否启用佣金计算
+  enabled: true
+  # 佣金计算时间（每天凌晨几点执行）
+  cron-expression: "0 0 2 * * ?"
