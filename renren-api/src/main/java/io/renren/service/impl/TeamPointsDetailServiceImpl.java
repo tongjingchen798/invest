@@ -38,7 +38,7 @@ public class TeamPointsDetailServiceImpl implements TeamPointsDetailService {
             // 构建查询条件 - 查询积分相关的交易记录
             QueryWrapper<UserBalanceDetailEntity> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("user_id", userId)
-                       .in("busi_type", Arrays.asList(1, 2, 3, 4, 39)) // 积分相关业务类型
+                       .in("business_type", Arrays.asList(1, 2, 3, 4, 39)) // 积分相关业务类型
                        .orderByDesc("transaction_date", "create_time");
             
             // 执行分页查询

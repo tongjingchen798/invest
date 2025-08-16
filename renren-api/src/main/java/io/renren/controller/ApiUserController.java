@@ -2,6 +2,7 @@
 
 package io.renren.controller;
 
+import io.renren.annotation.Login;
 import io.renren.annotation.LoginUser;
 import io.renren.common.utils.Result;
 import io.renren.common.validator.ValidatorUtils;
@@ -26,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
  * @author Mark sunlightcs@gmail.com
  */
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api")
 @Api(tags = "用户管理接口")
 public class ApiUserController {
     @Autowired
@@ -35,6 +36,7 @@ public class ApiUserController {
     @Autowired
     private InvestmentRecordDao investmentRecordDao;
 
+    @Login
     @GetMapping("/userInfo")
     @ApiOperation("获取用户信息")
     public Result<UserInfoDTO> getUserInfo(@LoginUser UserEntity user) {
@@ -47,6 +49,7 @@ public class ApiUserController {
         return new Result<UserInfoDTO>().ok(userInfo);
     }
 
+    @Login
     @GetMapping("/balance")
     @ApiOperation("获取用户余额")
     public Result<BalanceDTO> getUserBalance(@LoginUser UserEntity user) {
