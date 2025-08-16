@@ -48,6 +48,37 @@ public class PayInfoServiceImpl extends BaseServiceImpl<PayInfoDao, PayInfoEntit
         
         return new PayInfoPageData<>(dtoList, (int) pageResult.getTotal());
     }
+    
+    @Override
+    public PayInfoPageData<PayInfoDTO> queryPageData(Long userId, Integer page, Integer limit, String order, String orderField) {
+        // 创建MyBatis-Plus分页对象
+        Page<PayInfoEntity> pageParam = new Page<>(page, limit);
+        
+        // 构建查询条件
+        QueryWrapper<PayInfoEntity> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", userId)
+                   .eq("state", 1); // 只查询正常状态的数据
+        
+        // 排序处理
+        if (StringUtils.isNotBlank(orderField)) {
+            if (Constant.DESC.equalsIgnoreCase(order)) {
+                queryWrapper.orderByDesc(orderField);
+            } else {
+                queryWrapper.orderByAsc(orderField);
+            }
+        } else {
+            // 默认按创建时间倒序排序
+            queryWrapper.orderByDesc("create_time");
+        }
+        
+        // 执行分页查询
+        IPage<PayInfoEntity> pageResult = baseDao.selectPage(pageParam, queryWrapper);
+        
+        // 转换为DTO
+        List<PayInfoDTO> dtoList = convertToDto(pageResult.getRecords());
+        
+        return new PayInfoPageData<>(dtoList, (int) pageResult.getTotal());
+    }
 
     /**
      * 转换为DTO

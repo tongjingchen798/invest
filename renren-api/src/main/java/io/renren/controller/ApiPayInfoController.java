@@ -100,14 +100,8 @@ public class ApiPayInfoController {
             @ApiParam(value = "排序字段") @RequestParam(value = Constant.ORDER_FIELD, required = false) String orderField,
             @LoginUser UserEntity user) {
         
-        Map<String, Object> params = new HashMap<>();
-        params.put(Constant.PAGE, page);
-        params.put(Constant.LIMIT, limit);
-        params.put(Constant.ORDER, order);
-        params.put(Constant.ORDER_FIELD, orderField);
-        params.put("userId", user.getId().toString());
-
-        PayInfoPageData<PayInfoDTO> pageData = payInfoService.queryPageData(params);
+        // 直接使用MyBatis-Plus分页，无需构建Map
+        PayInfoPageData<PayInfoDTO> pageData = payInfoService.queryPageData(user.getId(), page, limit, order, orderField);
         
         return new Result<PayInfoPageData<PayInfoDTO>>().ok(pageData);
     }
