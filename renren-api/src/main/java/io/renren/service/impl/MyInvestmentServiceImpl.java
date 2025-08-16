@@ -74,6 +74,45 @@ public class MyInvestmentServiceImpl extends ServiceImpl<MyInvestmentDao, Invest
             return pageData;
         }
     }
+    
+    @Override
+    public MyInvestmentPageData<MyInvestmentDTO> queryPageData(Long userId, Integer page, Integer limit, Integer status, String order, String orderField) {
+        try {
+            // 创建MyBatis-Plus分页对象
+            Page<MyInvestmentDTO> pageParam = new Page<>(page, limit);
+            
+            // 构建查询参数
+            Map<String, Object> params = new HashMap<>();
+            params.put("userId", userId.toString());
+            params.put("status", status);
+            if (StringUtils.isNotBlank(order)) {
+                params.put(Constant.ORDER, order);
+            }
+            if (StringUtils.isNotBlank(orderField)) {
+                params.put(Constant.ORDER_FIELD, orderField);
+            }
+            
+            // 执行分页查询（使用自定义SQL）
+            IPage<MyInvestmentDTO> pageResult = myInvestmentDao.selectPage(pageParam, params);
+            
+            // 构建分页数据
+            MyInvestmentPageData<MyInvestmentDTO> pageData = new MyInvestmentPageData<>();
+            pageData.setList(pageResult.getRecords());
+            pageData.setTotal((int) pageResult.getTotal());
+            pageData.setSum(new HashMap<>()); // 暂时设置为空对象，可根据需要添加汇总信息
+            
+            return pageData;
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            // 设置默认值
+            MyInvestmentPageData<MyInvestmentDTO> pageData = new MyInvestmentPageData<>();
+            pageData.setList(null);
+            pageData.setTotal(0);
+            pageData.setSum(new HashMap<>());
+            return pageData;
+        }
+    }
 
     /**
      * 转换为DTO

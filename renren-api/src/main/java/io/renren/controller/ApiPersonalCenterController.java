@@ -101,13 +101,8 @@ public class ApiPersonalCenterController {
             @ApiParam(value = "当前页码，从1开始", required = true) @RequestParam(Constant.PAGE) Integer page,
             @LoginUser UserEntity user) {
         
-        Map<String, Object> params = new HashMap<>();
-        params.put(Constant.PAGE, page);
-        params.put(Constant.LIMIT, limit);
-        // 只查询当前用户的账变明细
-        params.put("userId", user.getId().toString());
-
-        TransactionDetailPageData<TransactionDetailDTO> pageData = transactionDetailService.queryPageData(params);
+        // 直接使用MyBatis-Plus分页，无需构建Map
+        TransactionDetailPageData<TransactionDetailDTO> pageData = transactionDetailService.queryPageData(user.getId(), page, limit);
         
         return new Result<TransactionDetailPageData<TransactionDetailDTO>>().ok(pageData);
     }
@@ -120,13 +115,8 @@ public class ApiPersonalCenterController {
             @ApiParam(value = "当前页码，从1开始", required = true) @RequestParam(Constant.PAGE) Integer page,
             @LoginUser UserEntity user) {
         
-        Map<String, Object> params = new HashMap<>();
-        params.put(Constant.PAGE, page);
-        params.put(Constant.LIMIT, limit);
-        // 只查询当前用户的账变明细
-        params.put("userId", user.getId().toString());
-
-        TransactionDetailPageData<TransactionDetailDTO> pageData = transactionDetailService.queryPageData(params);
+        // 直接使用MyBatis-Plus分页，无需构建Map
+        TransactionDetailPageData<TransactionDetailDTO> pageData = transactionDetailService.queryPageData(user.getId(), page, limit);
         
         return new Result<TransactionDetailPageData<TransactionDetailDTO>>().ok(pageData);
     }
@@ -210,13 +200,8 @@ public class ApiPersonalCenterController {
             @ApiParam(value = "当前页码，从1开始", required = true) @RequestParam(Constant.PAGE) Integer page,
             @LoginUser UserEntity user) {
         
-        Map<String, Object> params = new HashMap<>();
-        params.put(Constant.PAGE, page);
-        params.put(Constant.LIMIT, limit);
-        // 只查询当前用户的收益记录
-        params.put("userId", user.getId().toString());
-
-        ProfitPageData<ProfitDTO> pageData = profitService.queryPageData(params);
+        // 直接使用MyBatis-Plus分页，无需构建Map
+        ProfitPageData<ProfitDTO> pageData = profitService.queryPageData(user.getId(), page, limit);
         
         return new Result<ProfitPageData<ProfitDTO>>().ok(pageData);
     }
@@ -287,17 +272,9 @@ public class ApiPersonalCenterController {
                 return new Result<MyInvestmentPageData<MyInvestmentDTO>>().error("状态参数无效，只能是0(正在生产)或1(生产结束)");
             }
 
-            // 构建查询参数
-            Map<String, Object> params = new HashMap<>();
-            params.put(Constant.PAGE, page);
-            params.put(Constant.LIMIT, limit);
-            params.put(Constant.ORDER, order);
-            params.put(Constant.ORDER_FIELD, orderField);
-            params.put("status", status);
-            params.put("userId", user.getId().toString());
-
-            // 查询分页数据
-            MyInvestmentPageData<MyInvestmentDTO> pageData = myInvestmentService.queryPageData(params);
+            // 直接使用MyBatis-Plus分页，无需构建Map
+            MyInvestmentPageData<MyInvestmentDTO> pageData = myInvestmentService.queryPageData(
+                user.getId(), page, limit, status, order, orderField);
             
             if (pageData == null) {
                 return new Result<MyInvestmentPageData<MyInvestmentDTO>>().error("查询结果为空");

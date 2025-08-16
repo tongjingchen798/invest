@@ -24,5 +24,17 @@
   */
  public interface ProfitService extends BaseService<ProfitEntity> {
  
+     /**
+      * 查询分页数据（使用Map参数）
+      */
      ProfitPageData<ProfitDTO> queryPageData(Map<String, Object> params);
+     
+     /**
+      * 查询分页数据（直接参数）
+      * @param userId 用户ID
+      * @param page 页码
+      * @param limit 每页大小
+      * @return 分页数据
+      */
+     ProfitPageData<ProfitDTO> queryPageData(Long userId, Integer page, Integer limit);
  }
