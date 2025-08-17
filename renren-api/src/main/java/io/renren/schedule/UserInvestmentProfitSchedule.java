@@ -374,7 +374,6 @@ public class UserInvestmentProfitSchedule {
      * @return 收益金额
      */
     private BigDecimal calculateDailyReturnProfit(BigDecimal investmentAmount, Integer cycle, int investmentDays, ProjectEntity project) {
-        // 优先使用项目配置的收益率，如果没有则使用默认配置
         BigDecimal annualRate = getProjectAnnualRate(project, "dailyReturn");
         BigDecimal dailyRate = annualRate.divide(new BigDecimal(365), 6, BigDecimal.ROUND_HALF_UP);
         
@@ -529,7 +528,7 @@ public class UserInvestmentProfitSchedule {
             if (project != null && project.getConversion() != null) {
                 // 项目配置了收益率，使用项目配置
                 String conversion = project.getConversion();
-                log.debug("项目 {} 配置日收益率: {}", project.getInvestId(), conversion);
+                log.debug("项目 {} 配置日收益率: {}%", project.getInvestId(), conversion);
                 
                 // 根据收益率类型和项目配置计算
                 switch (rateType) {
@@ -577,16 +576,8 @@ public class UserInvestmentProfitSchedule {
             if (conversion == null || conversion.trim().isEmpty()) {
                 return profitConfig.getMaturityAnnualRate();
             }
-            
-            // 移除百分号并转换为小数
-            String rateStr = conversion.replace("%", "").trim();
-            BigDecimal rate = new BigDecimal(rateStr);
-            
-            // 如果是百分比格式，转换为小数
-            if (conversion.contains("%")) {
-                rate = rate.divide(new BigDecimal("100"), 6, BigDecimal.ROUND_HALF_UP);
-            }
-            
+            BigDecimal rate = new BigDecimal(conversion);
+            rate = rate.divide(new BigDecimal("100"), 6, BigDecimal.ROUND_HALF_UP);
             return rate;
         } catch (Exception e) {
             log.warn("解析项目收益率失败: {}, 使用默认配置", conversion, e);
@@ -605,21 +596,9 @@ public class UserInvestmentProfitSchedule {
             if (conversion == null || conversion.trim().isEmpty()) {
                 return profitConfig.getCompoundDailyRate();
             }
-            
-            // 移除百分号并转换为小数
-            String rateStr = conversion.replace("%", "").trim();
-            BigDecimal rate = new BigDecimal(rateStr);
-            
-            // 如果是百分比格式，转换为小数
-            if (conversion.contains("%")) {
-                rate = rate.divide(new BigDecimal("100"), 6, BigDecimal.ROUND_HALF_UP);
-            }
-            
-            // 如果是年化收益率，转换为日收益率
-            if (conversion.contains("年") || conversion.contains("年化")) {
-                rate = rate.divide(new BigDecimal("365"), 6, BigDecimal.ROUND_HALF_UP);
-            }
-            
+            BigDecimal rate = new BigDecimal(conversion);
+            rate = rate.divide(new BigDecimal("100"), 6, BigDecimal.ROUND_HALF_UP);
+
             return rate;
         } catch (Exception e) {
             log.warn("解析项目日收益率失败: {}, 使用默认配置", conversion, e);
@@ -684,9 +663,7 @@ public class UserInvestmentProfitSchedule {
         log.debug("更新用户 {} 余额和收益字段，收益金额: {}", userId, profitAmount);
         
         try {
-            // 将收益金额转换为分
-            Long profitAmountInCents = profitAmount.multiply(new BigDecimal("100")).longValue();
-            
+            Long profitAmountInCents = profitAmount.longValue();
             // 更新用户可用余额
             int balanceResult = userDao.addUserBalance(userId, profitAmountInCents);
             if (balanceResult > 0) {
