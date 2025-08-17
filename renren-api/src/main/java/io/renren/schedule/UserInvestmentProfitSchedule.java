@@ -365,7 +365,7 @@ public class UserInvestmentProfitSchedule {
     }
     
     /**
-     * 计算每日返本金到期收益的收益
+     * 计算每日盈利
      * 
      * @param investmentAmount 投资金额
      * @param cycle 项目周期
@@ -375,9 +375,7 @@ public class UserInvestmentProfitSchedule {
      */
     private BigDecimal calculateDailyReturnProfit(BigDecimal investmentAmount, Integer cycle, int investmentDays, ProjectEntity project) {
         BigDecimal annualRate = getProjectAnnualRate(project, "dailyReturn");
-        BigDecimal dailyRate = annualRate.divide(new BigDecimal(365), 6, BigDecimal.ROUND_HALF_UP);
-        
-        return investmentAmount.multiply(dailyRate).multiply(new BigDecimal(investmentDays));
+        return investmentAmount.multiply(annualRate);
     }
     
     /**
@@ -409,7 +407,6 @@ public class UserInvestmentProfitSchedule {
      */
     private BigDecimal calculateCompoundInterestProfit(BigDecimal investmentAmount, Integer cycle, int investmentDays, ProjectEntity project) {
         // 复利计算：P * (1 + r)^n - P
-        // 优先使用项目配置的日收益率，如果没有则使用默认配置
         BigDecimal dailyRate = getProjectDailyRate(project, "compound");
         BigDecimal compoundFactor = BigDecimal.ONE.add(dailyRate).pow(investmentDays);
         
@@ -573,11 +570,8 @@ public class UserInvestmentProfitSchedule {
      */
     private BigDecimal parseProjectRate(String conversion) {
         try {
-            if (conversion == null || conversion.trim().isEmpty()) {
-                return profitConfig.getMaturityAnnualRate();
-            }
             BigDecimal rate = new BigDecimal(conversion);
-            rate = rate.divide(new BigDecimal("100"), 6, BigDecimal.ROUND_HALF_UP);
+            rate = rate.divide(new BigDecimal("100"), 2, BigDecimal.ROUND_DOWN);
             return rate;
         } catch (Exception e) {
             log.warn("解析项目收益率失败: {}, 使用默认配置", conversion, e);
@@ -597,7 +591,7 @@ public class UserInvestmentProfitSchedule {
                 return profitConfig.getCompoundDailyRate();
             }
             BigDecimal rate = new BigDecimal(conversion);
-            rate = rate.divide(new BigDecimal("100"), 6, BigDecimal.ROUND_HALF_UP);
+            rate = rate.divide(new BigDecimal("100"), 2, BigDecimal.ROUND_DOWN);
 
             return rate;
         } catch (Exception e) {
