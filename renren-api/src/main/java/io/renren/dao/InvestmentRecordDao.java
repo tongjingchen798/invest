@@ -153,4 +153,18 @@ public interface InvestmentRecordDao extends BaseMapper<InvestmentRecordEntity> 
 	 * @return 统计信息Map
 	 */
 	Map<String, Object> selectInvestmentStatistics(@Param("userId") Long userId);
+	
+	/**
+	 * 查询付息还本统计信息
+	 * @param userId 用户ID
+	 * @return 统计信息Map，包含项目数、总本金、总收益
+	 */
+	Map<String, Object> getProfitEndedStatistics(@Param("userId") Long userId);
+	
+	/**
+	 * 查询投资中项目统计信息
+	 * @param userId 用户ID
+	 * @return 统计信息Map，包含项目数、总本金、总收益
+	 */
+	Map<String, Object> getProfitInvestingStatistics(@Param("userId") Long userId);
 }

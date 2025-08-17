@@ -3,6 +3,9 @@ package io.renren.dao;
 import io.renren.common.dao.BaseDao;
 import io.renren.entity.UserBalanceDetailEntity;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.Date;
 
 /**
  * 用户余额明细
@@ -15,4 +18,13 @@ import org.apache.ibatis.annotations.Mapper;
 public interface UserBalanceDetailDao extends BaseDao<UserBalanceDetailEntity> {
     // 使用MyBatis-Plus的BaseMapper提供的基础CRUD方法
     // 分页查询通过selectPage方法实现
+    
+    /**
+     * 查询用户今日收益金额
+     * @param userId 用户ID
+     * @param startDate 开始时间
+     * @param endDate 结束时间
+     * @return 今日收益金额（分）
+     */
+    Long getTodayProfitAmount(@Param("userId") Long userId, @Param("startDate") Date startDate, @Param("endDate") Date endDate);
 }

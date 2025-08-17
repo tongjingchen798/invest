@@ -149,5 +149,29 @@
 		FROM tb_investment_record 
 		WHERE user_id = #{userId}
 	</select>
+	
+	<!-- 查询付息还本统计信息 -->
+	<select id="getProfitEndedStatistics" resultType="map">
+		SELECT 
+			COUNT(DISTINCT ir.project_id) as items,
+			COALESCE(SUM(ir.investment_amount), 0) as totalPrincipal,
+			COALESCE(SUM(ir.profit_amount), 0) as totalProfit
+		FROM tb_investment_record ir
+		INNER JOIN tb_project p ON ir.project_id = p.invest_id
+		WHERE ir.user_id = #{userId}
+		AND p.status = 1  -- 已结束的项目
+	</select>
+	
+	<!-- 查询投资中项目统计信息 -->
+	<select id="getProfitInvestingStatistics" resultType="map">
+		SELECT 
+			COUNT(DISTINCT ir.project_id) as items,
+			COALESCE(SUM(ir.investment_amount), 0) as totalPrincipal,
+			COALESCE(SUM(ir.profit_amount), 0) as totalProfit
+		FROM tb_investment_record ir
+		INNER JOIN tb_project p ON ir.project_id = p.invest_id
+		WHERE ir.user_id = #{userId}
+		AND p.status = 0  -- 投资中的项目
+	</select>
 
 </mapper>

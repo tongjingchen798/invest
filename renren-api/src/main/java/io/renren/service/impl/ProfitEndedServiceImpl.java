@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 付息还本服务实现类
@@ -43,52 +44,14 @@ public class ProfitEndedServiceImpl implements ProfitEndedService {
         try {
             ProfitEndedDTO profitEndedDTO = new ProfitEndedDTO();
             
-            // 使用分页查询优化大数据量场景
-            Page<InvestmentRecordEntity> page = new Page<>(1, 1000); // 设置较大的页面大小
-            QueryWrapper<InvestmentRecordEntity> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("user_id", userId);
-            
-            Page<InvestmentRecordEntity> result = investmentRecordDao.selectPage(page, queryWrapper);
-            List<InvestmentRecordEntity> investmentRecords = result.getRecords();
-            
-            // 初始化统计数据
-            long totalPrincipal = 0;        // 总本金
-            long totalProfit = 0;           // 总收益
-            long items = 0;                 // 项目数
-            
-            for (InvestmentRecordEntity record : investmentRecords) {
-                if (record.getInvestmentAmount() != null) {
-                    totalPrincipal += record.getInvestmentAmount();
-                }
-                
-                // 根据项目状态分类统计
-                if (record.getProjectId() != null) {
-                    ProjectEntity project = projectDao.selectById(record.getProjectId());
-                    if (project != null) {
-                        items++; // 项目数统计
-                        
-                        // 根据项目状态和收益计算
-                        if (record.getProfitAmount() != null) {
-                            totalProfit += record.getProfitAmount();
-                        }
-                        
-                        // 项目状态：0-进行中，1-已结束
-                        if (project.getStatus() != null) {
-                                if (record.getInvestmentAmount() != null) {
-                                    totalPrincipal += record.getInvestmentAmount();
-                                }
-                                if (record.getProfitAmount() != null) {
-                                    totalProfit += record.getProfitAmount();
-                                }
-                        }
-                    }
-                }
-            }
+            // 直接使用SQL统计查询，避免分页和循环查询
+            Map<String, Object> statistics = investmentRecordDao.getProfitEndedStatistics(userId);
             
             // 设置统计数据
-            profitEndedDTO.setItems(items);
-            profitEndedDTO.setTotalPrincipal(totalPrincipal);
-            profitEndedDTO.setTotalProfit(totalProfit);
+            profitEndedDTO.setItems(((Number) statistics.get("items")).longValue());
+            profitEndedDTO.setTotalPrincipal(((Number) statistics.get("totalPrincipal")).longValue());
+            profitEndedDTO.setTotalProfit(((Number) statistics.get("totalProfit")).longValue());
+            
             return profitEndedDTO;
             
         } catch (Exception e) {
@@ -113,50 +76,19 @@ public class ProfitEndedServiceImpl implements ProfitEndedService {
             calendar.add(Calendar.DAY_OF_MONTH, 1);
             Date todayEnd = calendar.getTime();
             
-            // 使用分页查询优化投资中项目统计
-            Page<InvestmentRecordEntity> page = new Page<>(1, 1000); // 设置较大的页面大小
-            QueryWrapper<InvestmentRecordEntity> investmentQuery = new QueryWrapper<>();
-            investmentQuery.eq("user_id", userId)
-                          .orderByDesc("create_date");
-            
-            Page<InvestmentRecordEntity> result = investmentRecordDao.selectPage(page, investmentQuery);
-            List<InvestmentRecordEntity> investmentRecords = result.getRecords();
-            
-            // 初始化统计数据
-            long totalPrincipal = 0;        // 总本金
-            long totalProfit = 0;           // 总收益
-            long items = 0;                 // 项目数
-            
-            for (InvestmentRecordEntity record : investmentRecords) {
-                // 根据项目状态分类统计
-                if (record.getProjectId() != null) {
-                    ProjectEntity project = projectDao.selectById(record.getProjectId());
-                    if (project != null) {
-                        // 只统计投资中的项目（状态为0）
-                        if (project.getStatus() != null && project.getStatus() == 0) {
-                            items++; // 项目数统计
-                            
-                            if (record.getInvestmentAmount() != null) {
-                                totalPrincipal += record.getInvestmentAmount();
-                            }
-                            
-                            if (record.getProfitAmount() != null) {
-                                totalProfit += record.getProfitAmount();
-                            }
-                        }
-                    }
-                }
-            }
+            // 直接使用SQL统计查询投资中项目，避免分页和循环查询
+            Map<String, Object> statistics = investmentRecordDao.getProfitInvestingStatistics(userId);
             
             // 从账变记录查询今日收益
             long jrAmount = getTodayProfitFromBalanceDetail(userId, todayStart, todayEnd);
             long jrProfit = jrAmount;
             
             // 设置统计数据
-            profitEndedDTO.setItems(items);
+            profitEndedDTO.setItems(((Number) statistics.get("items")).longValue());
             profitEndedDTO.setJrProfit(jrProfit);
-            profitEndedDTO.setTotalPrincipal(totalPrincipal);
-            profitEndedDTO.setTotalProfit(totalProfit);
+            profitEndedDTO.setTotalPrincipal(((Number) statistics.get("totalPrincipal")).longValue());
+            profitEndedDTO.setTotalProfit(((Number) statistics.get("totalProfit")).longValue());
+            
             return profitEndedDTO;
             
         } catch (Exception e) {
@@ -170,27 +102,12 @@ public class ProfitEndedServiceImpl implements ProfitEndedService {
      */
     private long getTodayProfitFromBalanceDetail(Long userId, Date todayStart, Date todayEnd) {
         try {
-            // 使用分页查询优化账变记录查询
-            Page<UserBalanceDetailEntity> page = new Page<>(1, 1000); // 设置较大的页面大小
-            QueryWrapper<UserBalanceDetailEntity> profitQuery = new QueryWrapper<>();
-            profitQuery.eq("user_id", userId)
-                      .in("business_type", Arrays.asList(
-                          BusinessTypeEnum.INCOME.getCode()
-                      ))
-                      .between("transaction_date", todayStart, todayEnd)
-                      .orderByDesc("transaction_date");
+            // 直接使用SQL统计查询今日收益，避免分页查询
+            return userBalanceDetailDao.getTodayProfitAmount(userId, todayStart, todayEnd);
             
-            Page<UserBalanceDetailEntity> result = userBalanceDetailDao.selectPage(page, profitQuery);
-            List<UserBalanceDetailEntity> todayProfits = result.getRecords();
-            
-            // 计算今日收益总额
-            return todayProfits.stream()
-                .mapToLong(record -> record.getTransactionAmount() != null ? record.getTransactionAmount() : 0)
-                .sum();
-                
         } catch (Exception e) {
             e.printStackTrace();
-            return 0L; // 查询失败时返回0
+            return 0L;
         }
     }
 }
