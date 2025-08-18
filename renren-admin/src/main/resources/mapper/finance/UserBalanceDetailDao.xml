@@ -3,41 +3,17 @@
 
 <mapper namespace="io.renren.modules.finance.dao.UserBalanceDetailDao">
 
-    <resultMap type="io.renren.modules.finance.entity.UserBalanceDetailEntity" id="userBalanceDetailMap">
-        <result property="id" column="id"/>
-        <result property="userId" column="user_id"/>
-        <result property="agentId" column="agent_id"/>
-        <result property="agentName" column="agent_name"/>
-        <result property="businessType" column="busiType"/>
-        <result property="channel" column="channel"/>
-        <result property="formUserId" column="form_user_id"/>
-        <result property="inviteCodeStatus" column="invite_code_status"/>
-        <result property="mobile" column="mobile"/>
-        <result property="originalAmount" column="original_amount"/>
-        <result property="remarks" column="remarks"/>
-        <result property="salesmanName" column="salesman_name"/>
-        <result property="salesmanId" column="salesman_id"/>
-        <result property="status" column="status"/>
-        <result property="streamId" column="stream_id"/>
-        <result property="transactionAmount" column="transaction_amount"/>
-        <result property="transactionDate" column="transaction_date"/>
-        <result property="useAmount" column="use_amount"/>
-        <result property="createDate" column="create_date"/>
-        <result property="updateDate" column="update_date"/>
-    </resultMap>
-
     <!-- 分页查询账变明细（关联用户表） -->
-    <select id="selectBalanceDetailPage" resultMap="userBalanceDetailMap">
+    <select id="selectBalanceDetailPage" resultType="io.renren.modules.finance.dto.UserBalanceDetailDTO">
         SELECT
         ubd.id,
         ubd.user_id,
-        ubd.agent_id,
-        ubd.agent_name,
+        ubd.agent_name as agentName,
         ubd.business_type as busiType,
         ubd.channel,
         ubd.form_user_id,
         ubd.invite_code_status,
-        ubd.mobile,
+        u.mobile,
         ubd.original_amount,
         ubd.remarks,
         ubd.salesman_name,

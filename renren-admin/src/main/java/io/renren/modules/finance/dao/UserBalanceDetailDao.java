@@ -3,6 +3,7 @@ package io.renren.modules.finance.dao;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.renren.modules.finance.dto.UserBalanceDetailDTO;
 import io.renren.modules.finance.entity.UserBalanceDetailEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -30,11 +31,11 @@ public interface UserBalanceDetailDao extends BaseMapper<UserBalanceDetailEntity
      * @param startTime 开始时间
      * @return 分页结果
      */
-    IPage<UserBalanceDetailEntity> selectBalanceDetailPage(Page<UserBalanceDetailEntity> page,
-                                                          @Param("biaoqian") String biaoqian,
-                                                          @Param("biaoqianFlag") Integer biaoqianFlag,
-                                                          @Param("busiType") Integer busiType,
-                                                          @Param("endTime") Date endTime,
-                                                          @Param("mobile") String mobile,
-                                                          @Param("startTime") Date startTime);
+    IPage<UserBalanceDetailDTO> selectBalanceDetailPage(Page<UserBalanceDetailEntity> page,
+                                                        @Param("biaoqian") String biaoqian,
+                                                        @Param("biaoqianFlag") Integer biaoqianFlag,
+                                                        @Param("busiType") Integer busiType,
+                                                        @Param("endTime") Date endTime,
+                                                        @Param("mobile") String mobile,
+                                                        @Param("startTime") Date startTime);
 }

@@ -34,12 +34,9 @@ public class UserBalanceDetailServiceImpl extends BaseServiceImpl<UserBalanceDet
         Date endDate = endTime != null ? new Date(endTime) : null;
 
         // 使用自定义的DAO方法进行关联查询
-        IPage<UserBalanceDetailEntity> pageResult = baseDao.selectBalanceDetailPage(pageParam, biaoqian, biaoqianFlag,
+        IPage<UserBalanceDetailDTO> pageResult = baseDao.selectBalanceDetailPage(pageParam, biaoqian, biaoqianFlag,
                                                        busiType, endDate, mobile, startDate);
         
-        // 转换为DTO
-        List<UserBalanceDetailDTO> dtoList = ConvertUtils.sourceToTarget(pageResult.getRecords(), UserBalanceDetailDTO.class);
-        
-        return new PageData<>(dtoList, pageResult.getTotal());
+        return new PageData<>(pageResult.getRecords(), pageResult.getTotal());
     }
 }
