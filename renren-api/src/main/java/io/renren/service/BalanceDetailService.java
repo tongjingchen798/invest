@@ -41,6 +41,15 @@ public interface BalanceDetailService {
      */
     boolean recordChargeSuccess(Long userId, Long amount, String orderNo, String channel, String thirdOrderNo);
 
+    /**
+     * 获取代理佣金资金明细分页数据
+     * @param userId 用户ID
+     * @param page 页码
+     * @param limit 每页大小
+     * @return 分页数据
+     */
+    BalanceDetailPageData getAgentBalanceDetailPageData(Long userId, Integer page, Integer limit);
+
 //    /**
 //     * 记录充值失败到资金明细
 //     * @param userId 用户ID

@@ -64,6 +64,41 @@ public class BalanceDetailServiceImpl implements BalanceDetailService {
             throw new RuntimeException("获取资金明细失败: " + e.getMessage());
         }
     }
+    @Override
+    public BalanceDetailPageData getAgentBalanceDetailPageData(Long userId, Integer page, Integer limit) {
+        try {
+            BalanceDetailPageData pageData = new BalanceDetailPageData();
+
+            // 使用MyBatis-Plus分页查询
+            Page<UserBalanceDetailEntity> pageParam = new Page<>(page, limit);
+
+            // 构建查询条件
+            QueryWrapper<UserBalanceDetailEntity> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("user_id", userId)
+                    .in("busi_type", Arrays.asList( 3, 30,22))
+                    .orderByDesc("transaction_date");
+
+            // 执行分页查询
+            Page<UserBalanceDetailEntity> result = userBalanceDetailDao.selectPage(pageParam, queryWrapper);
+
+            // 转换为DTO
+            List<BalanceDetailDTO> detailList = convertToDTOList(result.getRecords());
+
+            // 计算汇总信息
+            Map<String, Object> sum = calculateSum(detailList);
+
+            // 设置分页数据
+            pageData.setList(detailList);
+            pageData.setSum(sum);
+            pageData.setTotal((int) result.getTotal());
+
+            return pageData;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("获取资金明细失败: " + e.getMessage());
+        }
+    }
 
     /**
      * 将Entity转换为DTO

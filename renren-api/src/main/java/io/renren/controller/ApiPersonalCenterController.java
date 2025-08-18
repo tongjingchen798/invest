@@ -92,20 +92,19 @@ public class ApiPersonalCenterController {
         return new Result<Map<String, Object>>().ok(result);
     }
 
-    //TODO 还需要调整
-//    @Login
-//    @GetMapping("agetBalanceDetail")
-//    @ApiOperation("资金明细")
-//    public Result<TransactionDetailPageData<TransactionDetailDTO>> getAgetBalanceDetail(
-//            @ApiParam(value = "每页显示记录数", required = true) @RequestParam(Constant.LIMIT) Integer limit,
-//            @ApiParam(value = "当前页码，从1开始", required = true) @RequestParam(Constant.PAGE) Integer page,
-//            @LoginUser UserEntity user) {
-//
-//        // 直接使用MyBatis-Plus分页，无需构建Map
-//        TransactionDetailPageData<TransactionDetailDTO> pageData = balanceDetailService.getBalanceDetailPageData(user.getId(), page, limit);
-//
-//        return new Result<TransactionDetailPageData<TransactionDetailDTO>>().ok(pageData);
-//    }
+    @Login
+    @GetMapping("agetBalanceDetail")
+    @ApiOperation("资金明细")
+    public Result<BalanceDetailPageData> getAgetBalanceDetail(
+            @ApiParam(value = "每页显示记录数", required = true) @RequestParam(Constant.LIMIT) Integer limit,
+            @ApiParam(value = "当前页码，从1开始", required = true) @RequestParam(Constant.PAGE) Integer page,
+            @LoginUser UserEntity user) {
+
+        // 获取资金明细分页数据
+        BalanceDetailPageData pageData = balanceDetailService.getAgentBalanceDetailPageData(user.getId(), page, limit);
+
+        return new Result<BalanceDetailPageData>().ok(pageData);
+    }
 
 //    @Login
 //    @GetMapping("balanceDetail")

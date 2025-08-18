@@ -152,7 +152,7 @@ public class OrderServiceImpl implements OrderService {
 					//更新上级余额 累加相关字段 记录账变
 					userDao.updateCommissionFields(firstLevelReferrer.getId(), firstLevelCommission);
 
-					log.debug("用户佣金更新成功，用户ID: {}, YI佣金金额: {}", userId, firstLevelCommission);
+					log.debug("用户佣金更新成功，用户ID: {}, 一级佣金金额: {}", userId, firstLevelCommission);
 					//记录1级佣金流水
 					UserBalanceDetailEntity detail = new UserBalanceDetailEntity();
 					detail.setBusiType(BusinessTypeEnum.COMMISSION_A.getCode());
@@ -167,16 +167,31 @@ public class OrderServiceImpl implements OrderService {
 					detail.setRemarks("一级返佣");
 					detail.setStreamId(investmentRecord.getOrderId().toString());
 					userBalanceDetailDao.insert(detail);
-
+					// 查询2级推荐人
+					UserEntity twoLevelReferrer = userDao.selectByInviteCode(firstLevelReferrer.getUpinviteCode());
+					if (twoLevelReferrer != null) {
+						// 计算2级佣金
+						Long twoLevelCommission = calculateCommission(investmentAmountTotal, commissionConfig.getFirstLevelRateDecimal());
+						//更新上级余额 累加相关字段 记录账变
+						userDao.updateCommissionFields(firstLevelReferrer.getId(), twoLevelCommission);
+						log.debug("用户佣金更新成功，用户ID: {}, 二级佣金金额: {}", userId, twoLevelCommission);
+						//记录2级佣金流水
+						UserBalanceDetailEntity detail1 = new UserBalanceDetailEntity();
+						detail1.setBusiType(BusinessTypeEnum.COMMISSION_B.getCode());
+						detail1.setUserId(userId);
+						detail1.setOriginalAmount(twoLevelReferrer.getAssets());
+						detail1.setUseAmount(twoLevelCommission);
+						detail1.setTransactionAmount(twoLevelReferrer.getAssets()+twoLevelCommission);
+						detail1.setStatus(1);
+						detail1.setTransactionDate(transactionDate);
+						detail1.setCreateDate(transactionDate);
+						detail1.setUpdateDate(transactionDate);
+						detail1.setRemarks("二级返佣");
+						detail1.setStreamId(investmentRecord.getOrderId().toString());
+						userBalanceDetailDao.insert(detail1);
+					}
 				}
 			}
-
-
-
-
-
-			
-			
 			result.put("status", "success");
 			result.put("message", "下单成功");
 			result.put("orderNumber", orderNumber);

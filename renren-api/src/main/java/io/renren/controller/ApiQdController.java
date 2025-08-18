@@ -3,9 +3,7 @@ package io.renren.controller;
 import io.renren.annotation.Login;
 import io.renren.annotation.LoginUser;
 import io.renren.common.utils.Result;
-import io.renren.dao.SignRewardConfigDao;
-import io.renren.dao.UserSignInDao;
-import io.renren.dao.UserSignStatisticsDao;
+import io.renren.dao.*;
 import io.renren.dto.PageData;
 import io.renren.dto.SignInRecordDTO;
 import io.renren.dto.SignInRequestDTO;
@@ -15,7 +13,6 @@ import io.renren.entity.UserEntity;
 import io.renren.entity.UserSignInEntity;
 import io.renren.entity.UserSignStatisticsEntity;
 import io.renren.entity.UserBalanceDetailEntity;
-import io.renren.dao.UserBalanceDetailDao;
 import io.renren.enums.BusinessTypeEnum;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -52,6 +49,8 @@ public class ApiQdController {
 
     @Autowired
     private UserBalanceDetailDao userBalanceDetailDao;
+    @Autowired
+    private UserDao userDao;
 
     @Login
     @GetMapping("getUserQd")
@@ -193,6 +192,8 @@ public class ApiQdController {
             
             // 插入账变记录
             userBalanceDetailDao.insert(userBalanceDetail);
+
+            userDao.addUserBalance(user.getId(),rewardAmount);
 
             // 更新或创建用户签到统计
             if (statistics == null) {

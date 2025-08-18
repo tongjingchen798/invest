@@ -26,7 +26,7 @@ public enum BusinessTypeEnum {
 
     // 代理相关
     AGENT_TRANSFER_OUT(22, "代理转出", "Agent Transfer Out"),
-    PROJECT_COMMISSION_UP(32, "项目返上级", "Project Commission Up"),
+//    PROJECT_COMMISSION_UP(32, "项目返上级", "Project Commission Up"),
     PROJECT_COMMISSION_SELF(31, "项目返自己", "Project Commission Self"),
     COMMISSION_B(30, "返佣B", "Commission B"),
     COMMISSION_WITHDRAWAL_FLOW(33, "佣金提现流水", "Commission Withdrawal Flow"),
