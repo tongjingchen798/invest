@@ -45,10 +45,6 @@ public class UserBalanceDetailEntity implements Serializable {
      */
     private String agentName;
 
-    /**
-     * 标签
-     */
-    private String label;
 
     /**
      * 业务类型 1购买流水 2余额提现流水 3返佣A 5冻结金额 6解冻金额  7手工充值 8手工扣款  10收益  11线上充值 12工资 32项目返上级 31项目返自己 30 返佣B

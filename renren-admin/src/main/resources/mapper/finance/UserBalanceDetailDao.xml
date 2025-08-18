@@ -8,8 +8,7 @@
         <result property="userId" column="user_id"/>
         <result property="agentId" column="agent_id"/>
         <result property="agentName" column="agent_name"/>
-        <result property="label" column="label"/>
-        <result property="businessType" column="business_type"/>
+        <result property="businessType" column="busiType"/>
         <result property="channel" column="channel"/>
         <result property="formUserId" column="form_user_id"/>
         <result property="inviteCodeStatus" column="invite_code_status"/>
@@ -27,7 +26,6 @@
         <result property="updateDate" column="update_date"/>
     </resultMap>
 
-
     <!-- 分页查询账变明细（关联用户表） -->
     <select id="selectBalanceDetailPage" resultMap="userBalanceDetailMap">
         SELECT
@@ -44,14 +42,14 @@
         ubd.remarks,
         ubd.salesman_name,
         ubd.salesman_id,
-        ubd.STATUS,
+        ubd.status,
         ubd.stream_id,
         ubd.transaction_amount,
         ubd.transaction_date,
         ubd.use_amount,
         ubd.create_date,
         ubd.update_date,
-        COALESCE(u.mobile, ubd.mobile) AS mobile,
+        u.mobile AS mobile,
         u.salesmanid,
         u.agent,
         u.biaoqian
@@ -61,15 +59,15 @@
         <where>
             <!-- 标签筛选 -->
             <if test="biaoqian != null and biaoqian != ''">
-                AND ubd.label LIKE CONCAT('%', #{biaoqian}, '%')
+                AND u.biaoqian LIKE CONCAT('%', #{biaoqian}, '%')
             </if>
             <if test="biaoqianFlag != null">
                 <choose>
                     <when test="biaoqianFlag == 1">
-                        AND ubd.label IS NOT NULL AND ubd.label != ''
+                        AND u.biaoqian IS NOT NULL AND u.biaoqian != ''
                     </when>
                     <when test="biaoqianFlag == 0">
-                        AND (ubd.label IS NULL OR ubd.label = '')
+                        AND (u.biaoqian IS NULL OR u.biaoqian = '')
                     </when>
                 </choose>
             </if>
