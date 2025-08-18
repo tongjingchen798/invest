@@ -23,10 +23,10 @@ public class MyInvestmentDTO {
     private Integer cycleType;
     
     @ApiModelProperty(value = "等待收益")
-    private Integer ddsy;
+    private Long ddsy;
     
     @ApiModelProperty(value = "ID")
-    private Integer id;
+    private Long id;
     
     @ApiModelProperty(value = "图片")
     private String img;
@@ -35,13 +35,13 @@ public class MyInvestmentDTO {
     private Integer investCount;
     
     @ApiModelProperty(value = "投资项目id")
-    private Integer investId;
+    private Long investId;
     
     @ApiModelProperty(value = "项目名称")
     private String investName;
     
     @ApiModelProperty(value = "投资金额")
-    private Integer investmentAmount;
+    private Long investmentAmount;
     
     @ApiModelProperty(value = "手机号")
     private String mobile;
@@ -53,19 +53,19 @@ public class MyInvestmentDTO {
     private String orderDate;
     
     @ApiModelProperty(value = "下单id")
-    private Integer orderId;
+    private Long orderId;
     
-    @ApiModelProperty(value = "收益金额")
-    private Integer profitAmount;
+    @ApiModelProperty(value = "总收益金额")
+    private Long profitAmount;
     
     @ApiModelProperty(value = "收益日期")
     private String profitDate;
     
     @ApiModelProperty(value = "收益利息")
-    private Integer profitInterest;
+    private Long profitInterest;
     
     @ApiModelProperty(value = "收益本金")
-    private Integer profitPrincipal;
+    private Long profitPrincipal;
     
     @ApiModelProperty(value = "抢购分钟数")
     private Integer rushMinute;
@@ -77,5 +77,5 @@ public class MyInvestmentDTO {
     private Integer status;
     
     @ApiModelProperty(value = "用户id")
-    private Integer userId;
+    private Long userId;
 }

@@ -11,6 +11,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -31,7 +32,7 @@ public class ApiUserTaskInfoController {
     private UserTaskInfoService userTaskInfoService;
 
     @Login
-    @GetMapping("userTaskInfo")
+    @PostMapping("userTaskInfo")
     @ApiOperation("获取用户任务完成信息")
     public Result getUserTaskInfo(@LoginUser UserEntity user) {
         try {

@@ -159,7 +159,7 @@
 		FROM tb_investment_record ir
 		INNER JOIN tb_project p ON ir.project_id = p.invest_id
 		WHERE ir.user_id = #{userId}
-		AND p.status = 1  -- 已结束的项目
+		AND ir.status = 1  -- 已结束的项目
 	</select>
 	
 	<!-- 查询投资中项目统计信息 -->
@@ -171,7 +171,7 @@
 		FROM tb_investment_record ir
 		INNER JOIN tb_project p ON ir.project_id = p.invest_id
 		WHERE ir.user_id = #{userId}
-		AND p.status = 0  -- 投资中的项目
+		AND ir.status = 0  -- 投资中的项目
 	</select>
 
 </mapper>

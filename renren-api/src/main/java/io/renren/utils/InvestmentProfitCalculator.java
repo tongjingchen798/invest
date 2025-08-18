@@ -135,10 +135,8 @@ public class InvestmentProfitCalculator {
      */
     private static BigDecimal calculateDailyReturnProfit(Long investmentAmount, Integer cycle, String conversion) {
         BigDecimal annualRate = parseProjectRate(conversion);
-        BigDecimal dailyRate = annualRate.divide(new BigDecimal(365), 6, RoundingMode.HALF_UP);
-        BigDecimal investmentAmountYuan = new BigDecimal(investmentAmount).divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
-        
-        return investmentAmountYuan.multiply(dailyRate).multiply(new BigDecimal(cycle));
+        BigDecimal investmentAmountYuan = new BigDecimal(investmentAmount);
+        return investmentAmountYuan.multiply(annualRate).multiply(new BigDecimal(cycle));
     }
 
     /**
@@ -239,23 +237,12 @@ public class InvestmentProfitCalculator {
      */
     private static BigDecimal parseProjectRate(String conversion) {
         try {
-            if (conversion == null || conversion.trim().isEmpty()) {
-                return new BigDecimal("0.08"); // 默认8%年化收益率
-            }
-            
-            // 移除百分号并转换为小数
-            String rateStr = conversion.replace("%", "").trim();
-            BigDecimal rate = new BigDecimal(rateStr);
-            
-            // 如果是百分比格式，转换为小数
-            if (conversion.contains("%")) {
-                rate = rate.divide(new BigDecimal("100"), 6, RoundingMode.HALF_UP);
-            }
-            
+            BigDecimal rate = new BigDecimal(conversion);
+            rate = rate.divide(new BigDecimal("100"), 4, RoundingMode.HALF_DOWN);
             return rate;
         } catch (Exception e) {
             log.warn("解析项目收益率失败: {}, 使用默认配置", conversion, e);
-            return new BigDecimal("0.08"); // 默认8%年化收益率
+            return new BigDecimal("0.03"); // 默认8%年化收益率
         }
     }
 
@@ -271,20 +258,8 @@ public class InvestmentProfitCalculator {
                 return new BigDecimal("0.0002"); // 默认0.02%日收益率
             }
             
-            // 移除百分号并转换为小数
-            String rateStr = conversion.replace("%", "").trim();
-            BigDecimal rate = new BigDecimal(rateStr);
-            
-            // 如果是百分比格式，转换为小数
-            if (conversion.contains("%")) {
-                rate = rate.divide(new BigDecimal("100"), 6, RoundingMode.HALF_UP);
-            }
-            
-            // 如果是年化收益率，转换为日收益率
-            if (conversion.contains("年") || conversion.contains("年化")) {
-                rate = rate.divide(new BigDecimal("365"), 6, RoundingMode.HALF_UP);
-            }
-            
+            BigDecimal rate = new BigDecimal(conversion);
+            rate = rate.divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP);
             return rate;
         } catch (Exception e) {
             log.warn("解析项目日收益率失败: {}, 使用默认配置", conversion, e);
