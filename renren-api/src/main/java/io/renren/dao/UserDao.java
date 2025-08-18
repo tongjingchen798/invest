@@ -271,6 +271,7 @@ public interface UserDao extends BaseDao<UserEntity> {
      * @param commissionAmount 佣金金额（分）
      */
     @Update("UPDATE tb_user SET " +
+            "assets = assets + #{commissionAmount}, " +
             "commission_balance = commission_balance + #{commissionAmount}, " +
             "history_commission_balance = history_commission_balance + #{commissionAmount}, " +
             "today_commission = today_commission + #{commissionAmount} " +

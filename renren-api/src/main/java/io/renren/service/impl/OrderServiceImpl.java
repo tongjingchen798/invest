@@ -1,5 +1,6 @@
 package io.renren.service.impl;
 
+import io.renren.config.CommissionConfig;
 import io.renren.dao.InvestmentRecordDao;
 import io.renren.dao.ProjectDao;
 import io.renren.dao.UserDao;
@@ -12,11 +13,14 @@ import io.renren.entity.UserEntity;
 import io.renren.enums.BusinessTypeEnum;
 import io.renren.service.OrderService;
 import io.renren.utils.InvestmentProfitCalculator;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,6 +33,7 @@ import java.util.UUID;
  * @email renren@gmail.com
  * @date 2024-01-01 00:00:00
  */
+@Slf4j
 @Service
 public class OrderServiceImpl implements OrderService {
 	
@@ -43,6 +48,9 @@ public class OrderServiceImpl implements OrderService {
 	
 	@Autowired
 	private UserBalanceDetailDao userBalanceDetailDao;
+
+	@Autowired
+	private CommissionConfig commissionConfig;
 	
 	@Override
 	@Transactional(rollbackFor = Exception.class)
@@ -65,9 +73,11 @@ public class OrderServiceImpl implements OrderService {
 				result.put("message", "投资项目不存在");
 				return result;
 			}
-			
+
+			// 1. 获取用户信息
+			UserEntity user = userDao.getUserByUserId(userId);
 			// 3. 验证并扣减用户余额
-			Map<String, String> balanceResult = validateAndDeductBalance(userId, dto.getAmount());
+			Map<String, String> balanceResult = validateAndDeductBalance(user, dto.getAmount());
 			if (!"success".equals(balanceResult.get("status"))) {
 				result.put("status", "error");
 				result.put("message", balanceResult.get("message"));
@@ -76,14 +86,14 @@ public class OrderServiceImpl implements OrderService {
 			
 			// 4. 生成订单号
 			String orderNumber = generateOrderNumber();
-			
+			Date transactionDate=new Date();
 			// 5. 创建投资记录
 			InvestmentRecordEntity investmentRecord = new InvestmentRecordEntity();
 			investmentRecord.setUserId(userId);
 			investmentRecord.setProjectId(dto.getInvestId());
 			investmentRecord.setInvestName(project.getInvestName());
 			investmentRecord.setOrderAbbr(orderNumber.substring(orderNumber.length() - 8));
-			investmentRecord.setOrderDate(new Date());
+			investmentRecord.setOrderDate(transactionDate);
 			investmentRecord.setStatus(0); // 0:未收益
 			// 计算收益结束时间和总收益金额
 			Date orderDate = investmentRecord.getOrderDate();
@@ -97,9 +107,8 @@ public class OrderServiceImpl implements OrderService {
 			BigDecimal rate = new BigDecimal(conversion);
 			rate = rate.divide(new BigDecimal("100"), 2, BigDecimal.ROUND_DOWN);
 
-			// 计算每日收益金额
 			BigDecimal investmentAmountTotal = new BigDecimal(dto.getAmount());
-			//每日收益
+			// 计算每日收益金额
 			BigDecimal ddsy=investmentAmountTotal.multiply(rate).multiply(new BigDecimal(dto.getCount()));
 
 			Long totalProfit = ddsy.multiply(new BigDecimal(cycle)).longValue();
@@ -131,6 +140,41 @@ public class OrderServiceImpl implements OrderService {
 			if (userUpdateRows == 0) {
 				throw new RuntimeException("更新用户投资统计失败");
 			}
+
+			// 获取1级推荐人
+			String firstLevelInviteCode = user.getUpinviteCode();
+			if(StringUtils.isNotBlank(firstLevelInviteCode)){
+				// 查询1级推荐人
+				UserEntity firstLevelReferrer = userDao.selectByInviteCode(firstLevelInviteCode);
+				if (firstLevelReferrer != null) {
+					// 计算1级佣金
+					Long firstLevelCommission = calculateCommission(investmentAmountTotal, commissionConfig.getFirstLevelRateDecimal());
+					//更新上级余额 累加相关字段 记录账变
+					userDao.updateCommissionFields(firstLevelReferrer.getId(), firstLevelCommission);
+
+					log.debug("用户佣金更新成功，用户ID: {}, YI佣金金额: {}", userId, firstLevelCommission);
+					//记录1级佣金流水
+					UserBalanceDetailEntity detail = new UserBalanceDetailEntity();
+					detail.setBusiType(BusinessTypeEnum.COMMISSION_A.getCode());
+					detail.setUserId(userId);
+					detail.setOriginalAmount(firstLevelReferrer.getAssets());
+					detail.setUseAmount(firstLevelCommission);
+					detail.setTransactionAmount(firstLevelReferrer.getAssets()+firstLevelCommission);
+					detail.setStatus(1);
+					detail.setTransactionDate(transactionDate);
+					detail.setCreateDate(transactionDate);
+					detail.setUpdateDate(transactionDate);
+					detail.setRemarks("一级返佣");
+					detail.setStreamId(investmentRecord.getOrderId().toString());
+					userBalanceDetailDao.insert(detail);
+
+				}
+			}
+
+
+
+
+
 			
 			
 			result.put("status", "success");
@@ -151,19 +195,10 @@ public class OrderServiceImpl implements OrderService {
 	/**
 	 * 验证并扣减用户余额
 	 */
-	private Map<String, String> validateAndDeductBalance(Long userId, Long amount) {
+	private Map<String, String> validateAndDeductBalance(UserEntity user, Long amount) {
 		Map<String, String> result = new HashMap<>();
 		
 		try {
-			// 1. 获取用户信息
-			UserEntity user = userDao.getUserByUserId(userId);
-			if (user == null) {
-				result.put("status", "error");
-				result.put("message", "用户不存在");
-				return result;
-			}
-			
-			// 2. 验证用户可用余额是否充足
 			Long currentAssets = user.getAssets() != null ? user.getAssets() : 0L;
 			if (currentAssets < amount) {
 				result.put("status", "error");
@@ -172,7 +207,7 @@ public class OrderServiceImpl implements OrderService {
 			}
 			
 			// 3. 执行余额扣款（原子操作，包含余额验证）
-			int updateRows = userDao.updateBalanceForInvestment(userId, amount);
+			int updateRows = userDao.updateBalanceForInvestment(user.getId(), amount);
 			if (updateRows == 0) {
 				result.put("status", "error");
 				result.put("message", "余额扣款失败，余额不足");
@@ -353,5 +388,17 @@ public class OrderServiceImpl implements OrderService {
 		String timestamp = String.valueOf(System.currentTimeMillis());
 		String random = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
 		return timestamp + random;
+	}
+
+	/**
+	 * 计算佣金金额
+	 *
+	 * @param investmentAmount 投资金额（分）
+	 * @param rate 佣金比例
+	 * @return 佣金金额（分）
+	 */
+	private Long calculateCommission(BigDecimal investmentAmount, BigDecimal rate) {
+		BigDecimal commission = investmentAmount.multiply(rate).setScale(0, RoundingMode.HALF_DOWN);
+		return commission.longValue();
 	}
 }
