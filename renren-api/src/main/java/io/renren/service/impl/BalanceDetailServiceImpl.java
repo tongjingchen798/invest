@@ -40,7 +40,7 @@ public class BalanceDetailServiceImpl implements BalanceDetailService {
             // 构建查询条件
             QueryWrapper<UserBalanceDetailEntity> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("user_id", userId)
-                       .orderByDesc("transaction_date", "create_time");
+                       .orderByDesc("transaction_date");
             
             // 执行分页查询
             Page<UserBalanceDetailEntity> result = userBalanceDetailDao.selectPage(pageParam, queryWrapper);

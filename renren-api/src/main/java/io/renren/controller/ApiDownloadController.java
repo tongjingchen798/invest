@@ -25,6 +25,16 @@ public class ApiDownloadController {
     
     @Autowired
     private DownloadPageService downloadPageService;
+
+    @GetMapping("/fission/apk")
+    @ApiOperation("apk下载地址")
+    public Result getFissionApk() {
+        try {
+            return new Result().ok("https://d.stwiner.com/TeenPatti799Win-4200002.apk");
+        } catch (Exception e) {
+            return new Result().ok("");
+        }
+    }
     
     @GetMapping("tgcount")
     @ApiOperation("获取下载页统计数据")

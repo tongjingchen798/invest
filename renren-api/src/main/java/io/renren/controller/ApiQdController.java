@@ -66,9 +66,9 @@ public class ApiQdController {
             // 检查今日是否已签到
             UserSignInEntity todaySignIn = userSignInDao.selectTodaySignIn(user.getId(), today);
             if (todaySignIn != null) {
-                userQdDTO.setTodayQd(1); // 今日已签到
+                userQdDTO.setToday_qd(1); // 今日已签到
             } else {
-                userQdDTO.setTodayQd(0); // 今日未签到
+                userQdDTO.setToday_qd(0); // 今日未签到
             }
             
             // 获取用户连续签到天数

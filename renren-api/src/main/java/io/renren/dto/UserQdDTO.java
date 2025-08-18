@@ -19,5 +19,5 @@ public class UserQdDTO {
     private Long day;
 
     @ApiModelProperty(value = "今日是否签到;0否，1是")
-    private Integer todayQd;
+    private Integer today_qd;
 }
