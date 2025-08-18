@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.finance.dao.UserBalanceDetailDao">
+
+    <resultMap type="io.renren.modules.finance.entity.UserBalanceDetailEntity" id="userBalanceDetailMap">
+        <result property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="agentId" column="agent_id"/>
+        <result property="agentName" column="agent_name"/>
+        <result property="label" column="label"/>
+        <result property="businessType" column="business_type"/>
+        <result property="channel" column="channel"/>
+        <result property="formUserId" column="form_user_id"/>
+        <result property="inviteCodeStatus" column="invite_code_status"/>
+        <result property="mobile" column="mobile"/>
+        <result property="originalAmount" column="original_amount"/>
+        <result property="remarks" column="remarks"/>
+        <result property="salesmanName" column="salesman_name"/>
+        <result property="salesmanId" column="salesman_id"/>
+        <result property="status" column="status"/>
+        <result property="streamId" column="stream_id"/>
+        <result property="transactionAmount" column="transaction_amount"/>
+        <result property="transactionDate" column="transaction_date"/>
+        <result property="useAmount" column="use_amount"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateDate" column="update_date"/>
+    </resultMap>
+
+
+    <!-- 分页查询账变明细（关联用户表） -->
+    <select id="selectBalanceDetailPage" resultMap="userBalanceDetailMap">
+        SELECT
+        ubd.id,
+        ubd.user_id,
+        ubd.agent_id,
+        ubd.agent_name,
+        ubd.business_type as busiType,
+        ubd.channel,
+        ubd.form_user_id,
+        ubd.invite_code_status,
+        ubd.mobile,
+        ubd.original_amount,
+        ubd.remarks,
+        ubd.salesman_name,
+        ubd.salesman_id,
+        ubd.STATUS,
+        ubd.stream_id,
+        ubd.transaction_amount,
+        ubd.transaction_date,
+        ubd.use_amount,
+        ubd.create_date,
+        ubd.update_date,
+        COALESCE(u.mobile, ubd.mobile) AS mobile,
+        u.salesmanid,
+        u.agent,
+        u.biaoqian
+        FROM
+        user_balance_detail ubd
+        LEFT JOIN tb_user u ON ubd.user_id = u.id
+        <where>
+            <!-- 标签筛选 -->
+            <if test="biaoqian != null and biaoqian != ''">
+                AND ubd.label LIKE CONCAT('%', #{biaoqian}, '%')
+            </if>
+            <if test="biaoqianFlag != null">
+                <choose>
+                    <when test="biaoqianFlag == 1">
+                        AND ubd.label IS NOT NULL AND ubd.label != ''
+                    </when>
+                    <when test="biaoqianFlag == 0">
+                        AND (ubd.label IS NULL OR ubd.label = '')
+                    </when>
+                </choose>
+            </if>
+            
+            <!-- 业务类型筛选 -->
+            <if test="busiType != null">
+                AND ubd.business_type = #{busiType}
+            </if>
+            
+            <!-- 时间范围筛选 -->
+            <if test="startTime != null">
+                AND ubd.transaction_date >= #{startTime}
+            </if>
+            <if test="endTime != null">
+                AND ubd.transaction_date &lt;= #{endTime}
+            </if>
+            
+            <!-- 用户账号筛选 -->
+            <if test="mobile != null and mobile != ''">
+                AND (ubd.mobile LIKE CONCAT('%', #{mobile}, '%') OR u.mobile LIKE CONCAT('%', #{mobile}, '%'))
+            </if>
+        </where>
+        ORDER BY ubd.transaction_date DESC
+    </select>
+
+</mapper>
