@@ -28,7 +28,10 @@
  
      @ApiModelProperty(value = "银行简称")
      private String blankCode;
- 
+
+     @ApiModelProperty(value = "验证码")
+     private String code;
+
      @ApiModelProperty(value = "银行名称")
      private String blankName;
  

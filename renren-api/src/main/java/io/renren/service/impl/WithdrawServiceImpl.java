@@ -2,6 +2,8 @@ package io.renren.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.renren.common.exception.ErrorCode;
+import io.renren.common.utils.Result;
 import io.renren.dao.UserDao;
 import io.renren.dao.WithdrawOrderDao;
 import io.renren.dto.RewardWithdrawRequestDTO;

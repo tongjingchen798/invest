@@ -3,6 +3,7 @@ package io.renren.controller;
 
 import io.renren.annotation.Login;
 import io.renren.annotation.LoginUser;
+import io.renren.common.exception.ErrorCode;
 import io.renren.common.utils.Result;
 import io.renren.common.validator.ValidatorUtils;
 import io.renren.dto.PayInfoDTO;
@@ -15,8 +16,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.renren.service.PayInfoService;
-import io.renren.annotation.LoginUser;
-import io.renren.entity.UserEntity;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import io.swagger.annotations.ApiParam;
@@ -57,6 +56,9 @@ public class ApiPayInfoController {
         // 参数校验
         ValidatorUtils.validateEntity(dto);
 
+        if(StringUtils.isBlank(dto.getCode())){
+            return new Result().error(ErrorCode.INVALID_CODE,"You haven't got the verification code, please get it");
+        }
         // 检查是否已存在相同的银行账号
         QueryWrapper<PayInfoEntity> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("pay_no", dto.getPayNo())

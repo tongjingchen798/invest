@@ -5,7 +5,6 @@ import io.renren.annotation.LoginUser;
 import io.renren.common.utils.Result;
 import io.renren.common.validator.ValidatorUtils;
 import io.renren.dto.ChargeOrderDetailDTO;
-import io.renren.dto.ChargeRequestDTO;
 import io.renren.dto.ChargePageData;
 import io.renren.dto.ChargeResponseDTO;
 import io.renren.entity.UserEntity;
@@ -56,7 +55,7 @@ public class ApiChargeController {
     @ApiOperation("前端充值")
     public Result<ChargeResponseDTO> charge(
             @ApiParam(value = "充值金额", required = true) @RequestParam Long amount,
-            @ApiParam(value = "充值类型 1银行卡 2虚拟币 3 upi 4 Paytm", required = true) @RequestParam Integer chargeType,
+            @ApiParam(value = "充值类型 1银行卡 2虚拟币 3 upi 4 Paytm", required = true) @RequestParam Integer charge_type,
             @ApiParam(value = "支付通道主键") @RequestParam(required = false) Long channelid,
             @LoginUser UserEntity user) {
         try {
@@ -64,12 +63,12 @@ public class ApiChargeController {
             if (amount == null || amount <= 0) {
                 return new Result<ChargeResponseDTO>().error("充值金额必须大于0");
             }
-            if (!ChargeTypeEnum.isValid(chargeType)) {
+            if (!ChargeTypeEnum.isValid(charge_type)) {
                 return new Result<ChargeResponseDTO>().error("充值类型无效");
             }
 
             // 创建充值订单
-            String orderno = chargeOrderService.createChargeOrder(user.getId(), amount, chargeType, channelid);
+            String orderno = chargeOrderService.createChargeOrder(user.getId(), amount, charge_type, channelid);
             
             // 构建充值响应数据
             ChargeResponseDTO responseDTO = new ChargeResponseDTO();
