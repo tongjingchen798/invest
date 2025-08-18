@@ -6,6 +6,7 @@ import io.renren.dao.UserBalanceDetailDao;
 import io.renren.dto.BalanceDetailDTO;
 import io.renren.dto.BalanceDetailPageData;
 import io.renren.entity.UserBalanceDetailEntity;
+import io.renren.enums.BusinessTypeEnum;
 import io.renren.service.BalanceDetailService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -132,7 +133,7 @@ public class BalanceDetailServiceImpl implements BalanceDetailService {
     public boolean recordReferralReward(Long currentAssets,Long assets,Long userId, Long amount, Long newUserId) {
         try {
             UserBalanceDetailEntity detail = new UserBalanceDetailEntity();
-            detail.setBusinessType(14);
+            detail.setBusiType(14);
             // 设置基本信息
             detail.setUserId(userId);
             detail.setOriginalAmount(currentAssets);
@@ -189,8 +190,7 @@ public class BalanceDetailServiceImpl implements BalanceDetailService {
             detail.setTransactionAmount(currentAssets + amount);
             detail.setStatus(1); // 成功状态
             
-            // 设置业务类型：充值成功
-            detail.setBusinessType(1); // 假设1表示充值成功
+            detail.setBusiType(BusinessTypeEnum.ONLINE_RECHARGE.getCode());
             
             // 设置交易时间
             detail.setTransactionDate(new Date());
@@ -228,66 +228,6 @@ public class BalanceDetailServiceImpl implements BalanceDetailService {
         }
     }
 
-    @Override
-    public boolean recordChargeFail(Long userId, Long amount, String orderNo, String channel, String thirdOrderNo, String failReason) {
-        try {
-            log.info("记录充值失败流水，用户ID: {}, 金额: {} 分，订单号: {}, 通道: {}, 第三方订单号: {}, 失败原因: {}", 
-                    userId, amount, orderNo, channel, thirdOrderNo, failReason);
-            
-            // 获取用户当前余额
-            Long currentAssets = getUserCurrentAssets(userId);
-            
-            UserBalanceDetailEntity detail = new UserBalanceDetailEntity();
-            
-            // 设置基本信息
-            detail.setUserId(userId);
-            detail.setOriginalAmount(currentAssets);
-            detail.setUseAmount(0L); // 失败时没有实际金额变动
-            detail.setTransactionAmount(currentAssets); // 余额不变
-            detail.setStatus(0); // 失败状态
-            
-            // 设置业务类型：充值失败
-            detail.setBusinessType(2); // 假设2表示充值失败
-            
-            // 设置交易时间
-            detail.setTransactionDate(new Date());
-            detail.setCreateDate(new Date());
-            detail.setUpdateDate(new Date());
-            
-            // 设置备注信息
-            String remarks = String.format("充值失败【%s】", channel != null ? channel : "未知通道");
-            if (failReason != null && !failReason.isEmpty()) {
-                remarks += "：" + failReason;
-            }
-            detail.setRemarks(remarks);
-            
-            // 设置订单相关信息
-            detail.setStreamId(orderNo); // 使用订单号作为流水ID
-            
-            // 设置通道信息
-            detail.setChannel(channel);
-            
-            // 设置第三方订单号到备注中
-            if (thirdOrderNo != null && !thirdOrderNo.isEmpty()) {
-                detail.setRemarks(detail.getRemarks() + "，第三方订单：" + thirdOrderNo);
-            }
-            
-            int result = userBalanceDetailDao.insert(detail);
-            
-            if (result > 0) {
-                log.info("记录充值失败流水成功，用户ID: {}, 金额: {} 分，订单号: {}, 流水ID: {}", 
-                    userId, amount, orderNo, orderNo);
-                return true;
-            } else {
-                log.error("记录充值失败流水失败，用户ID: {}, 金额: {} 分，订单号: {}", userId, amount, orderNo);
-                return false;
-            }
-            
-        } catch (Exception e) {
-            log.error("记录充值失败流水异常，用户ID: {}, 金额: {} 分，订单号: {}", userId, amount, orderNo, e);
-            return false;
-        }
-    }
 
     /**
      * 获取用户当前可用余额
