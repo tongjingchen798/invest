@@ -293,7 +293,7 @@ async function example() {
 
 ```java
 @RestController
-@RequestMapping("/api/project")
+@RequestMapping("/project")
 public class ProjectApiController {
     
     @Autowired

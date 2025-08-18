@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -80,7 +81,6 @@ public class OrderServiceImpl implements OrderService {
 			investmentRecord.setUserId(userId);
 			investmentRecord.setProjectId(dto.getInvestId());
 			investmentRecord.setInvestName(project.getInvestName());
-			investmentRecord.setInvestmentAmount(dto.getAmount());
 			investmentRecord.setOrderAbbr(orderNumber.substring(orderNumber.length() - 8));
 			investmentRecord.setOrderDate(new Date());
 			investmentRecord.setStatus(0); // 0:未收益
@@ -93,14 +93,19 @@ public class OrderServiceImpl implements OrderService {
 			Date profitEndDate = InvestmentProfitCalculator.calculateProfitEndDate(orderDate, cycle);
 			investmentRecord.setProfitDate(profitEndDate);
 			
-			// 计算总收益金额
-			Long totalProfit = InvestmentProfitCalculator.calculateTotalProfit(
-				dto.getAmount(), cycle, cycleType, conversion
-			);
+			BigDecimal rate = new BigDecimal(conversion);
+			rate = rate.divide(new BigDecimal("100"), 2, BigDecimal.ROUND_DOWN);
+
+			// 计算每日收益金额
+			BigDecimal investmentAmountTotal = new BigDecimal(dto.getAmount());
+			//每日收益
+			BigDecimal ddsy=investmentAmountTotal.multiply(rate).multiply(new BigDecimal(dto.getCount()));
+
+			Long totalProfit = ddsy.multiply(new BigDecimal(cycle)).longValue();
 			investmentRecord.setProfitAmount(totalProfit);
 			investmentRecord.setCycle(cycle);
 			investmentRecord.setCycleType(cycleType);
-			investmentRecord.setDdsy(totalProfit); // 等待收益金额
+			investmentRecord.setDdsy(ddsy.longValue()); // 等待每日收益金额
 			investmentRecord.setInvestCount(dto.getCount());
 			investmentRecord.setRushMinute(project.getRushMinute());
 			investmentRecord.setAgent("1748403717627"); // 代理信息

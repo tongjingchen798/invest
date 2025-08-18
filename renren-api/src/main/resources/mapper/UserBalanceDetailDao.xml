@@ -29,7 +29,7 @@
 
 	<!-- 查询用户今日收益金额 -->
 	<select id="getTodayProfitAmount" resultType="long">
-		SELECT COALESCE(SUM(transaction_amount), 0)
+		SELECT COALESCE(SUM(use_amount), 0)
 		FROM user_balance_detail
 		WHERE user_id = #{userId}
 		AND business_type = 10  -- 收益类型

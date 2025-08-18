@@ -406,11 +406,8 @@ public class UserInvestmentProfitSchedule {
      * @return 收益金额
      */
     private BigDecimal calculateCompoundInterestProfit(BigDecimal investmentAmount, Integer cycle, int investmentDays, ProjectEntity project) {
-        // 复利计算：P * (1 + r)^n - P
-        BigDecimal dailyRate = getProjectDailyRate(project, "compound");
-        BigDecimal compoundFactor = BigDecimal.ONE.add(dailyRate).pow(investmentDays);
-        
-        return investmentAmount.multiply(compoundFactor).subtract(investmentAmount);
+        BigDecimal annualRate = getProjectAnnualRate(project, "compound");
+        return investmentAmount.multiply(annualRate);
     }
     
     /**
@@ -477,20 +474,10 @@ public class UserInvestmentProfitSchedule {
                 // 项目配置了收益率，使用项目配置
                 String conversion = project.getConversion();
                 log.debug("项目 {} 配置收益率: {}", project.getInvestId(), conversion);
-                
-                // 根据收益率类型和项目配置计算
-                switch (rateType) {
-                    case "maturity":
-                    case "dailyReturn":
-                    case "noPrincipal":
-                    case "groupBuyBase":
-                        // 这些类型都使用项目的基础收益率
-                        return parseProjectRate(conversion);
-                    default:
-                        break;
-                }
+                // 这些类型都使用项目的基础收益率
+                return parseProjectRate(conversion);
             }
-            
+
             // 项目没有配置收益率，使用默认配置
             log.debug("使用默认收益率配置，类型: {}", rateType);
             switch (rateType) {

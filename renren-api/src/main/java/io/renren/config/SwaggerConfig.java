@@ -37,7 +37,7 @@ public class SwaggerConfig{
             //.apis(RequestHandlerSelectors.basePackage("io.renren.controller"))
             .paths(PathSelectors.any())
             .build()
-            .extensions(openApiExtensionResolver.buildExtensions("投资项目"))
+            .extensions(openApiExtensionResolver.buildExtensions("项目"))
             .directModelSubstitute(java.util.Date.class, String.class)
             .securitySchemes(security());
     }
