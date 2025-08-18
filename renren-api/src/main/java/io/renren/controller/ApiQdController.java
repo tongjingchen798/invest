@@ -16,6 +16,7 @@ import io.renren.entity.UserSignInEntity;
 import io.renren.entity.UserSignStatisticsEntity;
 import io.renren.entity.UserBalanceDetailEntity;
 import io.renren.dao.UserBalanceDetailDao;
+import io.renren.enums.BusinessTypeEnum;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -152,7 +153,7 @@ public class ApiQdController {
             userBalanceDetail.setTransactionDate(now);
             
             // 设置业务类型：13签到奖励
-            userBalanceDetail.setBusinessType(13);
+            userBalanceDetail.setBusiType(BusinessTypeEnum.SIGN_IN_REWARD.getCode());
             
             // 设置渠道
             userBalanceDetail.setChannel("1");

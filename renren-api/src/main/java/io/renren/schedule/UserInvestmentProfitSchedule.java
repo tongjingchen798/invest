@@ -704,7 +704,7 @@ public class UserInvestmentProfitSchedule {
             Date now = new Date();
             userBalanceDetail.setTransactionDate(now);
             //业务类型：投资收益
-            userBalanceDetail.setBusinessType(BusinessTypeEnum.INCOME.getCode());
+            userBalanceDetail.setBusiType(BusinessTypeEnum.INCOME.getCode());
             userBalanceDetail.setChannel("1");
 
             // 设置交易流水ID

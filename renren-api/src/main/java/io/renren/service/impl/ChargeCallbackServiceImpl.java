@@ -447,19 +447,6 @@ public class ChargeCallbackServiceImpl implements ChargeCallbackService {
                 log.error("更新充值订单状态失败，订单号：{}", orderNo);
                 return false;
             }
-
-            // 2. 记录账变明细（失败记录）
-            try {
-                ChargeOrderEntity order = chargeOrderDao.selectByOrderno(orderNo);
-                if (order != null) {
-                    balanceDetailService.recordChargeFail(order.getUserId(), order.getAmount(), orderNo, 
-                                                       order.getChannel(), thirdOrderNo, failReason);
-                }
-            } catch (Exception e) {
-                log.error("记录充值失败账变失败，订单号：{}", orderNo, e);
-                // 账变记录失败不影响主流程
-            }
-
             log.info("充值失败处理完成，订单号：{}，失败原因：{}", orderNo, failReason);
             return true;
             

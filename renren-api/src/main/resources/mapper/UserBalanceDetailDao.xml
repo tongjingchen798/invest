@@ -10,7 +10,7 @@
 		<result property="agentId" column="agent_id"/>
 		<result property="agentName" column="agent_name"/>
 		<result property="label" column="label"/>
-		<result property="businessType" column="business_type"/>
+		<result property="busiType" column="busi_type"/>
 		<result property="channel" column="channel"/>
 		<result property="formUserId" column="form_user_id"/>
 		<result property="inviteCodeStatus" column="invite_code_status"/>
@@ -32,7 +32,7 @@
 		SELECT COALESCE(SUM(use_amount), 0)
 		FROM user_balance_detail
 		WHERE user_id = #{userId}
-		AND business_type = 10  -- 收益类型
+		AND busi_type = 10  -- 收益类型
 		AND transaction_date BETWEEN #{startDate} AND #{endDate}
 		AND status = 1  -- 正常状态
 	</select>

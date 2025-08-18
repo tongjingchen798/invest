@@ -9,7 +9,7 @@
         ubd.id,
         ubd.user_id,
         ubd.agent_name as agentName,
-        ubd.business_type as busiType,
+        ubd.busi_type as busiType,
         ubd.channel,
         ubd.form_user_id,
         ubd.invite_code_status,
@@ -50,7 +50,7 @@
             
             <!-- 业务类型筛选 -->
             <if test="busiType != null">
-                AND ubd.business_type = #{busiType}
+                AND ubd.busi_type = #{busiType}
             </if>
             
             <!-- 时间范围筛选 -->

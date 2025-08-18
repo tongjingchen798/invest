@@ -9,6 +9,7 @@ import io.renren.entity.InvestmentRecordEntity;
 import io.renren.entity.ProjectEntity;
 import io.renren.entity.UserBalanceDetailEntity;
 import io.renren.entity.UserEntity;
+import io.renren.enums.BusinessTypeEnum;
 import io.renren.service.OrderService;
 import io.renren.utils.InvestmentProfitCalculator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -201,7 +202,7 @@ public class OrderServiceImpl implements OrderService {
 			
 			Date now = new Date();
 			balanceDetail.setTransactionDate(now);
-			balanceDetail.setBusinessType(1); // 1:购买流水
+			balanceDetail.setBusiType(BusinessTypeEnum.PURCHASE_FLOW.getCode()); // 1:购买流水
 			balanceDetail.setChannel("1");
 			balanceDetail.setStreamId(orderNumber);
 			balanceDetail.setUseAmount(amount);

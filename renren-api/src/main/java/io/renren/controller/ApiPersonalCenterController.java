@@ -17,7 +17,6 @@ import io.renren.dto.BalanceDetailPageData;
 import io.renren.dto.TeamPointsDetailPageData;
 import io.renren.dto.ProfitEndedDTO;
 import io.renren.entity.UserEntity;
-import io.renren.service.TransactionDetailService;
 import io.renren.service.ProfitService;
 import io.renren.service.UserService;
 import io.renren.service.MyInvestmentService;
@@ -46,8 +45,7 @@ import java.util.Map;
 @Api(tags = "个人中心接口")
 public class ApiPersonalCenterController {
 
-    @Autowired
-    private TransactionDetailService transactionDetailService;
+
 
     @Autowired
     private ProfitService profitService;
@@ -76,6 +74,7 @@ public class ApiPersonalCenterController {
     @Autowired
     private WithdrawOrderDao withdrawOrderDao;
 
+
     @Login
     @PostMapping("BalanceTransfers")
     @ApiOperation("投资账户转让")
@@ -93,33 +92,34 @@ public class ApiPersonalCenterController {
         return new Result<Map<String, Object>>().ok(result);
     }
 
-    @Login
-    @GetMapping("agetBalanceDetail")
-    @ApiOperation("资金明细")
-    public Result<TransactionDetailPageData<TransactionDetailDTO>> getAgetBalanceDetail(
-            @ApiParam(value = "每页显示记录数", required = true) @RequestParam(Constant.LIMIT) Integer limit,
-            @ApiParam(value = "当前页码，从1开始", required = true) @RequestParam(Constant.PAGE) Integer page,
-            @LoginUser UserEntity user) {
-        
-        // 直接使用MyBatis-Plus分页，无需构建Map
-        TransactionDetailPageData<TransactionDetailDTO> pageData = transactionDetailService.queryPageData(user.getId(), page, limit);
-        
-        return new Result<TransactionDetailPageData<TransactionDetailDTO>>().ok(pageData);
-    }
+    //TODO 还需要调整
+//    @Login
+//    @GetMapping("agetBalanceDetail")
+//    @ApiOperation("资金明细")
+//    public Result<TransactionDetailPageData<TransactionDetailDTO>> getAgetBalanceDetail(
+//            @ApiParam(value = "每页显示记录数", required = true) @RequestParam(Constant.LIMIT) Integer limit,
+//            @ApiParam(value = "当前页码，从1开始", required = true) @RequestParam(Constant.PAGE) Integer page,
+//            @LoginUser UserEntity user) {
+//
+//        // 直接使用MyBatis-Plus分页，无需构建Map
+//        TransactionDetailPageData<TransactionDetailDTO> pageData = balanceDetailService.getBalanceDetailPageData(user.getId(), page, limit);
+//
+//        return new Result<TransactionDetailPageData<TransactionDetailDTO>>().ok(pageData);
+//    }
 
-    @Login
-    @GetMapping("balanceDetail")
-    @ApiOperation("资金明细")
-    public Result<TransactionDetailPageData<TransactionDetailDTO>> getBalanceDetail(
-            @ApiParam(value = "每页显示记录数", required = true) @RequestParam(Constant.LIMIT) Integer limit,
-            @ApiParam(value = "当前页码，从1开始", required = true) @RequestParam(Constant.PAGE) Integer page,
-            @LoginUser UserEntity user) {
-        
-        // 直接使用MyBatis-Plus分页，无需构建Map
-        TransactionDetailPageData<TransactionDetailDTO> pageData = transactionDetailService.queryPageData(user.getId(), page, limit);
-        
-        return new Result<TransactionDetailPageData<TransactionDetailDTO>>().ok(pageData);
-    }
+//    @Login
+//    @GetMapping("balanceDetail")
+//    @ApiOperation("资金明细")
+//    public Result<TransactionDetailPageData<TransactionDetailDTO>> getBalanceDetail(
+//            @ApiParam(value = "每页显示记录数", required = true) @RequestParam(Constant.LIMIT) Integer limit,
+//            @ApiParam(value = "当前页码，从1开始", required = true) @RequestParam(Constant.PAGE) Integer page,
+//            @LoginUser UserEntity user) {
+//
+//        // 直接使用MyBatis-Plus分页，无需构建Map
+//        TransactionDetailPageData<TransactionDetailDTO> pageData = transactionDetailService.queryPageData(user.getId(), page, limit);
+//
+//        return new Result<TransactionDetailPageData<TransactionDetailDTO>>().ok(pageData);
+//    }
 
     @Login
     @GetMapping("balance")
