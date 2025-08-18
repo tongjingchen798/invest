@@ -110,7 +110,7 @@ public class OrderServiceImpl implements OrderService {
 			BigDecimal investmentAmountTotal = new BigDecimal(dto.getAmount());
 			// 计算每日收益金额
 			BigDecimal ddsy=investmentAmountTotal.multiply(rate).multiply(new BigDecimal(dto.getCount()));
-
+			investmentRecord.setInvestmentAmount(investmentAmountTotal.longValue());
 			Long totalProfit = ddsy.multiply(new BigDecimal(cycle)).longValue();
 			investmentRecord.setProfitAmount(totalProfit);
 			investmentRecord.setCycle(cycle);
@@ -156,11 +156,12 @@ public class OrderServiceImpl implements OrderService {
 					//记录1级佣金流水
 					UserBalanceDetailEntity detail = new UserBalanceDetailEntity();
 					detail.setBusiType(BusinessTypeEnum.COMMISSION_A.getCode());
-					detail.setUserId(userId);
+					detail.setUserId(firstLevelReferrer.getId());
 					detail.setOriginalAmount(firstLevelReferrer.getAssets());
 					detail.setUseAmount(firstLevelCommission);
 					detail.setTransactionAmount(firstLevelReferrer.getAssets()+firstLevelCommission);
 					detail.setStatus(1);
+					detail.setFormUserId(userId);
 					detail.setTransactionDate(transactionDate);
 					detail.setCreateDate(transactionDate);
 					detail.setUpdateDate(transactionDate);

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,15 +49,17 @@ public class ApiPayChannelController {
                 .map(this::convertToPayChannelDTO)
                 .collect(Collectors.toList());
             
+            // 按照通道类型分组
+            Map<String, List<PayChannelDTO>> groupedChannels = channelDTOs.stream()
+                .collect(Collectors.groupingBy(PayChannelDTO::getChannelType));
+            
             // 构建响应数据，按照要求的格式
             Map<String, Object> result = new HashMap<>();
             
-            // 将每个通道作为一个独立的属性
-            for (int i = 0; i < channelDTOs.size(); i++) {
-                PayChannelDTO channel = channelDTOs.get(i);
-                String key = "additionalProperties" + (i + 1);
-                result.put(key, channel);
-            }
+            // 确保所有通道类型都存在，即使没有数据也返回空数组
+            result.put("UPI", groupedChannels.getOrDefault("UPI", new ArrayList<>()));
+            result.put("SWIPE", groupedChannels.getOrDefault("SWIPE", new ArrayList<>()));
+            result.put("USDT", groupedChannels.getOrDefault("USDT", new ArrayList<>()));
             
             return new Result<Map<String, Object>>().ok(result);
             
@@ -84,14 +87,14 @@ public class ApiPayChannelController {
             dto.setCreateDate(entity.getCreateDate().toInstant()
                 .atZone(java.time.ZoneId.systemDefault())
                 .toLocalDateTime()
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
         }
         
         if (entity.getUpdateDate() != null) {
             dto.setUpdateDate(entity.getUpdateDate().toInstant()
                 .atZone(java.time.ZoneId.systemDefault())
                 .toLocalDateTime()
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
         }
         
         return dto;
