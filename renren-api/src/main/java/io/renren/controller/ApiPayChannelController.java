@@ -1,5 +1,6 @@
 package io.renren.controller;
 
+import io.renren.common.exception.RenException;
 import io.renren.common.utils.Result;
 import io.renren.dao.PayChannelDao;
 import io.renren.dto.PayChannelDTO;
@@ -34,16 +35,13 @@ public class ApiPayChannelController {
     @GetMapping("getPay")
     @ApiOperation("查询支付方式")
     public Result<Map<String, Object>> getPayChannels() {
-        try {
             // 查询所有上架的支付通道
             List<PayChannelEntity> activeChannels = payChannelDao.selectAllActiveChannels();
-            
             if (activeChannels == null || activeChannels.isEmpty()) {
                 // 如果没有数据，返回空结果
                 Map<String, Object> emptyResult = new HashMap<>();
                 return new Result<Map<String, Object>>().ok(emptyResult);
             }
-            
             // 转换为DTO
             List<PayChannelDTO> channelDTOs = activeChannels.stream()
                 .map(this::convertToPayChannelDTO)
@@ -62,10 +60,6 @@ public class ApiPayChannelController {
             result.put("USDT", groupedChannels.getOrDefault("USDT", new ArrayList<>()));
             
             return new Result<Map<String, Object>>().ok(result);
-            
-        } catch (Exception e) {
-            return new Result<Map<String, Object>>().error("查询支付方式失败: " + e.getMessage());
-        }
     }
     
     /**
