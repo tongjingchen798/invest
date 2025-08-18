@@ -97,7 +97,7 @@ public class ApiQdController {
     @PostMapping("qd")
     @ApiOperation("立即签到")
     @Transactional
-    public Result signIn(@LoginUser UserEntity user, @RequestBody SignInRequestDTO request) {
+    public Result signIn(@LoginUser UserEntity user) {
         try {
             // 获取当前日期
             LocalDate today = LocalDate.now();
