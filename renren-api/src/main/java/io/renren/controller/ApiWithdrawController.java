@@ -46,7 +46,7 @@ public class ApiWithdrawController {
 
     @Login
     @GetMapping("page")
-    @ApiOperation("余额提现(提现记录分页查询)")
+    @ApiOperation("提现记录分页查询")
     public Result<WithdrawPageData> getWithdrawPage(
             @ApiParam(value = "每页显示记录数", required = true) @RequestParam Integer limit,
             @ApiParam(value = "当前页码，从1开始", required = true) @RequestParam Integer page,

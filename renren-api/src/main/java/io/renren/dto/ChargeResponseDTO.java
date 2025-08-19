@@ -94,6 +94,10 @@ public class ChargeResponseDTO implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private String updateTime;
 
+    @ApiModelProperty(value = "异常码")
+    @JsonProperty("updateTime")
+    private  Integer errorCode;
+
     /**
      * 设置充值类型信息
      */

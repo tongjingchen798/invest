@@ -117,7 +117,7 @@ public class ApiChargeController {
                         break;
                 }
             }
-            
+            responseDTO.setErrorCode(0);
             // 将ChargeResponseDTO转换为JSON字符串
             String jsonResponse = convertToJsonString(responseDTO);
             
