@@ -58,15 +58,7 @@ public class ReferralRewardServiceImpl implements ReferralRewardService {
 
             // 发放返利
             boolean success = grantReferralReward(referrer.getId(), rewardAmount, newUserId);
-            if (success) {
-                // 更新推荐人的推荐人数
-                referrer.setTgrs(referralCount + 1);
-                userDao.updateById(referrer);
 
-                
-                log.info("推荐人 {} 获得推荐返利 {} 分，新用户ID: {}", 
-                    referrer.getId(), rewardAmount, newUserId);
-            }
 
             return success;
         } catch (Exception e) {
@@ -111,23 +103,16 @@ public class ReferralRewardServiceImpl implements ReferralRewardService {
                 log.error("推荐人 {} 不存在", referrerId);
                 return false;
             }
+            Long originalAmount=referrer.getCommissionBalance();
 
-            // 更新推荐人的余额和佣金余额
-            Long currentAssets = referrer.getAssets() != null ? referrer.getAssets() : 0L;
-            Long currentCommissionBalance = referrer.getCommissionBalance() != null ? referrer.getCommissionBalance() : 0L;
-            referrer.setAssets(currentAssets + rewardAmount);
-            Long assets= currentAssets + rewardAmount; //更新后可用金额
-            referrer.setCommissionBalance(currentCommissionBalance + rewardAmount);
-
-            // 更新推荐人信息
-            int updateResult = userDao.updateById(referrer);
+            // 更新推荐人的佣金余额等字段
+            int updateResult = userDao.updateInviteCodeProfitFields(referrer.getId(), rewardAmount);
             if (updateResult <= 0) {
                 log.error("更新推荐人 {} 余额失败", referrerId);
                 return false;
             }
-
             // 记录推荐返利到资金明细表
-            balanceDetailService.recordReferralReward(currentAssets,assets,referrerId, rewardAmount, newUserId);
+            balanceDetailService.recordReferralReward(originalAmount,referrer.getCommissionBalance()+rewardAmount,referrerId, rewardAmount, newUserId);
 
             log.info("推荐人 {} 获得推荐返利 {} 分，当前余额: {} 分，佣金余额: {} 分", 
                 referrerId, rewardAmount, referrer.getBalance(), referrer.getCommissionBalance());

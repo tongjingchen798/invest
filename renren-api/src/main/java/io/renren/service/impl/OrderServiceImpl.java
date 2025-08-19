@@ -75,7 +75,7 @@ public class OrderServiceImpl implements OrderService {
 			}
 
 			// 1. 获取用户信息
-			UserEntity user = userDao.getUserByUserId(userId);
+			UserEntity user = userDao.selectById(userId);
 			// 3. 验证并扣减用户余额
 			Map<String, String> balanceResult = validateAndDeductBalance(user, dto.getAmount());
 			if (!"success".equals(balanceResult.get("status"))) {

@@ -43,24 +43,6 @@ public interface UserDao extends BaseDao<UserEntity> {
     int updateBalanceForInvestment(@Param("userId") Long userId, @Param("amount") Long amount);
 
     /**
-     * 更新用户累计投资金额
-     * @param userId 用户ID
-     * @param amount 投资金额（分）
-     * @return 影响行数
-     */
-    @Update("UPDATE tb_user SET history_investment = history_investment + #{amount}, today_investment = today_investment + #{amount} WHERE id = #{userId}")
-    int updateInvestmentAmount(@Param("userId") Long userId, @Param("amount") Long amount);
-
-    /**
-     * 更新用户投资统计信息（项目数、总本金等）
-     * @param userId 用户ID
-     * @param amount 投资金额（分）
-     * @return 影响行数
-     */
-    @Update("UPDATE tb_user SET itmes = itmes + 1, total_principal = total_principal + #{amount} WHERE id = #{userId}")
-    int updateInvestmentStatistics(@Param("userId") Long userId, @Param("amount") Long amount);
-
-    /**
      * 更新用户投资相关字段（综合更新）
      * @param userId 用户ID
      * @param amount 投资金额（分）
@@ -92,32 +74,7 @@ public interface UserDao extends BaseDao<UserEntity> {
      */
     @Update("UPDATE tb_user SET assets = assets - #{amount} WHERE id = #{userId}")
     int reduceUserBalance(@Param("userId") Long userId, @Param("amount") Long amount);
-    /**
-     * 更新用户今日收益
-     * @param userId 用户ID
-     * @param amount 收益金额（分）
-     * @return 影响行数
-     */
-    @Update("UPDATE tb_user SET today_profit = today_profit + #{amount} WHERE id = #{userId}")
-    int addTodayProfit(@Param("userId") Long userId, @Param("amount") Long amount);
 
-    /**
-     * 更新用户历史收益
-     * @param userId 用户ID
-     * @param amount 收益金额（分）
-     * @return 影响行数
-     */
-    @Update("UPDATE tb_user SET history_profit = history_profit + #{amount} WHERE id = #{userId}")
-    int addHistoryProfit(@Param("userId") Long userId, @Param("amount") Long amount);
-
-    /**
-     * 更新用户总收益
-     * @param userId 用户ID
-     * @param amount 收益金额（分）
-     * @return 影响行数
-     */
-    @Update("UPDATE tb_user SET total_profit = total_profit + #{amount} WHERE id = #{userId}")
-    int addTotalProfit(@Param("userId") Long userId, @Param("amount") Long amount);
 
     /**
      * 更新用户收益相关字段（综合更新）
@@ -128,28 +85,30 @@ public interface UserDao extends BaseDao<UserEntity> {
     @Update("UPDATE tb_user SET " +
             "assets = assets + #{amount}, " +
             "today_profit = today_profit + #{amount}, " +
+            "sy_sum = sy_sum + #{amount}, " +
             "history_profit = history_profit + #{amount}, " +
             "total_profit = total_profit + #{amount} " +
             "WHERE id = #{userId}")
     int updateAllProfitFields(@Param("userId") Long userId, @Param("amount") Long amount);
 
-//    /**
-//     * 更新用户佣金余额
-//     * @param userId 用户ID
-//     * @param amount 佣金金额（分）
-//     * @return 影响行数
-//     */
-//    @Update("UPDATE tb_user SET commission_balance = commission_balance + #{amount} WHERE id = #{userId}")
-//    int addCommissionBalance(@Param("userId") Long userId, @Param("amount") Long amount);
-//
-//    /**
-//     * 更新用户历史佣金余额
-//     * @param userId 用户ID
-//     * @param amount 佣金金额（分）
-//     * @return 影响行数
-//     */
-//    @Update("UPDATE tb_user SET history_commission_balance = history_commission_balance + #{amount} WHERE id = #{userId}")
-//    int addHistoryCommissionBalance(@Param("userId") Long userId, @Param("amount") Long amount);
+
+    /**
+     * 更新用户佣金收益相关字段（综合更新）
+     * @param userId 用户ID
+     * @param amount 收益金额（分）
+     * @return 影响行数
+     */
+    @Update("UPDATE tb_user SET " +
+            "today_profit = today_profit + #{amount}, " +
+            "sy_sum = sy_sum + #{amount}, " +
+            "history_profit = history_profit + #{amount}, " +
+            "history_commission = history_commission + #{amount}, " +
+            "today_commission = today_commission + #{amount}, " +
+            "tgrs = tgrs + 1, " +
+            "commission_balance = commission_balance + #{amount}, " +
+            "total_profit = total_profit + #{amount} " +
+            "WHERE id = #{userId}")
+    int updateInviteCodeProfitFields(@Param("userId") Long userId, @Param("amount") Long amount);
 
     /**
      * 更新用户佣金相关字段（综合更新）
@@ -178,21 +137,6 @@ public interface UserDao extends BaseDao<UserEntity> {
     @Select("SELECT id, assets, balance, commission_balance, today_profit, history_profit, total_profit FROM tb_user WHERE id = #{userId}")
     UserEntity getUserBalanceInfo(@Param("userId") Long userId);
 
-//    /**
-//     * 更新用户今日充值次数
-//     * @param userId 用户ID
-//     * @return 影响行数
-//     */
-//    @Update("UPDATE tb_user SET today_recharge_cnt = today_recharge_cnt + 1 WHERE id = #{userId}")
-//    int addTodayRechargeCount(@Param("userId") Long userId);
-//
-//    /**
-//     * 更新用户历史充值次数
-//     * @param userId 用户ID
-//     * @return 影响行数
-//     */
-//    @Update("UPDATE tb_user SET historychargecnt = historychargecnt + 1 WHERE id = #{userId}")
-//    int addHistoryRechargeCount(@Param("userId") Long userId);
 
     /**
      * 更新用户充值次数相关字段（综合更新）
@@ -205,23 +149,6 @@ public interface UserDao extends BaseDao<UserEntity> {
             "WHERE id = #{userId}")
     int updateAllRechargeCountFields(@Param("userId") Long userId);
 
-//    /**
-//     * 更新用户今日充值金额
-//     * @param userId 用户ID
-//     * @param amount 充值金额（分）
-//     * @return 影响行数
-//     */
-//    @Update("UPDATE tb_user SET today_recharge = today_recharge + #{amount} WHERE id = #{userId}")
-//    int addTodayRechargeAmount(@Param("userId") Long userId, @Param("amount") Long amount);
-//
-//    /**
-//     * 更新用户累计充值金额
-//     * @param userId 用户ID
-//     * @param amount 充值金额（分）
-//     * @return 影响行数
-//     */
-//    @Update("UPDATE tb_user SET charge_sum = charge_sum + #{amount} WHERE id = #{userId}")
-//    int addChargeSum(@Param("userId") Long userId, @Param("amount") Long amount);
 
     /**
      * 更新用户充值金额相关字段（综合更新）

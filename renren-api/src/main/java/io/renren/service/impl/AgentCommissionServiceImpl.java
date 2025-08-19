@@ -11,6 +11,7 @@ import io.renren.service.AgentCommissionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -255,7 +256,7 @@ public class AgentCommissionServiceImpl implements AgentCommissionService {
             agentCenter.setToday_amt(String.valueOf(currentUser.getTodayCommission() != null ? currentUser.getTodayCommission() : 0L));
             
             // 历史工资总额（历史收益）
-            agentCenter.setHirstory_gzamt(String.valueOf(currentUser.getHistoryProfit()));
+            agentCenter.setHirstory_gzamt("0");
             
             // 今日工资总额（今日收益）
             agentCenter.setToday_gzamt(String.valueOf(currentUser.getTodayProfit() != null ? currentUser.getTodayProfit() : 0L));

@@ -191,8 +191,9 @@ public class ApiQdController {
             
             // 插入账变记录
             userBalanceDetailDao.insert(userBalanceDetail);
+            //更新当日收益、历史收益、
+            userDao.updateAllProfitFields(user.getId(), rewardAmount);
 
-            userDao.addUserBalance(user.getId(),rewardAmount);
 
             // 更新或创建用户签到统计
             if (statistics == null) {

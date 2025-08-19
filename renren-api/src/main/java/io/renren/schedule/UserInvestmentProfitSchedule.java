@@ -646,35 +646,11 @@ public class UserInvestmentProfitSchedule {
         try {
             Long profitAmountInCents = profitAmount.longValue();
             // 更新用户可用余额
-            int balanceResult = userDao.addUserBalance(userId, profitAmountInCents);
+            int balanceResult = userDao.updateAllProfitFields(userId, profitAmountInCents);
             if (balanceResult > 0) {
                 log.debug("用户 {} 可用余额更新成功，增加: {} 分", userId, profitAmountInCents);
             } else {
                 log.warn("用户 {} 可用余额更新失败", userId);
-            }
-            
-            // 更新用户今日收益
-            int todayProfitResult = userDao.addTodayProfit(userId, profitAmountInCents);
-            if (todayProfitResult > 0) {
-                log.debug("用户 {} 今日收益更新成功，增加: {} 分", userId, profitAmountInCents);
-            } else {
-                log.warn("用户 {} 今日收益更新失败", userId);
-            }
-            
-            // 更新用户历史收益
-            int historyProfitResult = userDao.addHistoryProfit(userId, profitAmountInCents);
-            if (historyProfitResult > 0) {
-                log.debug("用户 {} 历史收益更新成功，增加: {} 分", userId, profitAmountInCents);
-            } else {
-                log.warn("用户 {} 历史收益更新失败", userId);
-            }
-            
-            // 更新用户总收益
-            int totalProfitResult = userDao.addTotalProfit(userId, profitAmountInCents);
-            if (totalProfitResult > 0) {
-                log.debug("用户 {} 总收益更新成功，增加: {} 分", userId, profitAmountInCents);
-            } else {
-                log.warn("用户 {} 总收益更新失败", userId);
             }
             
             log.debug("用户 {} 余额和收益字段更新完成", userId);
