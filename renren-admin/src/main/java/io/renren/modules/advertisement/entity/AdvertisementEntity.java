@@ -1,4 +1,4 @@
-package io.renren.modules.issues.entity;
+package io.renren.modules.advertisement.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -6,35 +6,36 @@ import lombok.Data;
 import java.util.Date;
 
 /**
- * 问题表
+ * 广告素材表
  *
  * @author Mark sunlightcs@gmail.com
  * @since 1.0.0 2025-08-19
  */
 @Data
-@TableName("issues")
-public class IssuesEntity {
+@TableName("tb_advertisement")
+public class AdvertisementEntity {
+
 
     /**
      * 主键ID
      */
-	private Long id;
+    private Long id;
     /**
      * 名称
      */
-	private String title;
+    private String title;
     /**
      * 描述
      */
-	private String content;
+    private String content;
     /**
      * 链接地址
      */
-	private String imagesAddr;
+    private String imagesAddr;
 
     /**
      * 创建时间
      */
-	private Date createDate;
+    private Date createDate;
 
 }

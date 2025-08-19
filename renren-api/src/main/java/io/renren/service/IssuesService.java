@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 广告/图片管理
+ * 问题
  *
  * @author Mark sunlightcs@gmail.com
  */
