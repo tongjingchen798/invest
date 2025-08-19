@@ -22,7 +22,7 @@ public class PayChannelEntity implements Serializable {
      * 主键ID
      */
     @TableId
-    private String channelid;
+    private Long channelid;
 
     /**
      * 通道名,前端显示用的

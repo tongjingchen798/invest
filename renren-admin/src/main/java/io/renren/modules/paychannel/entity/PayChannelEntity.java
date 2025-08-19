@@ -19,7 +19,7 @@ public class PayChannelEntity {
     /**
      * 渠道ID
      */
-	private String channelid;
+	private Long channelid;
     /**
      * 渠道名称
      */

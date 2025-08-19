@@ -21,7 +21,7 @@ public class PayChannelDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
 	@ApiModelProperty(value = "渠道ID")
-	private String channelid;
+	private Long channelid;
 
 	@ApiModelProperty(value = "渠道名称")
 	private String channelName;
