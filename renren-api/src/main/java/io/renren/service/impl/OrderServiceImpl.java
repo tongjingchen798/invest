@@ -149,7 +149,7 @@ public class OrderServiceImpl implements OrderService {
 				if (firstLevelReferrer != null) {
 					// 计算1级佣金
 					Long firstLevelCommission = calculateCommission(investmentAmountTotal, commissionConfig.getFirstLevelRateDecimal());
-					//更新上级余额 累加相关字段 记录账变
+					//更新上级佣金余额 累加相关字段 记录账变
 					userDao.updateCommissionFields(firstLevelReferrer.getId(), firstLevelCommission);
 
 					log.debug("用户佣金更新成功，用户ID: {}, 一级佣金金额: {}", userId, firstLevelCommission);

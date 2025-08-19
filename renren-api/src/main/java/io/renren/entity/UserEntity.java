@@ -341,6 +341,13 @@ public class UserEntity implements Serializable {
 	private Long historyCommission;
 
 	/**
+	 * 佣金提现总额(分)
+	 */
+	@ApiModelProperty(value = "佣金提现总额(分)")
+	@TableField("commission_withdraw_sum")
+	private Long commissionWithdrawSum;
+
+	/**
 	 * 今日佣金
 	 */
 	@TableField("today_commission")
@@ -537,6 +544,6 @@ public class UserEntity implements Serializable {
 	 */
 	private Long vip6state;
 
-	@ApiModelProperty(value = "总邀请收益(分)")
-	private Long inviteIncome;
+//	@ApiModelProperty(value = "总邀请收益(分)")
+//	private Long inviteIncome;
 }

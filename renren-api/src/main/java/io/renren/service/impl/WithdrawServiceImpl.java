@@ -200,8 +200,9 @@ public class WithdrawServiceImpl implements WithdrawService {
             // 保存提现订单
             withdrawOrderDao.insert(withdrawOrder);
             
-            // 扣除用户佣金余额
+            // 冻结用户佣金余额
             user.setCommissionBalance(user.getCommissionBalance() - requestDTO.getAmount());
+            user.setFreezeBalance(user.getFreezeBalance() + requestDTO.getAmount());
             userDao.updateById(user);
             
             // 构建返回结果

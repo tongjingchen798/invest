@@ -246,20 +246,16 @@ public class AgentCommissionServiceImpl implements AgentCommissionService {
                 }
             }
             agentCenter.setHirstory_amt(String.valueOf(currentUser.getHistoryCommission()));
-            // 代理提现总额
-            agentCenter.setWithdraw_amt(String.valueOf(currentUser.getWithdrawSum() != null ? currentUser.getWithdrawSum() : 0L));
-            
-            // 昨日提现总额（查询昨日数据）
-            LocalDate yesterday = LocalDate.now().minusDays(1);
-            Date yesterdayDate = Date.from(yesterday.atStartOfDay(ZoneId.systemDefault()).toInstant());
-            Long yesterdayWithdraw = withdrawOrderDao.selectWithdrawAmountByUserIdAndDate(userId, yesterdayDate);
-            agentCenter.setYt_withdraw_amt(String.valueOf(yesterdayWithdraw != null ? yesterdayWithdraw : 0L));
+            // 历史总佣金
+            agentCenter.setWithdraw_amt(String.valueOf(currentUser.getHistoryCommission()));
+            //佣金已提款
+            agentCenter.setYt_withdraw_amt(String.valueOf(currentUser.getCommissionWithdrawSum()));
             
             // 今日佣金总额
             agentCenter.setToday_amt(String.valueOf(currentUser.getTodayCommission() != null ? currentUser.getTodayCommission() : 0L));
             
             // 历史工资总额（历史收益）
-            agentCenter.setHirstory_gzamt(String.valueOf(currentUser.getHistoryProfit() != null ? currentUser.getHistoryProfit() : 0L));
+            agentCenter.setHirstory_gzamt(String.valueOf(currentUser.getHistoryProfit()));
             
             // 今日工资总额（今日收益）
             agentCenter.setToday_gzamt(String.valueOf(currentUser.getTodayProfit() != null ? currentUser.getTodayProfit() : 0L));
