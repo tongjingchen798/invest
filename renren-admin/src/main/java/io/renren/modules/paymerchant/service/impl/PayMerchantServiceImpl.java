@@ -1,11 +1,11 @@
-package io.renren.modules.sys.service.impl;
+package io.renren.modules.paymerchant.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.renren.common.service.impl.CrudServiceImpl;
-import io.renren.modules.sys.dao.PayMerchantDao;
-import io.renren.modules.sys.dto.PayMerchantDTO;
-import io.renren.modules.sys.entity.PayMerchantEntity;
-import io.renren.modules.sys.service.PayMerchantService;
+import io.renren.modules.paymerchant.dao.PayMerchantDao;
+import io.renren.modules.paymerchant.dto.PayMerchantDTO;
+import io.renren.modules.paymerchant.entity.PayMerchantEntity;
+import io.renren.modules.paymerchant.service.PayMerchantService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 

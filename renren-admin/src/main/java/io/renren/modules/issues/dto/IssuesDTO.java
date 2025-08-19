@@ -15,7 +15,7 @@ import java.util.Date;
  * @since 1.0.0 2025-08-19
  */
 @Data
-@ApiModel(value = "广告/图片管理表")
+@ApiModel(value = "问题记录")
 public class IssuesDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -31,26 +31,10 @@ public class IssuesDTO implements Serializable {
 	@ApiModelProperty(value = "链接地址")
 	private String imagesAddr;
 
-	@ApiModelProperty(value = "广告类型 1=LOG,2=轮播图，3=个人中心 4=弹窗广告")
-	private Integer type;
-
-	@ApiModelProperty(value = "排序")
-	private Integer sort;
-
-	@ApiModelProperty(value = "状态 0=禁用 1=启用")
-	private Integer status;
-
 	@ApiModelProperty(value = "创建时间")
 	private Date createDate;
 
-	@ApiModelProperty(value = "更新时间")
-	private Date updateDate;
 
-	@ApiModelProperty(value = "创建者")
-	private Long creator;
-
-	@ApiModelProperty(value = "更新者")
-	private Long updater;
 
 
 }

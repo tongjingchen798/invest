@@ -1,5 +1,6 @@
-package io.renren.modules.sys.entity;
+package io.renren.modules.paymerchant.entity;
 
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -19,23 +20,24 @@ public class PayMerchantEntity {
     /**
      * 主键ID
      */
+    @TableId
 	private Long id;
     /**
      * 商户ID
      */
-	private String merchantId;
+	private String merchantid;
     /**
      * 商户号
      */
-	private String merchantNo;
+	private String merchantno;
     /**
      * 商户名
      */
-	private String merchantName;
+	private String merchantname;
     /**
      * 密钥
      */
-	private String channelKey;
+	private String channelkey;
     /**
      * 密码
      */
@@ -55,19 +57,19 @@ public class PayMerchantEntity {
     /**
      * 后台管理地址
      */
-	private String houtaiUrl;
+	private String houtaiurl;
     /**
      * 代收-通道代码
      */
-	private String channelTypeDs;
+	private String channeltypeds;
     /**
      * 代付-通道代码
      */
-	private String channelTypeDf;
+	private String channeltypedf;
     /**
      * 优先级
      */
-	private Integer degreeHeat;
+	private Integer degreeheat;
     /**
      * 状态（0:下架,1:上架）
      */

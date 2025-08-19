@@ -2,7 +2,7 @@ package io.renren.modules.issues.service;
 
 import io.renren.common.service.CrudService;
 import io.renren.modules.issues.dto.IssuesDTO;
-import io.renren.modules.demo.entity.IssuesEntity;
+import io.renren.modules.issues.entity.IssuesEntity;
 
 /**
  * 广告/图片管理表

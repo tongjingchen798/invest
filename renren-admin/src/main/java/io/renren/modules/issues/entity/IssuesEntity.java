@@ -1,8 +1,10 @@
 package io.renren.modules.issues.entity;
 
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -13,11 +15,13 @@ import java.util.Date;
  */
 @Data
 @TableName("issues")
-public class IssuesEntity {
+public class IssuesEntity implements Serializable {
 
+    private static final long serialVersionUID = 1L;
     /**
      * 主键ID
      */
+    @TableId
 	private Long id;
     /**
      * 名称

@@ -33,7 +33,7 @@ import java.util.Map;
  * @since 1.0.0 2025-08-19
  */
 @RestController
-@RequestMapping("sys/commissionconfig")
+@RequestMapping("reward")
 @Api(tags="返佣比例配置表")
 public class CommissionConfigController {
     @Autowired

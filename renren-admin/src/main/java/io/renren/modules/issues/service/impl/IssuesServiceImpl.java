@@ -3,7 +3,7 @@ package io.renren.modules.issues.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.renren.common.service.impl.CrudServiceImpl;
 import io.renren.modules.issues.dao.IssuesDao;
-import io.renren.modules.demo.entity.IssuesEntity;
+import io.renren.modules.issues.entity.IssuesEntity;
 import io.renren.modules.issues.dto.IssuesDTO;
 import io.renren.modules.issues.service.IssuesService;
 import org.apache.commons.lang3.StringUtils;

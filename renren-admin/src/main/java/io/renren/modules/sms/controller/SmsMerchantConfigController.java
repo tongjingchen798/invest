@@ -47,7 +47,7 @@ public class SmsMerchantConfigController {
         @ApiImplicitParam(name = Constant.ORDER_FIELD, value = "排序字段", paramType = "query", dataType="String") ,
         @ApiImplicitParam(name = Constant.ORDER, value = "排序方式，可选值(asc、desc)", paramType = "query", dataType="String")
     })
-    @RequiresPermissions("sys:smsmerchantconfig:page")
+//    @RequiresPermissions("sys:smsmerchantconfig:page")
     public Result<PageData<SmsMerchantConfigDTO>> page(@ApiIgnore @RequestParam Map<String, Object> params){
         PageData<SmsMerchantConfigDTO> page = smsMerchantConfigService.page(params);
 
@@ -56,7 +56,7 @@ public class SmsMerchantConfigController {
 
     @GetMapping("{id}")
     @ApiOperation("信息")
-    @RequiresPermissions("sys:smsmerchantconfig:info")
+//    @RequiresPermissions("sys:smsmerchantconfig:info")
     public Result<SmsMerchantConfigDTO> get(@PathVariable("id") Long id){
         SmsMerchantConfigDTO data = smsMerchantConfigService.get(id);
 
@@ -66,7 +66,7 @@ public class SmsMerchantConfigController {
     @PostMapping
     @ApiOperation("保存")
     @LogOperation("保存")
-    @RequiresPermissions("sys:smsmerchantconfig:save")
+//    @RequiresPermissions("sys:smsmerchantconfig:save")
     public Result save(@RequestBody SmsMerchantConfigDTO dto){
         //效验数据
         ValidatorUtils.validateEntity(dto, AddGroup.class, DefaultGroup.class);
@@ -79,7 +79,7 @@ public class SmsMerchantConfigController {
     @PutMapping
     @ApiOperation("修改")
     @LogOperation("修改")
-    @RequiresPermissions("sys:smsmerchantconfig:update")
+//    @RequiresPermissions("sys:smsmerchantconfig:update")
     public Result update(@RequestBody SmsMerchantConfigDTO dto){
         //效验数据
         ValidatorUtils.validateEntity(dto, UpdateGroup.class, DefaultGroup.class);
@@ -92,7 +92,7 @@ public class SmsMerchantConfigController {
     @DeleteMapping
     @ApiOperation("删除")
     @LogOperation("删除")
-    @RequiresPermissions("sys:smsmerchantconfig:delete")
+//    @RequiresPermissions("sys:smsmerchantconfig:delete")
     public Result delete(@RequestBody Long[] ids){
         //效验数据
         AssertUtils.isArrayEmpty(ids, "id");

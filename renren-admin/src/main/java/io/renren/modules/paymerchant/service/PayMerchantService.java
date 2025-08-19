@@ -1,8 +1,8 @@
-package io.renren.modules.sys.service;
+package io.renren.modules.paymerchant.service;
 
 import io.renren.common.service.CrudService;
-import io.renren.modules.sys.dto.PayMerchantDTO;
-import io.renren.modules.sys.entity.PayMerchantEntity;
+import io.renren.modules.paymerchant.dto.PayMerchantDTO;
+import io.renren.modules.paymerchant.entity.PayMerchantEntity;
 
 /**
  * 支付商户配置表

@@ -1,7 +1,7 @@
-package io.renren.modules.sys.dao;
+package io.renren.modules.paymerchant.dao;
 
 import io.renren.common.dao.BaseDao;
-import io.renren.modules.sys.entity.PayMerchantEntity;
+import io.renren.modules.paymerchant.entity.PayMerchantEntity;
 import org.apache.ibatis.annotations.Mapper;
 
 /**

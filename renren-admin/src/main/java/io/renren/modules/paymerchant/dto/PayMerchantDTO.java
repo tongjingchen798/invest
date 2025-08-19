@@ -1,4 +1,4 @@
-package io.renren.modules.sys.dto;
+package io.renren.modules.paymerchant.dto;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -24,16 +24,16 @@ public class PayMerchantDTO implements Serializable {
 	private Long id;
 
 	@ApiModelProperty(value = "商户ID")
-	private String merchantId;
+	private String merchantid;
 
 	@ApiModelProperty(value = "商户号")
-	private String merchantNo;
+	private String merchantno;
 
 	@ApiModelProperty(value = "商户名")
-	private String merchantName;
+	private String merchantname;
 
 	@ApiModelProperty(value = "密钥")
-	private String channelKey;
+	private String channelkey;
 
 	@ApiModelProperty(value = "密码")
 	private String password;
@@ -48,16 +48,16 @@ public class PayMerchantDTO implements Serializable {
 	private BigDecimal oneFree;
 
 	@ApiModelProperty(value = "后台管理地址")
-	private String houtaiUrl;
+	private String houtaiurl;
 
 	@ApiModelProperty(value = "代收-通道代码")
-	private String channelTypeDs;
+	private String channeltypeds;
 
 	@ApiModelProperty(value = "代付-通道代码")
-	private String channelTypeDf;
+	private String channeltypedf;
 
 	@ApiModelProperty(value = "优先级")
-	private Integer degreeHeat;
+	private Integer degreeheat;
 
 	@ApiModelProperty(value = "状态（0:下架,1:上架）")
 	private Integer status;

@@ -1,5 +1,6 @@
 package io.renren.modules.note.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.renren.common.annotation.LogOperation;
 import io.renren.common.constant.Constant;
 import io.renren.common.page.PageData;
@@ -10,7 +11,9 @@ import io.renren.common.validator.ValidatorUtils;
 import io.renren.common.validator.group.AddGroup;
 import io.renren.common.validator.group.DefaultGroup;
 import io.renren.common.validator.group.UpdateGroup;
+import io.renren.modules.note.dao.NoteDao;
 import io.renren.modules.note.dto.NoteDTO;
+import io.renren.modules.note.entity.NoteEntity;
 import io.renren.modules.note.service.NoteService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -33,35 +36,24 @@ import java.util.Map;
  * @since 1.0.0 2025-08-19
  */
 @RestController
-@RequestMapping("sys/note")
-@Api(tags="公告表")
+@RequestMapping("note")
+@Api(tags="公告管理")
 public class NoteController {
+    @Autowired
+    private NoteDao noteDao;
+
     @Autowired
     private NoteService noteService;
 
-    @GetMapping("page")
-    @ApiOperation("分页")
-    @ApiImplicitParams({
-        @ApiImplicitParam(name = Constant.PAGE, value = "当前页码，从1开始", paramType = "query", required = true, dataType="int") ,
-        @ApiImplicitParam(name = Constant.LIMIT, value = "每页显示记录数", paramType = "query",required = true, dataType="int") ,
-        @ApiImplicitParam(name = Constant.ORDER_FIELD, value = "排序字段", paramType = "query", dataType="String") ,
-        @ApiImplicitParam(name = Constant.ORDER, value = "排序方式，可选值(asc、desc)", paramType = "query", dataType="String")
-    })
+    @GetMapping("list")
 //    @RequiresPermissions("sys:note:page")
-    public Result<PageData<NoteDTO>> page(@ApiIgnore @RequestParam Map<String, Object> params){
-        PageData<NoteDTO> page = noteService.page(params);
-
-        return new Result<PageData<NoteDTO>>().ok(page);
+    public Result<List<NoteEntity>> page(){
+        QueryWrapper<NoteEntity> queryWrapper = new QueryWrapper<>();
+        queryWrapper.orderByDesc("create_date");
+        List<NoteEntity> list=noteDao.selectList(queryWrapper);
+        return new Result().ok(list);
     }
 
-    @GetMapping("{id}")
-    @ApiOperation("信息")
-//    @RequiresPermissions("sys:note:info")
-    public Result<NoteDTO> get(@PathVariable("id") Long id){
-        NoteDTO data = noteService.get(id);
-
-        return new Result<NoteDTO>().ok(data);
-    }
 
     @PostMapping
     @ApiOperation("保存")

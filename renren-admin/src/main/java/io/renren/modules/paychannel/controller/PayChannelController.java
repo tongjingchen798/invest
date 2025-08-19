@@ -1,4 +1,4 @@
-package io.renren.modules.sys.controller;
+package io.renren.modules.paychannel.controller;
 
 import io.renren.common.annotation.LogOperation;
 import io.renren.common.constant.Constant;
@@ -10,8 +10,8 @@ import io.renren.common.validator.ValidatorUtils;
 import io.renren.common.validator.group.AddGroup;
 import io.renren.common.validator.group.DefaultGroup;
 import io.renren.common.validator.group.UpdateGroup;
-import io.renren.modules.sys.dto.PayMerchantDTO;
-import io.renren.modules.sys.service.PayMerchantService;
+import io.renren.modules.paychannel.dto.PayChannelDTO;
+import io.renren.modules.paychannel.service.PayChannelService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -27,51 +27,53 @@ import java.util.Map;
 
 
 /**
- * 支付商户配置表
+ * 支付渠道表
  *
  * @author Mark sunlightcs@gmail.com
  * @since 1.0.0 2025-08-19
  */
 @RestController
-@RequestMapping("demo/paymerchant")
-@Api(tags="支付商户配置表")
-public class PayMerchantController {
+@RequestMapping("paychannel")
+@Api(tags="支付渠道表")
+public class PayChannelController {
     @Autowired
-    private PayMerchantService payMerchantService;
+    private PayChannelService payChannelService;
 
     @GetMapping("page")
-    @ApiOperation("分页")
+    @ApiOperation("支付渠道分页")
     @ApiImplicitParams({
         @ApiImplicitParam(name = Constant.PAGE, value = "当前页码，从1开始", paramType = "query", required = true, dataType="int") ,
         @ApiImplicitParam(name = Constant.LIMIT, value = "每页显示记录数", paramType = "query",required = true, dataType="int") ,
         @ApiImplicitParam(name = Constant.ORDER_FIELD, value = "排序字段", paramType = "query", dataType="String") ,
+        @ApiImplicitParam(name = "chargeorwithdraw", value = "类型(1充值配置2提现配置)", paramType = "query", dataType="int") ,
         @ApiImplicitParam(name = Constant.ORDER, value = "排序方式，可选值(asc、desc)", paramType = "query", dataType="String")
     })
-    @RequiresPermissions("demo:paymerchant:page")
-    public Result<PageData<PayMerchantDTO>> page(@ApiIgnore @RequestParam Map<String, Object> params){
-        PageData<PayMerchantDTO> page = payMerchantService.page(params);
+//    @RequiresPermissions("sys:paychannel:page")
+    public Result<PageData<PayChannelDTO>> page(@ApiIgnore @RequestParam Map<String, Object> params){
 
-        return new Result<PageData<PayMerchantDTO>>().ok(page);
+        PageData<PayChannelDTO> page = payChannelService.page(params);
+
+        return new Result<PageData<PayChannelDTO>>().ok(page);
     }
 
     @GetMapping("{id}")
     @ApiOperation("信息")
-    @RequiresPermissions("demo:paymerchant:info")
-    public Result<PayMerchantDTO> get(@PathVariable("id") Long id){
-        PayMerchantDTO data = payMerchantService.get(id);
+//    @RequiresPermissions("sys:paychannel:info")
+    public Result<PayChannelDTO> get(@PathVariable("id") Long id){
+        PayChannelDTO data = payChannelService.get(id);
 
-        return new Result<PayMerchantDTO>().ok(data);
+        return new Result<PayChannelDTO>().ok(data);
     }
 
     @PostMapping
     @ApiOperation("保存")
     @LogOperation("保存")
-    @RequiresPermissions("demo:paymerchant:save")
-    public Result save(@RequestBody PayMerchantDTO dto){
+//    @RequiresPermissions("sys:paychannel:save")
+    public Result save(@RequestBody PayChannelDTO dto){
         //效验数据
         ValidatorUtils.validateEntity(dto, AddGroup.class, DefaultGroup.class);
 
-        payMerchantService.save(dto);
+        payChannelService.save(dto);
 
         return new Result();
     }
@@ -79,12 +81,12 @@ public class PayMerchantController {
     @PutMapping
     @ApiOperation("修改")
     @LogOperation("修改")
-    @RequiresPermissions("demo:paymerchant:update")
-    public Result update(@RequestBody PayMerchantDTO dto){
+//    @RequiresPermissions("sys:paychannel:update")
+    public Result update(@RequestBody PayChannelDTO dto){
         //效验数据
         ValidatorUtils.validateEntity(dto, UpdateGroup.class, DefaultGroup.class);
 
-        payMerchantService.update(dto);
+        payChannelService.update(dto);
 
         return new Result();
     }
@@ -92,12 +94,12 @@ public class PayMerchantController {
     @DeleteMapping
     @ApiOperation("删除")
     @LogOperation("删除")
-    @RequiresPermissions("demo:paymerchant:delete")
+//    @RequiresPermissions("sys:paychannel:delete")
     public Result delete(@RequestBody Long[] ids){
         //效验数据
         AssertUtils.isArrayEmpty(ids, "id");
 
-        payMerchantService.delete(ids);
+        payChannelService.delete(ids);
 
         return new Result();
     }

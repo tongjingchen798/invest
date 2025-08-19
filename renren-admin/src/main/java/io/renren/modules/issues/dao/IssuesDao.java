@@ -1,7 +1,7 @@
 package io.renren.modules.issues.dao;
 
 import io.renren.common.dao.BaseDao;
-import io.renren.modules.demo.entity.IssuesEntity;
+import io.renren.modules.issues.entity.IssuesEntity;
 import org.apache.ibatis.annotations.Mapper;
 
 /**

@@ -1,16 +1,17 @@
-package io.renren.modules.issues.controller;
+package io.renren.modules.paymerchant.controller;
 
 import io.renren.common.annotation.LogOperation;
 import io.renren.common.constant.Constant;
 import io.renren.common.page.PageData;
+import io.renren.common.utils.ExcelUtils;
 import io.renren.common.utils.Result;
 import io.renren.common.validator.AssertUtils;
 import io.renren.common.validator.ValidatorUtils;
 import io.renren.common.validator.group.AddGroup;
 import io.renren.common.validator.group.DefaultGroup;
 import io.renren.common.validator.group.UpdateGroup;
-import io.renren.modules.issues.dto.IssuesDTO;
-import io.renren.modules.issues.service.IssuesService;
+import io.renren.modules.paymerchant.dto.PayMerchantDTO;
+import io.renren.modules.paymerchant.service.PayMerchantService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -20,21 +21,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 import java.util.Map;
 
 
 /**
- * 问题管理
+ * 支付商户配置表
  *
  * @author Mark sunlightcs@gmail.com
  * @since 1.0.0 2025-08-19
  */
 @RestController
-@RequestMapping("issues")
-@Api(tags="问题管理")
-public class IssuesController {
+@RequestMapping("paymerchant")
+@Api(tags="支付商户配置表")
+public class PayMerchantController {
     @Autowired
-    private IssuesService issuesService;
+    private PayMerchantService payMerchantService;
 
     @GetMapping("page")
     @ApiOperation("分页")
@@ -44,31 +47,31 @@ public class IssuesController {
         @ApiImplicitParam(name = Constant.ORDER_FIELD, value = "排序字段", paramType = "query", dataType="String") ,
         @ApiImplicitParam(name = Constant.ORDER, value = "排序方式，可选值(asc、desc)", paramType = "query", dataType="String")
     })
-//    @RequiresPermissions("demo:issues:page")
-    public Result<PageData<IssuesDTO>> page(@ApiIgnore @RequestParam Map<String, Object> params){
-        PageData<IssuesDTO> page = issuesService.page(params);
+//    @RequiresPermissions("sys:paymerchant:page")
+    public Result<PageData<PayMerchantDTO>> page(@ApiIgnore @RequestParam Map<String, Object> params){
+        PageData<PayMerchantDTO> page = payMerchantService.page(params);
 
-        return new Result<PageData<IssuesDTO>>().ok(page);
+        return new Result<PageData<PayMerchantDTO>>().ok(page);
     }
 
     @GetMapping("{id}")
     @ApiOperation("信息")
-//    @RequiresPermissions("demo:issues:info")
-    public Result<IssuesDTO> get(@PathVariable("id") Long id){
-        IssuesDTO data = issuesService.get(id);
+//    @RequiresPermissions("sys:paymerchant:info")
+    public Result<PayMerchantDTO> get(@PathVariable("id") Long id){
+        PayMerchantDTO data = payMerchantService.get(id);
 
-        return new Result<IssuesDTO>().ok(data);
+        return new Result<PayMerchantDTO>().ok(data);
     }
 
     @PostMapping
     @ApiOperation("保存")
     @LogOperation("保存")
-//    @RequiresPermissions("demo:issues:save")
-    public Result save(@RequestBody IssuesDTO dto){
+//    @RequiresPermissions("sys:paymerchant:save")
+    public Result save(@RequestBody PayMerchantDTO dto){
         //效验数据
         ValidatorUtils.validateEntity(dto, AddGroup.class, DefaultGroup.class);
 
-        issuesService.save(dto);
+        payMerchantService.save(dto);
 
         return new Result();
     }
@@ -76,12 +79,12 @@ public class IssuesController {
     @PutMapping
     @ApiOperation("修改")
     @LogOperation("修改")
-//    @RequiresPermissions("demo:issues:update")
-    public Result update(@RequestBody IssuesDTO dto){
+//    @RequiresPermissions("sys:paymerchant:update")
+    public Result update(@RequestBody PayMerchantDTO dto){
         //效验数据
         ValidatorUtils.validateEntity(dto, UpdateGroup.class, DefaultGroup.class);
 
-        issuesService.update(dto);
+        payMerchantService.update(dto);
 
         return new Result();
     }
@@ -89,14 +92,16 @@ public class IssuesController {
     @DeleteMapping
     @ApiOperation("删除")
     @LogOperation("删除")
-//    @RequiresPermissions("demo:issues:delete")
+//    @RequiresPermissions("sys:paymerchant:delete")
     public Result delete(@RequestBody Long[] ids){
         //效验数据
         AssertUtils.isArrayEmpty(ids, "id");
 
-        issuesService.delete(ids);
+        payMerchantService.delete(ids);
 
         return new Result();
     }
+
+
 
 }
