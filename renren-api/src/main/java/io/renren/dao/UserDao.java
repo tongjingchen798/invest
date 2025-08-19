@@ -101,7 +101,6 @@ public interface UserDao extends BaseDao<UserEntity> {
     @Update("UPDATE tb_user SET " +
             "today_profit = today_profit + #{amount}, " +
             "sy_sum = sy_sum + #{amount}, " +
-            "history_profit = history_profit + #{amount}, " +
             "history_commission = history_commission + #{amount}, " +
             "today_commission = today_commission + #{amount}, " +
             "tgrs = tgrs + 1, " +
