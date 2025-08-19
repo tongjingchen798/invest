@@ -213,14 +213,12 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, UserEntity> implem
 			if (user == null) {
 				return null;
 			}
-			
 			// 创建用户数据汇总DTO
 			UserDataSummaryDTO summaryDTO = new UserDataSummaryDTO();
 			
 			// 设置充值相关统计
 			summaryDTO.setChargeMoney(user.getChargeSum() != null ? user.getChargeSum() : 0L);
 			//TODO 充值记录里面拿
-//			summaryDTO.setChargeNum(user.getc() != null ? user.getRechargeCount() : 0L);
 			summaryDTO.setChargeNum(0L);
 			// 设置投资收益统计
 			summaryDTO.setInvestmentIncome(user.getHistoryProfit() != null ? user.getHistoryProfit() : 0L);

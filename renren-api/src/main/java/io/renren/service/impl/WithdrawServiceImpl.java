@@ -3,6 +3,7 @@ package io.renren.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.renren.common.exception.ErrorCode;
+import io.renren.common.exception.RenException;
 import io.renren.common.utils.Result;
 import io.renren.dao.UserDao;
 import io.renren.dao.WithdrawOrderDao;
@@ -150,7 +151,7 @@ public class WithdrawServiceImpl implements WithdrawService {
             // 查询用户信息
             UserEntity user = userDao.selectById(userId);
             if (user == null) {
-                throw new RuntimeException("用户不存在");
+                throw new RenException(30001);
             }
 
 //            // 验证支付密码
@@ -226,7 +227,7 @@ public class WithdrawServiceImpl implements WithdrawService {
         try {
             UserEntity user = userDao.selectById(userId);
             if (user == null) {
-                throw new RuntimeException("用户不存在");
+                throw new RenException(30001);
             }
 
 //            // 验证支付密码

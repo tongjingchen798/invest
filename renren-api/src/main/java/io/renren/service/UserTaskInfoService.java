@@ -18,9 +18,5 @@ public interface UserTaskInfoService {
      */
     UserTaskInfoDTO getUserTaskInfo(Long userId);
 
-    /**
-     * 获取当前登录用户的任务完成信息
-     * @return 用户任务信息
-     */
-    UserTaskInfoDTO getCurrentUserTaskInfo();
+
 }

@@ -16,9 +16,6 @@ import java.util.Date;
  */
 @Mapper
 public interface UserBalanceDetailDao extends BaseDao<UserBalanceDetailEntity> {
-    // 使用MyBatis-Plus的BaseMapper提供的基础CRUD方法
-    // 分页查询通过selectPage方法实现
-    
     /**
      * 查询用户今日收益金额
      * @param userId 用户ID

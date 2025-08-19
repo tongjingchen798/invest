@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -334,6 +335,12 @@ public class UserEntity implements Serializable {
 	private Long commissionBalance;
 
 	/**
+	 * 历史佣金总计
+	 */
+	@TableField("history_commission")
+	private Long historyCommission;
+
+	/**
 	 * 今日佣金
 	 */
 	@TableField("today_commission")
@@ -529,4 +536,7 @@ public class UserEntity implements Serializable {
 	 * VIP6状态
 	 */
 	private Long vip6state;
+
+	@ApiModelProperty(value = "总邀请收益(分)")
+	private Long inviteIncome;
 }

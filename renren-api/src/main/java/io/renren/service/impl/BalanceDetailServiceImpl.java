@@ -3,9 +3,11 @@ package io.renren.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.renren.dao.UserBalanceDetailDao;
+import io.renren.dao.UserDao;
 import io.renren.dto.BalanceDetailDTO;
 import io.renren.dto.BalanceDetailPageData;
 import io.renren.entity.UserBalanceDetailEntity;
+import io.renren.entity.UserEntity;
 import io.renren.enums.BusinessTypeEnum;
 import io.renren.service.BalanceDetailService;
 import org.springframework.beans.BeanUtils;
@@ -29,6 +31,8 @@ public class BalanceDetailServiceImpl implements BalanceDetailService {
 
     @Autowired
     private UserBalanceDetailDao userBalanceDetailDao;
+    @Autowired
+    private UserDao userDao;
 
     @Override
     public BalanceDetailPageData getBalanceDetailPageData(Long userId, Integer page, Integer limit) {
@@ -272,8 +276,11 @@ public class BalanceDetailServiceImpl implements BalanceDetailService {
      */
     private Long getUserCurrentAssets(Long userId) {
         try {
-            // 这里应该调用UserDao获取用户当前余额
-            // 暂时返回0，实际使用时需要注入UserDao
+            // 获取推荐人信息
+            UserEntity userEntity = userDao.selectById(userId);
+            if (userEntity == null) {
+                return userEntity.getAssets();
+            }
             return 0L;
         } catch (Exception e) {
             log.warn("获取用户当前余额失败，用户ID: {}", userId, e);

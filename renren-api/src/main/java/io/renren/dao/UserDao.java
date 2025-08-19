@@ -273,6 +273,7 @@ public interface UserDao extends BaseDao<UserEntity> {
     @Update("UPDATE tb_user SET " +
             "assets = assets + #{commissionAmount}, " +
             "commission_balance = commission_balance + #{commissionAmount}, " +
+            "history_commission = history_commission + #{commissionAmount}, " +
             "today_commission = today_commission + #{commissionAmount} " +
             "WHERE id = #{userId}")
     int updateCommissionFields(@Param("userId") Long userId, @Param("commissionAmount") long commissionAmount);

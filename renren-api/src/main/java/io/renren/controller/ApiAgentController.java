@@ -4,6 +4,7 @@ import io.renren.annotation.Login;
 import io.renren.annotation.LoginUser;
 import io.renren.common.utils.Result;
 import io.renren.dto.MyAgentDTO;
+import io.renren.dto.AgentCenterDTO;
 import io.renren.entity.UserEntity;
 import io.renren.service.AgentCommissionService;
 import io.swagger.annotations.Api;
@@ -31,25 +32,17 @@ public class ApiAgentController {
     @PostMapping("myAgent/{userId}")
     @ApiOperation("我的佣金")
     public Result<MyAgentDTO> getMyAgentCommission(
-            @ApiParam(value = "用户ID", required = true) @PathVariable Long userId,
+            @ApiParam(value = "用户ID") @PathVariable Long userId,
             @LoginUser UserEntity user) {
-        if (!user.getId().equals(userId)) {
-            return new Result<MyAgentDTO>().error("无权限查询其他用户的佣金信息");
-        }
-        MyAgentDTO commission = agentCommissionService.getMyAgentCommission(userId);
+        MyAgentDTO commission = agentCommissionService.getMyAgentCommission(user.getId());
         return new Result<MyAgentDTO>().ok(commission);
     }
 
     @Login
     @PostMapping("{userId}")
     @ApiOperation("代理中心")
-    public Result<MyAgentDTO> getAgentCenter(
-            @ApiParam(value = "用户ID", required = true) @PathVariable Long userId,
-            @LoginUser UserEntity user) {
-        if (!user.getId().equals(userId)) {
-            return new Result<MyAgentDTO>().error("无权限查询其他用户的佣金信息");
-        }
-        MyAgentDTO commission = agentCommissionService.getMyAgentCommission(userId);
-        return new Result<MyAgentDTO>().ok(commission);
+    public Result<AgentCenterDTO> getAgentCenter(@LoginUser UserEntity user) {
+        AgentCenterDTO agentCenter = agentCommissionService.getAgentCenterData(user.getId());
+        return new Result<AgentCenterDTO>().ok(agentCenter);
     }
 }

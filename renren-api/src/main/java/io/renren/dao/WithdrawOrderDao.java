@@ -5,6 +5,8 @@ import io.renren.entity.WithdrawOrderEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Date;
+
 /**
  * 提现订单DAO接口
  *
@@ -31,5 +33,12 @@ public interface WithdrawOrderDao extends BaseDao<WithdrawOrderEntity> {
      */
     Long selectPendingWithdrawAmountByUserId(@Param("userId") Long userId);
 
-
+    /**
+     * 查询用户指定日期的提现总额
+     *
+     * @param userId 用户ID
+     * @param date 指定日期
+     * @return 提现总额
+     */
+    Long selectWithdrawAmountByUserIdAndDate(@Param("userId") Long userId, @Param("date") Date date);
 }

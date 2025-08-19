@@ -60,4 +60,13 @@
         WHERE user_id = #{userId} AND state IN (0, 1)
     </select>
 
+    <!-- 查询用户指定日期的提现总额 -->
+    <select id="selectWithdrawAmountByUserIdAndDate" resultType="long">
+        SELECT COALESCE(SUM(inputamount), 0) 
+        FROM tb_withdraw_order 
+        WHERE user_id = #{userId} 
+        AND DATE(create_time) = DATE(#{date})
+        AND state IN (1, 2) <!-- 审核通过或已提现的状态 -->
+    </select>
+
 </mapper>

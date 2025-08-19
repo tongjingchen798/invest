@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.annotation.Resource;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,15 +40,12 @@ public class ApiAdvertisementController {
     })
     public Result<PageData<AdvertisementDTO>> page(@ApiIgnore @RequestParam Map<String, Object> params) {
         try {
-            // 确保分页参数存在
             if (!params.containsKey("page")) {
                 params.put("page", "1");
             }
             if (!params.containsKey("limit")) {
                 params.put("limit", "10");
             }
-            
-            // 调用服务层分页查询
             PageData<AdvertisementDTO> pageData = advertisementService.getPage(params);
             return new Result<PageData<AdvertisementDTO>>().ok(pageData);
         } catch (Exception e) {
@@ -57,37 +53,4 @@ public class ApiAdvertisementController {
         }
     }
 
-    // @GetMapping("listByType")
-    // @ApiOperation("根据类型查询广告列表")
-    // @ApiImplicitParam(name = "type", value = "广告类型 1=LOG,2=轮播图，3=个人中心 4=弹窗广告", paramType = "query", required = true, dataType = "int")
-    // public Result<List<AdvertisementDTO>> listByType(@RequestParam Integer type) {
-    //     try {
-    //         List<AdvertisementDTO> advertisements = advertisementService.getByType(type);
-    //         return new Result<List<AdvertisementDTO>>().ok(advertisements);
-    //     } catch (Exception e) {
-    //         return new Result<List<AdvertisementDTO>>().error("查询失败：" + e.getMessage());
-    //     }
-    // }
-
-    // @GetMapping("listEnabled")
-    // @ApiOperation("查询所有启用的广告")
-    // public Result<List<AdvertisementDTO>> listEnabled() {
-    //     try {
-    //         List<AdvertisementDTO> advertisements = advertisementService.getAllEnabled();
-    //         return new Result<List<AdvertisementDTO>>().ok(advertisements);
-    //     } catch (Exception e) {
-    //         return new Result<List<AdvertisementDTO>>().error("查询失败：" + e.getMessage());
-    //     }
-    // }
-
-    // @GetMapping("listEffective")
-    // @ApiOperation("查询当前生效的广告")
-    // public Result<List<AdvertisementDTO>> listEffective() {
-    //     try {
-    //         List<AdvertisementDTO> advertisements = advertisementService.getByEffectiveTime();
-    //         return new Result<List<AdvertisementDTO>>().ok(advertisements);
-    //     } catch (Exception e) {
-    //         return new Result<List<AdvertisementDTO>>().error("查询失败：" + e.getMessage());
-    //     }
-    // }
 }

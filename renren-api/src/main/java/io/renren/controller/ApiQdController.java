@@ -6,7 +6,6 @@ import io.renren.common.utils.Result;
 import io.renren.dao.*;
 import io.renren.dto.PageData;
 import io.renren.dto.SignInRecordDTO;
-import io.renren.dto.SignInRequestDTO;
 import io.renren.dto.UserQdDTO;
 import io.renren.entity.SignRewardConfigEntity;
 import io.renren.entity.UserEntity;

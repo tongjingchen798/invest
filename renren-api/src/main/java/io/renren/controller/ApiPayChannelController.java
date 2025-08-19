@@ -1,6 +1,5 @@
 package io.renren.controller;
 
-import io.renren.common.exception.RenException;
 import io.renren.common.utils.Result;
 import io.renren.dao.PayChannelDao;
 import io.renren.dto.PayChannelDTO;

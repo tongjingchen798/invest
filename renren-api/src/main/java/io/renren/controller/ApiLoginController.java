@@ -81,11 +81,11 @@ public class ApiLoginController {
 			// 表单校验
 			ValidatorUtils.validateEntity(dto);
 			
-			// 验证手机号格式（10位数字）
-			if (!dto.getMobile().matches("^\\d{10}$")) {
-				return new Result().error("手机号格式错误");
-			}
-			
+//			// 验证手机号格式（10位数字）
+//			if (!dto.getMobile().matches("^\\d{10}$")) {
+//				return new Result().error("手机号格式错误");
+//			}
+//
 			// 验证两次密码是否一致
 			if (!dto.getPassword().equals(dto.getPassword2())) {
 				return new Result().error("两次输入的密码不一致");

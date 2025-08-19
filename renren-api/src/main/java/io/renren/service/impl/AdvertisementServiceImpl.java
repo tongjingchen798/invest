@@ -99,11 +99,10 @@ public class AdvertisementServiceImpl extends ServiceImpl<AdvertisementDao, Adve
         if (orderFieldObj != null && StringUtils.isNotBlank(orderFieldObj.toString()) &&
             orderObj != null && StringUtils.isNotBlank(orderObj.toString())) {
             boolean isAsc = "asc".equalsIgnoreCase(orderObj.toString());
-            // 使用MyBatis-Plus的orderBy方法
             queryWrapper.orderBy(true, isAsc, orderFieldObj.toString());
         } else {
             // 默认按排序字段和创建时间排序
-            queryWrapper.orderByAsc("sort").orderByDesc("create_date");
+            queryWrapper.orderByAsc("sort");
         }
 
         return queryWrapper;

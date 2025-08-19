@@ -4,6 +4,7 @@ package io.renren.controller;
 
 import io.renren.annotation.Login;
 import io.renren.annotation.LoginUser;
+import io.renren.common.exception.RenException;
 import io.renren.common.utils.Result;
 import io.renren.dao.InvestmentRecordDao;
 import io.renren.dto.BalanceDTO;
@@ -33,7 +34,7 @@ public class ApiUserController {
         UserInfoDTO userInfo = userService.getUserInfoWithSuperior(user.getId());
         
         if (userInfo == null) {
-            return new Result<UserInfoDTO>().error("用户不存在");
+            throw new RenException(30001);
         }
         
         return new Result<UserInfoDTO>().ok(userInfo);
@@ -47,7 +48,7 @@ public class ApiUserController {
             UserEntity userBalance = userService.selectById(user.getId());
             
             if (userBalance == null) {
-                return new Result<BalanceDTO>().error("用户不存在");
+                throw new RenException(30001);
             }
             
             BalanceDTO balanceDTO = new BalanceDTO();
@@ -91,7 +92,7 @@ public class ApiUserController {
             // 正在提现 (使用今日提现)
             balanceDTO.setZztxAmount(userBalance.getTodayWithdraw() != null ? userBalance.getTodayWithdraw() : 0L);
             
-            // 转盘次数 (暂时设为0，如果表中有相关字段可以替换)
+            // 转盘次数 (暂时设为0)
             balanceDTO.setWheelTimes(0);
             
             // 更新日期 (使用最后登录时间)
@@ -103,82 +104,6 @@ public class ApiUserController {
             return new Result<BalanceDTO>().error("获取余额信息失败");
         }
     }
-
-    
-
-//
-//    @PostMapping("update")
-//    @ApiOperation("更新用户信息")
-//    public Result updateUserInfo(@LoginUser UserEntity user, @RequestBody UpdateUserDTO dto) {
-//        // 表单校验
-//        ValidatorUtils.validateEntity(dto);
-//
-//        // 更新用户信息
-//        if (dto.getUsername() != null) {
-//            user.setUsername(dto.getUsername());
-//        }
-//        if (dto.getInviteCode() != null) {
-//            user.setInviteCode(dto.getInviteCode());
-//        }
-//        if (dto.getAgent() != null) {
-//            user.setAgent(dto.getAgent());
-//        }
-//        if (dto.getChannel() != null) {
-//            user.setChannel(dto.getChannel());
-//        }
-//        if (dto.getEquipment() != null) {
-//            user.setEquipment(dto.getEquipment());
-//        }
-//
-//        userService.updateById(user);
-//        return new Result();
-//    }
-//
-//    @PostMapping("changePassword")
-//    @ApiOperation("修改密码")
-//    public Result changePassword(@LoginUser UserEntity user, @RequestBody ChangePasswordDTO dto) {
-//        // 表单校验
-//        ValidatorUtils.validateEntity(dto);
-//
-//        // 验证原密码
-//        if (!user.getPassword().equals(DigestUtils.sha256Hex(dto.getOldPassword()))) {
-//            return new Result().error("原密码不正确");
-//        }
-//
-//        // 验证新密码确认
-//        if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
-//            return new Result().error("两次输入的新密码不一致");
-//        }
-//
-//        // 更新密码
-//        user.setPassword(DigestUtils.sha256Hex(dto.getNewPassword()));
-//        userService.updateById(user);
-//
-//        return new Result();
-//    }
-//
-//    @PostMapping("changeTwoPassword")
-//    @ApiOperation("修改二级密码")
-//    public Result changeTwoPassword(@LoginUser UserEntity user, @RequestBody ChangeTwoPasswordDTO dto) {
-//        // 表单校验
-//        ValidatorUtils.validateEntity(dto);
-//
-//        // 验证原二级密码
-//        if (user.getTwoPwd() != null && !user.getTwoPwd().equals(DigestUtils.sha256Hex(dto.getOldTwoPassword()))) {
-//            return new Result().error("原二级密码不正确");
-//        }
-//
-//        // 验证新二级密码确认
-//        if (!dto.getNewTwoPassword().equals(dto.getConfirmTwoPassword())) {
-//            return new Result().error("两次输入的新二级密码不一致");
-//        }
-//
-//        // 更新二级密码
-//        user.setTwoPwd(DigestUtils.sha256Hex(dto.getNewTwoPassword()));
-//        userService.updateById(user);
-//
-//        return new Result();
-//    }
 
 
 }

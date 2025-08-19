@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import io.renren.annotation.Login;
 import io.renren.annotation.LoginUser;
 import io.renren.common.utils.Result;
-import io.renren.common.validator.ValidatorUtils;
 import io.renren.dto.ChargeOrderDetailDTO;
 import io.renren.dto.ChargePageData;
 import io.renren.dto.ChargeResponseDTO;

@@ -1,10 +1,4 @@
-/**
- * Copyright (c) 2018 人人开源 All rights reserved.
- *
- * https://www.renren.io
- *
- * 版权所有，侵权必究！
- */
+
 
 package io.renren.service.impl;
 
@@ -39,7 +33,6 @@ public class BankServiceImpl extends BaseServiceImpl<BankDao, BankEntity> implem
         // 构建查询条件
         QueryWrapper<BankEntity> queryWrapper = buildQueryWrapper(params);
         
-        // 使用 BaseServiceImpl 的标准分页处理
         IPage<BankEntity> pageResult = baseDao.selectPage(
             getPage(params, "create_time", false),
             queryWrapper
@@ -104,10 +97,6 @@ public class BankServiceImpl extends BaseServiceImpl<BankDao, BankEntity> implem
         if (StringUtils.isNotBlank(state)) {
             queryWrapper.eq("state", state);
         }
-        
-        // 默认按创建时间倒序排序
-        queryWrapper.orderByDesc(Constant.CREATE_DATE);
-
         return queryWrapper;
     }
 }

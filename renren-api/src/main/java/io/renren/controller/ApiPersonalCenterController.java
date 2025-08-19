@@ -4,12 +4,8 @@ package io.renren.controller;
 import io.renren.annotation.Login;
 import io.renren.annotation.LoginUser;
 import io.renren.common.constant.Constant;
-import io.renren.common.exception.ErrorCode;
-import io.renren.common.exception.RenException;
 import io.renren.common.utils.Result;
 import io.renren.dto.BalanceDTO;
-import io.renren.dto.TransactionDetailDTO;
-import io.renren.dto.TransactionDetailPageData;
 import io.renren.dto.ProfitDTO;
 import io.renren.dto.ProfitPageData;
 import io.renren.dto.UserDataSummaryDTO;
@@ -67,9 +63,7 @@ public class ApiPersonalCenterController {
     @Autowired
     private ProfitEndedService profitEndedService;
 
-    @Autowired
-    private UserDao userDao;
-    
+
     @Autowired
     private InvestmentRecordDao investmentRecordDao;
     
@@ -256,11 +250,6 @@ public class ApiPersonalCenterController {
             if (limit == null || limit < 1 || limit > 100) {
                 return new Result<MyInvestmentPageData<MyInvestmentDTO>>().error("每页记录数必须在1-100之间");
             }
-//            if (status == null || (status != 0 && status != 1)) {
-//                return new Result<MyInvestmentPageData<MyInvestmentDTO>>().error("状态参数无效，只能是0(正在生产)或1(生产结束)");
-//            }
-
-            // 直接使用MyBatis-Plus分页，无需构建Map
             MyInvestmentPageData<MyInvestmentDTO> pageData = myInvestmentService.queryPageData(
                 user.getId(), page, limit, status, order, orderField);
             

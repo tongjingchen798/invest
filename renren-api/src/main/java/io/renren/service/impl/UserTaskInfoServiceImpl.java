@@ -85,23 +85,8 @@ public class UserTaskInfoServiceImpl implements UserTaskInfoService {
 
         } catch (Exception e) {
             log.error("获取用户任务信息失败，用户ID: {}", userId, e);
-            // 发生异常时返回默认值
             return new UserTaskInfoDTO();
         }
     }
 
-    @Override
-    public UserTaskInfoDTO getCurrentUserTaskInfo() {
-        try {
-            // 这里需要根据实际的用户认证机制来获取当前用户ID
-            // 暂时返回默认值，实际使用时需要集成认证系统
-            
-            log.info("获取当前用户任务信息，暂未实现用户认证");
-            return new UserTaskInfoDTO();
-            
-        } catch (Exception e) {
-            log.error("获取当前用户任务信息失败", e);
-            return new UserTaskInfoDTO();
-        }
-    }
 }

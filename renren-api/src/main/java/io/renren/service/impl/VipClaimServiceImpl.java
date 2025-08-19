@@ -1,9 +1,13 @@
 package io.renren.service.impl;
 
+import io.renren.common.exception.RenException;
+import io.renren.dao.UserDao;
 import io.renren.dto.VipClaimStatusDTO;
+import io.renren.entity.UserEntity;
 import io.renren.service.VipClaimService;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -22,31 +26,28 @@ public class VipClaimServiceImpl implements VipClaimService {
 	private static final AtomicInteger systemPayCount = new AtomicInteger(0);
 	private static final AtomicLong systemPaySumAmount = new AtomicLong(0);
 	private static final AtomicInteger systemVipCont = new AtomicInteger(0);
+
+	@Resource
+	private UserDao userDao;
 	
 	@Override
 	public VipClaimStatusDTO getUserVipClaimStatus(Long userId) {
 		VipClaimStatusDTO status = new VipClaimStatusDTO();
 		
 		try {
-			// TODO: 实际项目中应该从数据库查询用户信息
-			// 这里使用模拟数据
+			UserEntity user = userDao.selectById(userId);
+			if (user == null) {
+				throw new RenException(30001);
+			}
 			
 			// 设置系统统计信息
 			status.setPaycount(systemPayCount.get());
 			status.setPaysumamount(systemPaySumAmount.get());
 			status.setVipcont(systemVipCont.get());
-			
-			// 模拟用户VIP等级（实际应该从数据库查询）
-			int userVipLevel = calculateUserVipLevel(userId);
-			status.setVip(userVipLevel);
-			
-			// 模拟SVIP等级（实际应该从数据库查询）
-			int userSvipLevel = Math.max(0, userVipLevel - 3); // 简单的SVIP计算逻辑
-			status.setViplr(userSvipLevel);
-			
-			// 设置各VIP等级的领取状态
+			status.setVip(user.getVip());
+//			status.setViplr();
 			// 0=不可领取，1=可领取，2=已领取
-			setVipLevelStates(status, userVipLevel);
+			setVipLevelStates(status, user.getVip());
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -60,12 +61,7 @@ public class VipClaimServiceImpl implements VipClaimService {
 	@Override
 	public boolean canClaimVipLevel(Long userId, Integer vipLevel) {
 		try {
-			// TODO: 实际项目中应该检查用户是否满足领取条件
-			// 例如：投资金额、投资次数、注册时间等
-			
-			// 模拟逻辑：检查用户当前VIP等级
 			int currentVip = calculateUserVipLevel(userId);
-			
 			// 只能领取比当前等级高的VIP
 			return vipLevel > currentVip;
 			
@@ -82,10 +78,6 @@ public class VipClaimServiceImpl implements VipClaimService {
 			if (!canClaimVipLevel(userId, vipLevel)) {
 				return false;
 			}
-			
-			// TODO: 实际项目中应该更新数据库中的用户VIP等级
-			// 这里只是模拟成功
-			
 			// 更新系统统计
 			if (vipLevel >= 3) {
 				systemVipCont.incrementAndGet();

@@ -1,23 +1,13 @@
 package io.renren.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.renren.dao.InvestmentRecordDao;
-import io.renren.dao.ProjectDao;
 import io.renren.dao.UserBalanceDetailDao;
 import io.renren.dto.ProfitEndedDTO;
-import io.renren.entity.InvestmentRecordEntity;
-import io.renren.entity.ProjectEntity;
-import io.renren.entity.UserBalanceDetailEntity;
-import io.renren.enums.BusinessTypeEnum;
 import io.renren.service.ProfitEndedService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,8 +23,6 @@ public class ProfitEndedServiceImpl implements ProfitEndedService {
     @Autowired
     private InvestmentRecordDao investmentRecordDao;
 
-    @Autowired
-    private ProjectDao projectDao;
 
     @Autowired
     private UserBalanceDetailDao userBalanceDetailDao;

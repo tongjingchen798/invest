@@ -25,7 +25,6 @@ public class CustomerServiceServiceImpl implements CustomerServiceService {
 
     @Override
     public List<CustomerServiceDTO> getAllCustomerServices() {
-        // 创建查询条件：type=2（代理）且status=1（正常）
         QueryWrapper<SysUserEntity> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("type", 2)  // 类型为代理
                    .eq("status", 1); // 状态为正常

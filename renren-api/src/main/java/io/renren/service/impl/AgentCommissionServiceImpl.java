@@ -1,6 +1,9 @@
 package io.renren.service.impl;
 
+import io.renren.common.exception.RenException;
 import io.renren.dao.UserDao;
+import io.renren.dao.WithdrawOrderDao;
+import io.renren.dto.AgentCenterDTO;
 import io.renren.dto.AgentMemberDTO;
 import io.renren.dto.MyAgentDTO;
 import io.renren.entity.UserEntity;
@@ -8,7 +11,10 @@ import io.renren.service.AgentCommissionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -24,13 +30,16 @@ public class AgentCommissionServiceImpl implements AgentCommissionService {
     @Autowired
     private UserDao userDao;
 
+    @Autowired
+    private WithdrawOrderDao withdrawOrderDao;
+
     @Override
     public MyAgentDTO getMyAgentCommission(Long userId) {
         try {
             // 获取当前用户信息
             UserEntity currentUser = userDao.selectById(userId);
             if (currentUser == null) {
-                throw new RuntimeException("用户不存在");
+                throw new RenException(30001);
             }
 
             MyAgentDTO myAgent = new MyAgentDTO();
@@ -171,6 +180,104 @@ public class AgentCommissionServiceImpl implements AgentCommissionService {
             // 如果计算失败，设置为0
             myAgent.setEffectiveList1(0L);
             myAgent.setEffectiveList2(0L);
+        }
+    }
+
+
+
+    @Override
+    public AgentCenterDTO getAgentCenterData(Long userId) {
+        try {
+            // 获取当前用户信息
+            UserEntity currentUser = userDao.selectById(userId);
+            if (currentUser == null) {
+                throw new RenException(30001);
+            }
+
+            AgentCenterDTO agentCenter = new AgentCenterDTO();
+
+            // 获取一级会员列表（包含下级）
+            List<AgentMemberDTO> level1Members = getLevel1Members(currentUser.getInviteCode());
+
+            // 计算佣金汇总
+            long list1Amt = 0;
+            long list2Amt = 0;
+
+            // 计算一级佣金
+            if (level1Members != null) {
+                for (AgentMemberDTO member : level1Members) {
+                    if (member.getHirstory_tz() != null) {
+                        try {
+                            long investment = Long.parseLong(member.getHirstory_tz());
+                            list1Amt += investment * 0.07; // 一级佣金比例7%
+                        } catch (NumberFormatException e) {
+                            // 如果转换失败，跳过
+                        }
+                    }
+                }
+            }
+
+            // 计算二级佣金（从一级会员的下级计算）
+            if (level1Members != null) {
+                for (AgentMemberDTO level1Member : level1Members) {
+                    if (level1Member.getXj() != null) {
+                        for (AgentMemberDTO level2Member : level1Member.getXj()) {
+                            if (level2Member.getHirstory_tz() != null) {
+                                try {
+                                    long investment = Long.parseLong(level2Member.getHirstory_tz());
+                                    list2Amt += investment * 0.03; // 二级佣金比例3%
+                                } catch (NumberFormatException e) {
+                                    // 如果转换失败，跳过
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 计算有效会员数
+            long effectiveList1 = level1Members != null ? level1Members.size() : 0;
+            long effectiveList2 = 0;
+            if (level1Members != null) {
+                for (AgentMemberDTO level1Member : level1Members) {
+                    if (level1Member.getXj() != null) {
+                        effectiveList2 += level1Member.getXj().size();
+                    }
+                }
+            }
+            agentCenter.setHirstory_amt(String.valueOf(currentUser.getHistoryCommission()));
+            // 代理提现总额
+            agentCenter.setWithdraw_amt(String.valueOf(currentUser.getWithdrawSum() != null ? currentUser.getWithdrawSum() : 0L));
+            
+            // 昨日提现总额（查询昨日数据）
+            LocalDate yesterday = LocalDate.now().minusDays(1);
+            Date yesterdayDate = Date.from(yesterday.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            Long yesterdayWithdraw = withdrawOrderDao.selectWithdrawAmountByUserIdAndDate(userId, yesterdayDate);
+            agentCenter.setYt_withdraw_amt(String.valueOf(yesterdayWithdraw != null ? yesterdayWithdraw : 0L));
+            
+            // 今日佣金总额
+            agentCenter.setToday_amt(String.valueOf(currentUser.getTodayCommission() != null ? currentUser.getTodayCommission() : 0L));
+            
+            // 历史工资总额（历史收益）
+            agentCenter.setHirstory_gzamt(String.valueOf(currentUser.getHistoryProfit() != null ? currentUser.getHistoryProfit() : 0L));
+            
+            // 今日工资总额（今日收益）
+            agentCenter.setToday_gzamt(String.valueOf(currentUser.getTodayProfit() != null ? currentUser.getTodayProfit() : 0L));
+            
+            // 佣金相关数据
+            agentCenter.setList1_amt(String.valueOf(list1Amt)); // 1级佣金
+            agentCenter.setList2_amt(String.valueOf(list2Amt)); // 2级佣金
+            
+            // 有效会员数
+            agentCenter.setEffectiveList2Month(String.valueOf(effectiveList2)); // 2级有效人数本月
+            agentCenter.setEffectiveList1(String.valueOf(effectiveList1)); // 1级有效人数
+            agentCenter.setEffectiveList1Month(String.valueOf(effectiveList1)); // 1级有效人数本月
+            agentCenter.setEffectiveList2(String.valueOf(effectiveList2)); // 2级有效人数
+
+            return agentCenter;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("获取代理中心数据失败: " + e.getMessage());
         }
     }
 }

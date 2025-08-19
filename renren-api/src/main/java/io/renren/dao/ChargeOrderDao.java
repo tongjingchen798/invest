@@ -60,6 +60,4 @@ public interface ChargeOrderDao extends BaseDao<ChargeOrderEntity> {
      */
     Long selectTotalAmountByUserId(@Param("userId") Long userId);
 
-    // 使用MyBatis-Plus的BaseMapper提供的基础CRUD方法
-    // 分页查询通过selectPage方法实现
 }

@@ -1,10 +1,3 @@
-/**
- * Copyright (c) 2018 人人开源 All rights reserved.
- *
- * https://www.renren.io
- *
- * 版权所有，侵权必究！
- */
 
 package io.renren.service.impl;
 
@@ -39,7 +32,6 @@ public class ProfitServiceImpl extends BaseServiceImpl<ProfitDao, ProfitEntity> 
         // 构建查询条件
         QueryWrapper<ProfitEntity> queryWrapper = buildQueryWrapper(params);
         
-        // 使用 BaseServiceImpl 的标准分页处理
         IPage<ProfitEntity> pageResult = baseDao.selectPage(
             getPage(params, "create_time", false),
             queryWrapper
@@ -97,7 +89,7 @@ public class ProfitServiceImpl extends BaseServiceImpl<ProfitDao, ProfitEntity> 
         }
         
         // 默认按创建时间倒序排序
-        queryWrapper.orderByDesc(Constant.CREATE_DATE);
+        queryWrapper.orderByDesc("create_time");
 
         return queryWrapper;
     }
