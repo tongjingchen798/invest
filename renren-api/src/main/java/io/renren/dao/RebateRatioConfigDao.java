@@ -5,7 +5,7 @@ import io.renren.entity.RebateRatioConfigEntity;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
- * 返佣比例配置表
+ * 返佣比例配置表(后面删除)
  *
  * @author renren
  * @since 2024-01-01
