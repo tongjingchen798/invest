@@ -20,6 +20,8 @@ import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Random;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 充值订单接口
@@ -128,7 +130,7 @@ public class ApiChargeController {
 
     @Login
     @GetMapping("page")
-    @ApiOperation("资金明细分页查询")
+    @ApiOperation("充值记录分页查询")
     public Result<ChargePageData> getChargePage(
             @ApiParam(value = "当前页码，从1开始", required = true) @RequestParam Integer page,
             @ApiParam(value = "每页显示记录数", required = true) @RequestParam Integer limit,

@@ -16,12 +16,12 @@ import java.util.Map;
  * @date 2024-01-01 00:00:00
  */
 @Data
-@ApiModel(value = "充值分页数据")
+@ApiModel(value = "分页数据«用户充值信息»")
 public class ChargePageData implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "列表数据")
-    private List<ChargeOrderDetailDTO> list;
+    private List<UserChargeInfoDTO> list;
 
     @ApiModelProperty(value = "汇总")
     private Map<String, Object> sum;
