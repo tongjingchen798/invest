@@ -79,7 +79,7 @@ public class BalanceDetailServiceImpl implements BalanceDetailService {
             // 构建查询条件
             QueryWrapper<UserBalanceDetailEntity> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("user_id", userId)
-                    .in("busi_type", Arrays.asList( 3, 30,22))
+                    .in("busi_type", Arrays.asList( 3, 30,22,14))
                     .orderByDesc("transaction_date");
 
             // 执行分页查询

@@ -255,11 +255,11 @@ public class AgentCommissionServiceImpl implements AgentCommissionService {
             // 今日佣金总额
             agentCenter.setToday_amt(String.valueOf(currentUser.getTodayCommission() != null ? currentUser.getTodayCommission() : 0L));
             
-            // 历史工资总额（历史收益）
+            // 历史工资总额
             agentCenter.setHirstory_gzamt("0");
             
-            // 今日工资总额（今日收益）
-            agentCenter.setToday_gzamt(String.valueOf(currentUser.getTodayProfit() != null ? currentUser.getTodayProfit() : 0L));
+            // 今日工资总额
+            agentCenter.setToday_gzamt("0");
             
             // 佣金相关数据
             agentCenter.setList1_amt(String.valueOf(list1Amt)); // 1级佣金
