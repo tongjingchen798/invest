@@ -172,9 +172,9 @@ public class OrderServiceImpl implements OrderService {
 					UserEntity twoLevelReferrer = userDao.selectByInviteCode(firstLevelReferrer.getUpinviteCode());
 					if (twoLevelReferrer != null) {
 						// 计算2级佣金
-						Long twoLevelCommission = calculateCommission(investmentAmountTotal, commissionConfig.getFirstLevelRateDecimal());
+						Long twoLevelCommission = calculateCommission(investmentAmountTotal, commissionConfig.getSecondLevelRateDecimal());
 						//更新上级余额 累加相关字段 记录账变
-						userDao.updateCommissionFields(firstLevelReferrer.getId(), twoLevelCommission);
+						userDao.updateCommissionFields(twoLevelReferrer.getId(), twoLevelCommission);
 						log.debug("用户佣金更新成功，用户ID: {}, 二级佣金金额: {}", userId, twoLevelCommission);
 						//记录2级佣金流水
 						UserBalanceDetailEntity detail1 = new UserBalanceDetailEntity();

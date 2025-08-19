@@ -120,7 +120,7 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
             // 构建查询条件
             QueryWrapper<ChargeOrderEntity> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("user_id", userId)
-                       .orderByDesc("create_time", "id");
+                       .orderByDesc("create_time");
             
             // 执行分页查询
             Page<ChargeOrderEntity> result = chargeOrderDao.selectPage(pageParam, queryWrapper);
