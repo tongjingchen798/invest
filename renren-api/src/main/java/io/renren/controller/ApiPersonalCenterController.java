@@ -4,6 +4,8 @@ package io.renren.controller;
 import io.renren.annotation.Login;
 import io.renren.annotation.LoginUser;
 import io.renren.common.constant.Constant;
+import io.renren.common.exception.ErrorCode;
+import io.renren.common.exception.RenException;
 import io.renren.common.utils.Result;
 import io.renren.dto.BalanceDTO;
 import io.renren.dto.TransactionDetailDTO;
@@ -106,19 +108,6 @@ public class ApiPersonalCenterController {
         return new Result<BalanceDetailPageData>().ok(pageData);
     }
 
-//    @Login
-//    @GetMapping("balanceDetail")
-//    @ApiOperation("资金明细")
-//    public Result<TransactionDetailPageData<TransactionDetailDTO>> getBalanceDetail(
-//            @ApiParam(value = "每页显示记录数", required = true) @RequestParam(Constant.LIMIT) Integer limit,
-//            @ApiParam(value = "当前页码，从1开始", required = true) @RequestParam(Constant.PAGE) Integer page,
-//            @LoginUser UserEntity user) {
-//
-//        // 直接使用MyBatis-Plus分页，无需构建Map
-//        TransactionDetailPageData<TransactionDetailDTO> pageData = transactionDetailService.queryPageData(user.getId(), page, limit);
-//
-//        return new Result<TransactionDetailPageData<TransactionDetailDTO>>().ok(pageData);
-//    }
 
     @Login
     @GetMapping("balance")
@@ -131,8 +120,7 @@ public class ApiPersonalCenterController {
             balanceDTO.setUserId(user.getId());
             balanceDTO.setAssets(user.getAssets() != null ? user.getAssets() : 0L);           // 可用余额
             Long dsAmount = investmentRecordDao.selectPendingInterestByUserId(user.getId());         // 待收利息
-            Long balance=balanceDTO.getAssets()+user.getCashwithdrawable()+dsAmount;
-            balanceDTO.setBalance(balance);
+
             balanceDTO.setCashwithdrawable(user.getCashwithdrawable() != null ? user.getCashwithdrawable() : 0L); // 可提现
             balanceDTO.setCumulative(user.getHistoryProfit() != null ? user.getHistoryProfit() : 0L);       // 累计收益
             balanceDTO.setCzAmount(user.getChargeSum() != null ? user.getChargeSum() : 0L);         // 累计充值
@@ -157,7 +145,8 @@ public class ApiPersonalCenterController {
             
             balanceDTO.setWheelTimes(0);        // 转盘次数 - 需要从转盘记录表查询
             balanceDTO.setUpdateDate(new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date()));
-            
+            Long balance=balanceDTO.getAssets()+dsAmount;
+            balanceDTO.setBalance(balance);
             return new Result<BalanceDTO>().ok(balanceDTO);
             
         } catch (Exception e) {
