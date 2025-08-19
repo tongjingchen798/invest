@@ -220,16 +220,15 @@ public class ApiQdController {
                 userSignStatisticsDao.updateById(statistics);
             }
             
-//            // 构建返回数据
-//            Map<String, Object> data = new HashMap<>();
-//            data.put("userId", user.getId());
-//            data.put("signDate", today.toString());
-//            data.put("continuousDays", newContinuousDays);
-//            data.put("rewardAmount", rewardAmount);
-//            data.put("rewardType", rewardType);
-//            data.put("message", "签到成功！获得奖励" + rewardAmount + "分");
+            // 构建返回数据
+            Map<String, Object> data = new HashMap<>();
+            data.put("qdamount", String.valueOf(rewardAmount)); // 签到奖励金额
+            data.put("qdtype", rewardType); // 签到奖励类型
+            data.put("qdamountjc", rewardAmount);
+            data.put("vip", 0); // VIP等级（固定为0）
+            data.put("day", String.valueOf(newContinuousDays)); // 连续签到天数
 
-            return new Result();
+            return new Result<Map<String, Object>>().ok(data);
             
         } catch (Exception e) {
             return new Result().error("签到失败: " + e.getMessage());

@@ -695,8 +695,8 @@ public class UserInvestmentProfitSchedule {
         log.debug("记录投资项目 {} 的投资收益账变，金额：{}", record.getOrderId(), profitAmount);
         
         try {
-            // 金额：收益金额（转换为分）
-            Long profitAmountInCents = profitAmount.multiply(new BigDecimal("100")).longValue();
+            // 金额：收益金额
+            Long profitAmountInCents = profitAmount.longValue();
 
             // 记录账变明细
             UserBalanceDetailEntity userBalanceDetail = new UserBalanceDetailEntity();

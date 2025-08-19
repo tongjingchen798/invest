@@ -1,5 +1,6 @@
 package io.renren.controller;
 
+import com.alibaba.fastjson.JSON;
 import io.renren.annotation.Login;
 import io.renren.annotation.LoginUser;
 import io.renren.common.utils.Result;
@@ -53,18 +54,19 @@ public class ApiChargeController {
     @Login
     @PostMapping("charge")
     @ApiOperation("前端充值")
-    public Result<ChargeResponseDTO> charge(
+    public Result<String> charge(
             @ApiParam(value = "充值金额", required = true) @RequestParam Long amount,
             @ApiParam(value = "充值类型 1银行卡 2虚拟币 3 upi 4 Paytm", required = true) @RequestParam Integer charge_type,
             @ApiParam(value = "支付通道主键") @RequestParam(required = false) Long channelid,
             @LoginUser UserEntity user) {
+        
         try {
             // 参数验证
             if (amount == null || amount <= 0) {
-                return new Result<ChargeResponseDTO>().error("充值金额必须大于0");
+                return new Result<String>().error("充值金额必须大于0");
             }
             if (!ChargeTypeEnum.isValid(charge_type)) {
-                return new Result<ChargeResponseDTO>().error("充值类型无效");
+                return new Result<String>().error("充值类型无效");
             }
 
             // 创建充值订单
@@ -74,21 +76,54 @@ public class ApiChargeController {
             ChargeResponseDTO responseDTO = new ChargeResponseDTO();
             responseDTO.setOrderNo(orderno);
             responseDTO.setPOrderNo(orderno);
-            //三方返回的u数量 TODO 等接口返回
-            responseDTO.setUamount(BigDecimal.ZERO);
+            responseDTO.setAmount(BigDecimal.valueOf(amount));
             
-            // 构建支付链接
-            String payUrl = buildPayUrl(orderno, amount, String.valueOf(channelid));
-            responseDTO.setPayUrl(payUrl);
+            // 根据充值类型设置不同的响应数据
+            ChargeTypeEnum chargeTypeEnum = ChargeTypeEnum.getByCode(charge_type);
+            if (chargeTypeEnum != null) {
+                // 设置充值类型信息
+                responseDTO.setChargeTypeInfo(charge_type, chargeTypeEnum.getName());
+                
+                switch (chargeTypeEnum) {
+                    case CRYPTO:
+                        // 虚拟币充值，设置USDT相关信息
+                        responseDTO.setMerchantNo("usdt");
+                        responseDTO.setUsdtInfo(
+                            "TVsCfPDWy8EZCFBgjzEXRtSZvr5r96w3U3", // USDT地址
+                            new BigDecimal("299.951"), // u数量
+                            new BigDecimal("97.50"),   // u价格
+                            new BigDecimal("299.951")  // 实际支付u数量
+                        );
+                        // USDT充值不设置payUrl
+                        responseDTO.setPayUrl("");
+                        break;
+                        
+                    case UPI:
+                    case PAYTM:
+                    case BANK_CARD:
+                        // 其他支付方式，设置支付相关信息
+                        responseDTO.setUamount(BigDecimal.ZERO);
+                        responseDTO.setUprice(BigDecimal.ZERO);
+                        responseDTO.setURealAmount(BigDecimal.ZERO);
+                        
+                        // 构建支付链接
+                        String payUrl = buildPayUrl(orderno, amount, String.valueOf(channelid));
+                        responseDTO.setBankCardInfo(payUrl);
+                        
+                        // 生成商户号
+                        String merchantNo = generateMerchantNo();
+                        responseDTO.setMerchantNo(merchantNo);
+                        break;
+                }
+            }
             
-            // 生成商户号
-            String merchantNo = generateMerchantNo();
-            responseDTO.setMerchantNo(merchantNo);
-
-            return new Result<ChargeResponseDTO>().ok(responseDTO);
+            // 将ChargeResponseDTO转换为JSON字符串
+            String jsonResponse = convertToJsonString(responseDTO);
+            
+            return new Result<String>().ok(jsonResponse);
             
         } catch (Exception e) {
-            return new Result<ChargeResponseDTO>().error("充值失败: " + e.getMessage());
+            return new Result<String>().error("充值失败: " + e.getMessage());
         }
     }
 
@@ -119,14 +154,37 @@ public class ApiChargeController {
     }
 
     /**
-     * 生成订单号
+     * 测试ChargeResponseDTO序列化
      */
-    private String generateOrderNo() {
-        // 生成订单号逻辑，格式：TP + 年月日时分秒 + 3位随机数
-        SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmmss");
-        String timestamp = sdf.format(new Date());
-        String random = String.format("%03d", new Random().nextInt(1000));
-        return "TP" + timestamp + random;
+    @GetMapping("test-serialization")
+    @ApiOperation("测试充值响应DTO序列化")
+    public Result<String> testSerialization() {
+        try {
+            // 创建测试数据
+            ChargeResponseDTO testDTO = new ChargeResponseDTO();
+            testDTO.setOrderNo("TEST" + System.currentTimeMillis());
+            testDTO.setPOrderNo("TEST" + System.currentTimeMillis());
+            testDTO.setAmount(new BigDecimal("100000"));
+            testDTO.setUamount(new BigDecimal("100.00"));
+            testDTO.setUprice(new BigDecimal("97.50"));
+            testDTO.setURealAmount(new BigDecimal("100.00"));
+            testDTO.setPayUrl("https://pay.example.com/test");
+            testDTO.setMerchantNo("TEST" + System.currentTimeMillis());
+            testDTO.setWalletAddr("TRC20测试地址");
+            testDTO.setChargeTypeInfo(1, "银行卡");
+            testDTO.setStatusInfo(0, "待支付");
+            
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String currentTime = sdf.format(new Date());
+            testDTO.setTimeInfo(currentTime, currentTime);
+            
+            // 转换为JSON字符串
+            String jsonResponse = convertToJsonString(testDTO);
+            return new Result<String>().ok(jsonResponse);
+            
+        } catch (Exception e) {
+            return new Result<String>().error("测试序列化失败: " + e.getMessage());
+        }
     }
 
     /**
@@ -148,5 +206,17 @@ public class ApiChargeController {
         String timestamp = sdf.format(new Date());
         String random = String.format("%04d", new Random().nextInt(10000));
         return "R" + timestamp + random;
+    }
+
+    /**
+     * 将ChargeResponseDTO转换为JSON字符串
+     */
+    private String convertToJsonString(ChargeResponseDTO responseDTO) {
+        try {
+            return JSON.toJSONString(responseDTO);
+        } catch (Exception e) {
+            // 如果序列化失败，返回错误信息
+            return "{\"error\":\"Failed to convert response to JSON: " + e.getMessage() + "\"}";
+        }
     }
 }

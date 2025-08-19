@@ -333,6 +333,9 @@ public class UserEntity implements Serializable {
 	@TableField("commission_balance")
 	private Long commissionBalance;
 
+	/**
+	 * 今日佣金
+	 */
 	@TableField("today_commission")
 	private Long todayCommission;
 

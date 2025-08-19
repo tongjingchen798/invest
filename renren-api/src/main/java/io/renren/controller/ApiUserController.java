@@ -5,27 +5,17 @@ package io.renren.controller;
 import io.renren.annotation.Login;
 import io.renren.annotation.LoginUser;
 import io.renren.common.utils.Result;
-import io.renren.common.validator.ValidatorUtils;
 import io.renren.dao.InvestmentRecordDao;
 import io.renren.dto.BalanceDTO;
-import io.renren.dto.ChangePasswordDTO;
-import io.renren.dto.ChangeTwoPasswordDTO;
-import io.renren.dto.UpdateUserDTO;
 import io.renren.dto.UserInfoDTO;
 import io.renren.entity.UserEntity;
 import io.renren.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * 用户管理接口
- *
- * @author Mark sunlightcs@gmail.com
- */
+
 @RestController
 @RequestMapping("/api")
 @Api(tags = "用户管理接口")
