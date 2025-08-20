@@ -2,9 +2,11 @@ package io.renren.modules.advertisement.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -15,7 +17,9 @@ import java.util.Date;
  */
 @Data
 @TableName("tb_advertisement")
-public class AdvertisementEntity {
+public class AdvertisementEntity implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @TableId
     @ApiModelProperty(value = "主键ID")
@@ -34,6 +38,7 @@ public class AdvertisementEntity {
     private String logosLinkaddr;
 
     @ApiModelProperty(value = "备注描述")
+    @JsonProperty("remark")
     private String remark;
 
     @ApiModelProperty(value = "生效时间")

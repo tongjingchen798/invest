@@ -9,7 +9,9 @@ import io.renren.common.validator.ValidatorUtils;
 import io.renren.common.validator.group.AddGroup;
 import io.renren.common.validator.group.DefaultGroup;
 import io.renren.common.validator.group.UpdateGroup;
+import io.renren.modules.advertisement.dao.AdvertisementDao;
 import io.renren.modules.advertisement.dto.AdvertisementDTO;
+import io.renren.modules.advertisement.entity.AdvertisementEntity;
 import io.renren.modules.advertisement.service.AdvertisementService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -36,6 +38,9 @@ public class AdvertisementController {
 
     @Resource
     private AdvertisementService advertisementService;
+
+    @Resource
+    private AdvertisementDao advertisementDao;
 
     @GetMapping("page")
     @ApiOperation("分页")
@@ -65,11 +70,11 @@ public class AdvertisementController {
     @ApiOperation("保存")
     @LogOperation("保存")
 //    @RequiresPermissions("sys:advertisement:save")
-    public Result save(@RequestBody AdvertisementDTO dto){
+    public Result save(@RequestBody AdvertisementEntity dto){
         //效验数据
-        ValidatorUtils.validateEntity(dto, AddGroup.class, DefaultGroup.class);
+//        ValidatorUtils.validateEntity(dto, AddGroup.class, DefaultGroup.class);
 
-        advertisementService.save(dto);
+        advertisementService.insert(dto);
 
         return new Result();
     }
@@ -78,11 +83,11 @@ public class AdvertisementController {
     @ApiOperation("修改")
     @LogOperation("修改")
 //    @RequiresPermissions("sys:advertisement:update")
-    public Result update(@RequestBody AdvertisementDTO dto){
+    public Result update(@RequestBody AdvertisementEntity dto){
         //效验数据
-        ValidatorUtils.validateEntity(dto, UpdateGroup.class, DefaultGroup.class);
+//        ValidatorUtils.validateEntity(dto, UpdateGroup.class, DefaultGroup.class);
 
-        advertisementService.update(dto);
+        advertisementDao.updateById(dto);
 
         return new Result();
     }
