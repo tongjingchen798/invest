@@ -57,7 +57,7 @@ public class PayChannelEntity implements Serializable {
     /**
      * usdt兑当地货币汇率
      */
-    private String usdtLocalCurrencyRate;
+    private BigDecimal usdtLocalCurrencyRate;
 
     /**
      * 创建时间

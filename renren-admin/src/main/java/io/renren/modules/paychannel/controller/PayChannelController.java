@@ -59,7 +59,7 @@ public class PayChannelController {
 //    @RequiresPermissions("sys:paychannel:page")
     public Result<PageData<PayChannelDTO>> page(@ApiIgnore @RequestParam Map<String, Object> params){
 
-        PageData<PayChannelDTO> page = payChannelService.page(params);
+        PageData<PayChannelDTO> page = payChannelService.selectPage(params);
 
         return new Result<PageData<PayChannelDTO>>().ok(page);
     }

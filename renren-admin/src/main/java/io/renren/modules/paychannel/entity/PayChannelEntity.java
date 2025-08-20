@@ -52,11 +52,11 @@ public class PayChannelEntity {
      * usdt兑当地货币汇率	
      */
     @TableField("usdt_local_currency_rate")
-	private String usdtLocalCurrencyRate;
+	private BigDecimal usdtLocalCurrencyRate;
     /**
      * 充提类型（1:充值,2:提现,3:充提）
      */
-	private String chargeorwithdraw;
+	private BigDecimal chargeorwithdraw;
     /**
      * 创建时间
      */
