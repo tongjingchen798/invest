@@ -22,10 +22,10 @@ public class BlackipServiceImpl extends CrudServiceImpl<BlackipDao, BlackipEntit
 
     @Override
     public QueryWrapper<BlackipEntity> getWrapper(Map<String, Object> params){
-        String id = (String)params.get("id");
+        String ip = (String)params.get("ip");
 
         QueryWrapper<BlackipEntity> wrapper = new QueryWrapper<>();
-        wrapper.eq(StringUtils.isNotBlank(id), "id", id);
+        wrapper.eq(StringUtils.isNotBlank(ip), "ip", ip);
 
         return wrapper;
     }
