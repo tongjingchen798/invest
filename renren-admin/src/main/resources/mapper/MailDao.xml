@@ -17,45 +17,6 @@
         <result property="updateDate" column="update_date"/>
     </resultMap>
 
-    <!-- 分页查询 -->
-    <select id="selectPage" resultMap="mailMap">
-        SELECT * FROM tb_mail
-        <where>
-            <if test="theme != null and theme != ''">
-                AND theme LIKE CONCAT('%', #{theme}, '%')
-            </if>
-            <if test="fromUser != null and fromUser != ''">
-                AND from_user LIKE CONCAT('%', #{fromUser}, '%')
-            </if>
-            <if test="startTime != null">
-                AND send_time >= #{startTime}
-            </if>
-            <if test="endTime != null">
-                AND send_time &lt;= #{endTime}
-            </if>
-        </where>
-        ORDER BY send_time DESC
-    </select>
-
-    <!-- 统计总数 -->
-    <select id="selectCount" resultType="int">
-        SELECT COUNT(*) FROM tb_mail
-        <where>
-            <if test="theme != null and theme != ''">
-                AND theme LIKE CONCAT('%', #{theme}, '%')
-            </if>
-            <if test="fromUser != null and fromUser != ''">
-                AND from_user LIKE CONCAT('%', #{fromUser}, '%')
-            </if>
-            <if test="startTime != null">
-                AND send_time >= #{startTime}
-            </if>
-            <if test="endTime != null">
-                AND send_time &lt;= #{endTime}
-            </if>
-        </where>
-    </select>
-
     <!-- 根据ID查询 -->
     <select id="selectById" resultMap="mailMap">
         SELECT * FROM tb_mail WHERE mail_id = #{id}
@@ -63,22 +24,7 @@
 
     <!-- 查询列表 -->
     <select id="selectList" resultMap="mailMap">
-        SELECT * FROM tb_mail
-        <where>
-            <if test="theme != null and theme != ''">
-                AND theme LIKE CONCAT('%', #{theme}, '%')
-            </if>
-            <if test="fromUser != null and fromUser != ''">
-                AND from_user LIKE CONCAT('%', #{fromUser}, '%')
-            </if>
-            <if test="startTime != null">
-                AND send_time >= #{startTime}
-            </if>
-            <if test="endTime != null">
-                AND send_time &lt;= #{endTime}
-            </if>
-        </where>
-        ORDER BY send_time DESC
+        SELECT * FROM tb_mail ORDER BY send_time DESC
     </select>
 
     <!-- 插入 -->

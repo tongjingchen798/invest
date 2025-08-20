@@ -40,10 +40,10 @@ public class MailDTO implements Serializable {
     private Integer isWebsend;
 
     @ApiModelProperty(value = "发送时间")
-    private String sendTime;
+    private Date sendTime;
 
     @ApiModelProperty(value = "过期时间，默认发送时间加7天")
-    private String expirationTime;
+    private Date expirationTime;
 
     @ApiModelProperty(value = "创建时间")
     private Date createDate;

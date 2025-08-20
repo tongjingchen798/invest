@@ -1,8 +1,9 @@
 package io.renren.modules.mail.service;
 
-import io.renren.common.service.CrudService;
+import io.renren.common.page.PageData;
 import io.renren.modules.mail.dto.MailDTO;
-import io.renren.modules.mail.entity.MailEntity;
+
+import java.util.Map;
 
 /**
  * 站内信
@@ -10,7 +11,11 @@ import io.renren.modules.mail.entity.MailEntity;
  * @author Mark sunlightcs@gmail.com
  * @since 1.0.0 2025-08-19
  */
-public interface MailService extends CrudService<MailEntity, MailDTO> {
+public interface MailService {
 
+    /**
+     * 分页查询
+     */
+    PageData<MailDTO> page(Map<String, Object> params);
 
 }
