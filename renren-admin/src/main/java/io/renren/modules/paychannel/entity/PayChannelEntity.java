@@ -1,5 +1,6 @@
 package io.renren.modules.paychannel.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -23,10 +24,12 @@ public class PayChannelEntity {
     /**
      * 渠道名称
      */
+    @TableField("channel_name")
 	private String channelName;
     /**
      * 渠道类型
      */
+    @TableField("channel_type")
 	private String channelType;
     /**
      * 商户ID
@@ -43,10 +46,12 @@ public class PayChannelEntity {
     /**
      * usdt赠送比例
      */
+    @TableField("usdt_gift_ratio")
 	private BigDecimal usdtGiftRatio;
     /**
      * usdt兑当地货币汇率	
      */
+    @TableField("usdt_local_currency_rate")
 	private String usdtLocalCurrencyRate;
     /**
      * 充提类型（1:充值,2:提现,3:充提）
@@ -55,9 +60,11 @@ public class PayChannelEntity {
     /**
      * 创建时间
      */
+    @TableField("create_date")
 	private Date createDate;
     /**
      * 更新时间
      */
+    @TableField("update_date")
 	private Date updateDate;
 }

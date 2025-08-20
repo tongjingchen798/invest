@@ -1,5 +1,8 @@
 package io.renren.modules.paychannel.controller;
 
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import io.renren.common.annotation.LogOperation;
 import io.renren.common.constant.Constant;
 import io.renren.common.page.PageData;
@@ -10,7 +13,9 @@ import io.renren.common.validator.ValidatorUtils;
 import io.renren.common.validator.group.AddGroup;
 import io.renren.common.validator.group.DefaultGroup;
 import io.renren.common.validator.group.UpdateGroup;
+import io.renren.modules.paychannel.dao.PayChannelDao;
 import io.renren.modules.paychannel.dto.PayChannelDTO;
+import io.renren.modules.paychannel.entity.PayChannelEntity;
 import io.renren.modules.paychannel.service.PayChannelService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -39,6 +44,9 @@ public class PayChannelController {
     @Autowired
     private PayChannelService payChannelService;
 
+    @Autowired
+    private PayChannelDao payChannelDao;
+
     @GetMapping("page")
     @ApiOperation("支付渠道分页")
     @ApiImplicitParams({
@@ -56,14 +64,6 @@ public class PayChannelController {
         return new Result<PageData<PayChannelDTO>>().ok(page);
     }
 
-    @GetMapping("{id}")
-    @ApiOperation("信息")
-//    @RequiresPermissions("sys:paychannel:info")
-    public Result<PayChannelDTO> get(@PathVariable("id") Long id){
-        PayChannelDTO data = payChannelService.get(id);
-
-        return new Result<PayChannelDTO>().ok(data);
-    }
 
     @PostMapping
     @ApiOperation("保存")
@@ -71,7 +71,7 @@ public class PayChannelController {
 //    @RequiresPermissions("sys:paychannel:save")
     public Result save(@RequestBody PayChannelDTO dto){
         //效验数据
-        ValidatorUtils.validateEntity(dto, AddGroup.class, DefaultGroup.class);
+//        ValidatorUtils.validateEntity(dto, AddGroup.class, DefaultGroup.class);
 
         payChannelService.save(dto);
 
@@ -79,14 +79,28 @@ public class PayChannelController {
     }
 
     @PutMapping
-    @ApiOperation("修改")
-    @LogOperation("修改")
+    @ApiOperation("修改渠道上下架")
+    @LogOperation("修改渠道上下架")
 //    @RequiresPermissions("sys:paychannel:update")
     public Result update(@RequestBody PayChannelDTO dto){
-        //效验数据
-        ValidatorUtils.validateEntity(dto, UpdateGroup.class, DefaultGroup.class);
 
-        payChannelService.update(dto);
+        UpdateWrapper updateWrapper = new UpdateWrapper();
+        updateWrapper.set("status",dto.getStatus());
+        updateWrapper.eq("channelid",dto.getChannelid());
+        payChannelDao.update(null,updateWrapper);
+
+        return new Result();
+    }
+
+    @PutMapping("updateM")
+    @ApiOperation("修改渠道商户")
+    @LogOperation("修改渠道商户")
+//    @RequiresPermissions("sys:paychannel:update")
+    public Result updateM(@RequestBody PayChannelDTO dto){
+        UpdateWrapper updateWrapper = new UpdateWrapper();
+        updateWrapper.set("merchantid",dto.getMerchantid());
+        updateWrapper.eq("channelid",dto.getChannelid());
+        payChannelDao.update(null,updateWrapper);
 
         return new Result();
     }
