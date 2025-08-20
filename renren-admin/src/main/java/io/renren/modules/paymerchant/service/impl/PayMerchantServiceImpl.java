@@ -2,6 +2,7 @@ package io.renren.modules.paymerchant.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.renren.common.service.impl.CrudServiceImpl;
+import io.renren.common.utils.ConvertUtils;
 import io.renren.modules.paymerchant.dao.PayMerchantDao;
 import io.renren.modules.paymerchant.dto.PayMerchantDTO;
 import io.renren.modules.paymerchant.entity.PayMerchantEntity;
@@ -30,5 +31,17 @@ public class PayMerchantServiceImpl extends CrudServiceImpl<PayMerchantDao, PayM
         return wrapper;
     }
 
-
+    @Override
+    public boolean updateDegreeHeat(PayMerchantDTO dto) {
+        // 参数验证
+        if (dto == null || dto.getId() == null) {
+            return false;
+        }
+        
+        // 转换为实体对象
+        PayMerchantEntity entity = ConvertUtils.sourceToTarget(dto, PayMerchantEntity.class);
+        
+        // 更新优先级
+        return baseDao.updateById(entity);
+    }
 }

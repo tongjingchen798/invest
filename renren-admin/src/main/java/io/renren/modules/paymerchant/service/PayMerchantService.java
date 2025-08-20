@@ -12,4 +12,10 @@ import io.renren.modules.paymerchant.entity.PayMerchantEntity;
  */
 public interface PayMerchantService extends CrudService<PayMerchantEntity, PayMerchantDTO> {
 
+    /**
+     * 更新商户优先级
+     * @param dto 商户信息
+     * @return 是否成功
+     */
+    boolean updateDegreeHeat(PayMerchantDTO dto);
 }

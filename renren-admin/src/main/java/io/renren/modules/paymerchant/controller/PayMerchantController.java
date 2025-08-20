@@ -11,6 +11,7 @@ import io.renren.common.validator.group.AddGroup;
 import io.renren.common.validator.group.DefaultGroup;
 import io.renren.common.validator.group.UpdateGroup;
 import io.renren.modules.paymerchant.dto.PayMerchantDTO;
+import io.renren.modules.paymerchant.entity.PayMerchantEntity;
 import io.renren.modules.paymerchant.service.PayMerchantService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -33,7 +34,7 @@ import java.util.Map;
  * @since 1.0.0 2025-08-19
  */
 @RestController
-@RequestMapping("paymerchant")
+@RequestMapping("/admin/paymerchant")
 @Api(tags="支付商户配置表")
 public class PayMerchantController {
     @Autowired
@@ -53,15 +54,15 @@ public class PayMerchantController {
 
         return new Result<PageData<PayMerchantDTO>>().ok(page);
     }
-
-    @GetMapping("{id}")
-    @ApiOperation("信息")
-//    @RequiresPermissions("sys:paymerchant:info")
-    public Result<PayMerchantDTO> get(@PathVariable("id") Long id){
-        PayMerchantDTO data = payMerchantService.get(id);
-
-        return new Result<PayMerchantDTO>().ok(data);
-    }
+//
+//    @GetMapping("{id}")
+//    @ApiOperation("信息")
+////    @RequiresPermissions("sys:paymerchant:info")
+//    public Result<PayMerchantDTO> get(@PathVariable("id") Long id){
+//        PayMerchantDTO data = payMerchantService.get(id);
+//
+//        return new Result<PayMerchantDTO>().ok(data);
+//    }
 
     @PostMapping
     @ApiOperation("保存")
@@ -80,11 +81,11 @@ public class PayMerchantController {
     @ApiOperation("修改")
     @LogOperation("修改")
 //    @RequiresPermissions("sys:paymerchant:update")
-    public Result update(@RequestBody PayMerchantDTO dto){
+    public Result update(@RequestBody PayMerchantEntity dto){
         //效验数据
-        ValidatorUtils.validateEntity(dto, UpdateGroup.class, DefaultGroup.class);
+//        ValidatorUtils.validateEntity(dto, UpdateGroup.class, DefaultGroup.class);
 
-        payMerchantService.update(dto);
+        payMerchantService.updateById(dto);
 
         return new Result();
     }
@@ -102,6 +103,31 @@ public class PayMerchantController {
         return new Result();
     }
 
+    @PutMapping("updatedegreeheat")
+    @ApiOperation("商户优先级修改")
+    @LogOperation("商户优先级修改")
+//    @RequiresPermissions("sys:paymerchant:updatedegreeheat")
+    public Result updateDegreeHeat(@RequestBody PayMerchantDTO dto){
+        try {
+            if (dto.getDegreeheat() == null) {
+                return new Result().error("优先级不能为空");
+            }
+            // 检查商户是否存在
+            PayMerchantDTO existingMerchant = payMerchantService.get(dto.getId());
+            if (existingMerchant == null) {
+                return new Result().error("商户不存在");
+            }
+            
+            // 更新优先级
+            if (payMerchantService.updateDegreeHeat(dto)) {
+                return new Result().ok("success");
+            } else {
+                return new Result().error("商户优先级修改失败");
+            }
+        } catch (Exception e) {
+            return new Result().error("商户优先级修改失败：" + e.getMessage());
+        }
+    }
 
 
 }
