@@ -83,4 +83,62 @@
         </where>
     </select>
 
+    <!-- 获取日报表统计 -->
+    <select id="getDailyReportStats" resultType="map">
+        SELECT 
+            DATE_FORMAT(date_column, '%Y-%m-%d') as date,
+            COALESCE(SUM(CASE WHEN source = 'charge' THEN amount ELSE 0 END), 0) as totalCharges,
+            COALESCE(SUM(CASE WHEN source = 'withdraw' THEN amount ELSE 0 END), 0) as totalWithdraws,
+            COALESCE(SUM(CASE WHEN source = 'investment' THEN amount ELSE 0 END), 0) as totalOrders
+        FROM (
+            SELECT 
+                create_time as date_column,
+                'charge' as source,
+                CASE WHEN state = 1 THEN amount ELSE 0 END as amount
+            FROM tb_charge_order
+            <where>
+                <if test="startTime != null">
+                    AND create_time >= FROM_UNIXTIME(#{startTime}/1000)
+                </if>
+                <if test="endTime != null">
+                    AND create_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                </if>
+            </where>
+            
+            UNION ALL
+            
+            SELECT 
+                create_time as date_column,
+                'withdraw' as source,
+                CASE WHEN state = 1 THEN amount ELSE 0 END as amount
+            FROM tb_withdraw_order
+            <where>
+                <if test="startTime != null">
+                    AND create_time >= FROM_UNIXTIME(#{startTime}/1000)
+                </if>
+                <if test="endTime != null">
+                    AND create_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                </if>
+            </where>
+            
+            UNION ALL
+            
+            SELECT 
+                order_date as date_column,
+                'investment' as source,
+                investment_amount as amount
+            FROM tb_investment_record
+            <where>
+                <if test="startTime != null">
+                    AND order_date >= FROM_UNIXTIME(#{startTime}/1000)
+                </if>
+                <if test="endTime != null">
+                    AND order_date &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                </if>
+            </where>
+        ) combined_data
+        GROUP BY DATE_FORMAT(date_column, '%Y-%m-%d')
+        ORDER BY date
+    </select>
+
 </mapper>

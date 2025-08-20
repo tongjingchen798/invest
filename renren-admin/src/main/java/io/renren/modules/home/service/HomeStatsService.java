@@ -1,6 +1,9 @@
 package io.renren.modules.home.service;
 
+import io.renren.modules.home.dto.DailyReportDTO;
 import io.renren.modules.home.dto.MainStatsDTO;
+
+import java.util.List;
 
 /**
  * 首页统计服务接口
@@ -18,4 +21,13 @@ public interface HomeStatsService {
      * @return 统计数据
      */
     MainStatsDTO getMainStats(Long startTime, Long endTime);
+
+    /**
+     * 获取日报表统计数据
+     * @param startTime 开始时间戳
+     * @param endTime 结束时间戳
+     * @param type 统计类型 (d: 日报, m: 月报, y: 年报)
+     * @return 日报表数据列表
+     */
+    List<DailyReportDTO> getDailyReportStats(Long startTime, Long endTime, String type);
 }

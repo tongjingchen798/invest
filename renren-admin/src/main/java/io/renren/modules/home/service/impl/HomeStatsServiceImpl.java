@@ -1,6 +1,7 @@
 package io.renren.modules.home.service.impl;
 
 import io.renren.modules.home.dao.HomeStatsDao;
+import io.renren.modules.home.dto.DailyReportDTO;
 import io.renren.modules.home.dto.MainStatsDTO;
 import io.renren.modules.home.service.HomeStatsService;
 import org.slf4j.Logger;
@@ -8,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -87,6 +90,37 @@ public class HomeStatsServiceImpl implements HomeStatsService {
         return statsDTO;
     }
 
+    @Override
+    public List<DailyReportDTO> getDailyReportStats(Long startTime, Long endTime, String type) {
+        logger.info("开始获取日报表统计数据，时间范围: {} - {}, 类型: {}", startTime, endTime, type);
+        
+        List<DailyReportDTO> reportList = new ArrayList<>();
+        
+        try {
+            List<Map<String, Object>> rawData = homeStatsDao.getDailyReportStats(startTime, endTime, type);
+            
+            if (rawData != null && !rawData.isEmpty()) {
+                for (Map<String, Object> data : rawData) {
+                    DailyReportDTO reportDTO = new DailyReportDTO();
+                    reportDTO.setDate(getStringValue(data.get("date")));
+                    reportDTO.setTotalCharges(getStringValue(data.get("totalCharges")));
+                    reportDTO.setTotalWithdraws(getStringValue(data.get("totalWithdraws")));
+                    reportDTO.setTotalOrders(getStringValue(data.get("totalOrders")));
+                    reportList.add(reportDTO);
+                }
+                logger.debug("成功转换日报表数据，共 {} 条记录", reportList.size());
+            } else {
+                logger.warn("未查询到日报表数据");
+            }
+            
+        } catch (Exception e) {
+            logger.error("获取日报表统计数据时发生异常", e);
+        }
+        
+        logger.info("日报表统计完成，返回 {} 条记录", reportList.size());
+        return reportList;
+    }
+
     /**
      * 安全获取Long值
      */
@@ -103,6 +137,16 @@ public class HomeStatsServiceImpl implements HomeStatsService {
             logger.warn("无法解析数值: {}", value, e);
             return 0L;
         }
+    }
+
+    /**
+     * 安全获取String值
+     */
+    private String getStringValue(Object value) {
+        if (value == null) {
+            return null;
+        }
+        return value.toString();
     }
 
     /**

@@ -3,6 +3,7 @@ package io.renren.modules.home.dao;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -54,4 +55,13 @@ public interface HomeStatsDao {
      * @return 统计结果
      */
     Map<String, Object> getSalesAmountStats(@Param("startTime") Long startTime, @Param("endTime") Long endTime);
+
+    /**
+     * 获取日报表统计
+     * @param startTime 开始时间戳
+     * @param endTime 结束时间戳
+     * @param type 统计类型 (d: 日报, m: 月报, y: 年报)
+     * @return 日报表数据列表
+     */
+    List<Map<String, Object>> getDailyReportStats(@Param("startTime") Long startTime, @Param("endTime") Long endTime, @Param("type") String type);
 }
