@@ -11,11 +11,17 @@ import io.renren.modules.member.dao.MemberDao;
 import io.renren.modules.member.dto.MemberInfoDTO;
 import io.renren.modules.member.entity.MemberEntity;
 import io.renren.modules.member.service.MemberService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import io.renren.modules.member.dto.SettlementReportDTO;
+import java.util.Map;
+import java.util.HashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 会员查询服务实现类
@@ -23,6 +29,7 @@ import java.util.List;
  * @author renren
  * @since 1.0.0
  */
+@Slf4j
 @Service
 public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> implements MemberService {
 
@@ -168,5 +175,36 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
         List<MemberInfoDTO> dtoList = ConvertUtils.sourceToTarget(pageResult.getRecords(), MemberInfoDTO.class);
         
         return new PageData<>(dtoList, pageResult.getTotal());
+    }
+
+    @Override
+    public PageData<SettlementReportDTO> getSettlementReport(Integer page, Integer limit, Long agent, 
+        Long endTime, String order, String orderField, Long salesmanid, Long startTime) {
+        
+        try {
+            // 构建查询参数
+            Map<String, Object> params = new HashMap<>();
+            params.put("agent", agent);
+            params.put("endTime", endTime);
+            params.put("order", order);
+            params.put("orderField", orderField);
+            params.put("salesmanid", salesmanid);
+            params.put("startTime", startTime);
+
+            // 创建MyBatis-Plus分页对象
+            Page<SettlementReportDTO> pageParam = new Page<>(page, limit);
+            
+            // 调用DAO查询结算报表数据（MyBatis-Plus自动处理分页）
+            Page<SettlementReportDTO> result = baseDao.getSettlementReport(pageParam, params);
+            
+            // 转换为PageData格式
+            PageData<SettlementReportDTO> pageData = new PageData<>(result.getRecords(), result.getTotal());
+            
+            return pageData;
+            
+        } catch (Exception e) {
+            log.error("查询结算报表失败", e);
+            throw new RuntimeException("查询结算报表失败: " + e.getMessage());
+        }
     }
 }

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.member.dao.MemberDao">
+
+    <!-- 查询结算报表分页数据 -->
+    <select id="getSettlementReport" resultType="io.renren.modules.member.dto.SettlementReportDTO">
+        SELECT 
+            u.agent,
+            MAX(u.agent_name) as agentName,
+            COALESCE(SUM(c.amount), 0) as czRealAmount,
+            COALESCE(SUM(c.amount), 0) - COALESCE(SUM(w.inputamount), 0) as lr,
+            MAX(u.salesman_name) as salesmanName,
+            u.salesmanid,
+            COALESCE(SUM(w.inputamount), 0) as txRealAmount
+        FROM tb_user u
+        LEFT JOIN tb_charge_order c ON u.id = c.user_id 
+            AND c.state = 1 
+            <if test="params.startTime != null">
+                AND c.create_time &gt;= FROM_UNIXTIME(#{params.startTime} / 1000)
+            </if>
+            <if test="params.endTime != null">
+                AND c.create_time &lt;= FROM_UNIXTIME(#{params.endTime} / 1000)
+            </if>
+        LEFT JOIN tb_withdraw_order w ON u.id = w.user_id 
+            AND w.state IN (1, 2) 
+            <if test="params.startTime != null">
+                AND w.create_time &gt;= FROM_UNIXTIME(#{params.startTime} / 1000)
+            </if>
+            <if test="params.endTime != null">
+                AND w.create_time &lt;= FROM_UNIXTIME(#{params.endTime} / 1000)
+            </if>
+        WHERE 1=1
+            <if test="params.agent != null">
+                AND u.agent = #{params.agent}
+            </if>
+            <if test="params.salesmanid != null">
+                AND u.salesmanid = #{params.salesmanid}
+            </if>
+        GROUP BY u.agent, u.salesmanid
+        <if test="params.orderField != null and params.order != null">
+            ORDER BY ${params.orderField} ${params.order}
+        </if>
+        <if test="params.orderField == null or params.order == null">
+            ORDER BY u.agent, u.salesmanid
+        </if>
+    </select>
+
+    <!-- 查询结算报表总数 -->
+    <select id="getSettlementReportCount" resultType="long">
+        SELECT COUNT(DISTINCT CONCAT(u.agent, '-', u.salesmanid))
+        FROM tb_user u
+        WHERE 1=1
+            <if test="params.agent != null">
+                AND u.agent = #{params.agent}
+            </if>
+            <if test="params.salesmanid != null">
+                AND u.salesmanid = #{params.salesmanid}
+            </if>
+    </select>
+
+</mapper>
