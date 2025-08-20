@@ -33,14 +33,14 @@ import java.util.Map;
  * @since 1.0.0 2025-08-20
  */
 @RestController
-@RequestMapping("investprojecttype")
+@RequestMapping("/investprojecttype")
 @Api(tags="投资项目类型")
 public class ProjectTypeController {
     @Autowired
     private ProjectTypeService projectTypeService;
 
     @GetMapping("page")
-    @ApiOperation("分页")
+    @ApiOperation("分页查询项目类型")
     @ApiImplicitParams({
         @ApiImplicitParam(name = Constant.PAGE, value = "当前页码，从1开始", paramType = "query", required = true, dataType="int") ,
         @ApiImplicitParam(name = Constant.LIMIT, value = "每页显示记录数", paramType = "query",required = true, dataType="int") ,
@@ -55,7 +55,7 @@ public class ProjectTypeController {
     }
 
     @GetMapping("{id}")
-    @ApiOperation("信息")
+    @ApiOperation("获取项目类型详情")
 //    @RequiresPermissions("sys:projecttype:info")
     public Result<ProjectTypeDTO> get(@PathVariable("id") Long id){
         ProjectTypeDTO data = projectTypeService.get(id);
@@ -64,16 +64,16 @@ public class ProjectTypeController {
     }
 
     @PostMapping
-    @ApiOperation("保存")
-    @LogOperation("保存")
+    @ApiOperation("新增项目类型")
+    @LogOperation("新增项目类型")
 //    @RequiresPermissions("sys:projecttype:save")
     public Result save(@RequestBody ProjectTypeDTO dto){
-        //效验数据
-        ValidatorUtils.validateEntity(dto, AddGroup.class, DefaultGroup.class);
-
-        projectTypeService.save(dto);
-
-        return new Result();
+        try {
+            projectTypeService.save(dto);
+            return new Result().ok("新增项目类型成功");
+        } catch (Exception e) {
+            return new Result().error("新增项目类型失败：" + e.getMessage());
+        }
     }
 
     @PutMapping
@@ -81,9 +81,6 @@ public class ProjectTypeController {
     @LogOperation("修改")
 //    @RequiresPermissions("sys:projecttype:update")
     public Result update(@RequestBody ProjectTypeDTO dto){
-        //效验数据
-        ValidatorUtils.validateEntity(dto, UpdateGroup.class, DefaultGroup.class);
-
         projectTypeService.update(dto);
 
         return new Result();
@@ -94,9 +91,6 @@ public class ProjectTypeController {
     @LogOperation("删除")
 //    @RequiresPermissions("sys:projecttype:delete")
     public Result delete(@RequestBody Long[] ids){
-        //效验数据
-        AssertUtils.isArrayEmpty(ids, "id");
-
         projectTypeService.delete(ids);
 
         return new Result();

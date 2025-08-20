@@ -28,7 +28,7 @@ import java.util.Map;
  * @date 2024-01-01 00:00:00
  */
 @RestController
-@RequestMapping("/admin/investProject")
+@RequestMapping("/investProject")
 @Api(tags="项目管理")
 public class ProjectController {
 	@Autowired
