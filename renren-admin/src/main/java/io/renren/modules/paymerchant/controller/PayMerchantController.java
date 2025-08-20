@@ -34,7 +34,7 @@ import java.util.Map;
  * @since 1.0.0 2025-08-19
  */
 @RestController
-@RequestMapping("/admin/paymerchant")
+@RequestMapping("/paymerchant")
 @Api(tags="支付商户配置表")
 public class PayMerchantController {
     @Autowired
@@ -112,13 +112,6 @@ public class PayMerchantController {
             if (dto.getDegreeheat() == null) {
                 return new Result().error("优先级不能为空");
             }
-            // 检查商户是否存在
-            PayMerchantDTO existingMerchant = payMerchantService.get(dto.getId());
-            if (existingMerchant == null) {
-                return new Result().error("商户不存在");
-            }
-
-
             // 更新优先级
             if (payMerchantService.updateDegreeHeat(dto)) {
                 return new Result().ok("success");
