@@ -39,7 +39,16 @@
     <select id="getProjectStats" resultType="map">
         SELECT 
             COUNT(CASE WHEN status = 1 THEN 1 END) as online_privilege_cnt,
-            COUNT(*) as privilege_cnt
+            (SELECT COUNT(*) FROM tb_investment_record 
+             <where>
+                 <if test="startTime != null">
+                     AND order_date >= FROM_UNIXTIME(#{startTime}/1000)
+                 </if>
+                 <if test="endTime != null">
+                     AND order_date &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                 </if>
+             </where>
+            ) as privilege_cnt
         FROM tb_project
     </select>
 
@@ -60,15 +69,16 @@
 
     <!-- 获取销售总额统计 -->
     <select id="getSalesAmountStats" resultType="map">
-        SELECT 
-            COALESCE(SUM(CASE WHEN state = 1 THEN amount ELSE 0 END), 0) as xs_amount
-        FROM tb_charge_order
+        SELECT
+        COALESCE(SUM(investment_amount), 0) AS xs_amount
+        FROM
+        tb_investment_record
         <where>
             <if test="startTime != null">
-                AND create_time >= FROM_UNIXTIME(#{startTime}/1000)
+                AND order_date >= FROM_UNIXTIME(#{startTime}/1000)
             </if>
             <if test="endTime != null">
-                AND create_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                AND order_date &lt;= FROM_UNIXTIME(#{endTime}/1000)
             </if>
         </where>
     </select>

@@ -33,9 +33,11 @@ public interface HomeStatsDao {
 
     /**
      * 获取项目统计
+     * @param startTime 开始时间戳
+     * @param endTime 结束时间戳
      * @return 统计结果
      */
-    Map<String, Object> getProjectStats();
+    Map<String, Object> getProjectStats(@Param("startTime") Long startTime, @Param("endTime") Long endTime);
 
     /**
      * 获取用户注册统计

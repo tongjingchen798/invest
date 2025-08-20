@@ -51,12 +51,13 @@ public class HomeStatsServiceImpl implements HomeStatsService {
             }
 
             // 获取项目统计
-            logger.debug("获取在线项目统计...");
-            Map<String, Object> projectStats = homeStatsDao.getProjectStats();
+            logger.debug("获取项目统计...");
+            Map<String, Object> projectStats = homeStatsDao.getProjectStats(startTime, endTime);
             if (projectStats != null) {
                 statsDTO.setOnline_privilege_cnt(getLongValue(projectStats.get("online_privilege_cnt")));
                 statsDTO.setPrivilege_cnt(getLongValue(projectStats.get("privilege_cnt")));
-                logger.debug("项目统计: {}", projectStats);
+                logger.debug("项目统计 - 在线项目数: {}, 购买项目总数: {}", 
+                    projectStats.get("online_privilege_cnt"), projectStats.get("privilege_cnt"));
             }
 
             // 获取用户注册统计

@@ -76,9 +76,38 @@ public class HomeStatsServiceTest {
             System.out.println("时间范围: " + startTime + " - " + endTime);
             System.out.println("充值金额: " + stats.getChargeOrderAmount());
             System.out.println("充值订单数: " + stats.getCharge_order_cnt());
+            System.out.println("购买项目总数: " + stats.getPrivilege_cnt());
             
         } catch (Exception e) {
             fail("获取统计数据失败: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void testTimeRangeFiltering() {
+        try {
+            // 测试时间范围过滤功能
+            Long startTime = System.currentTimeMillis() - (30 * 24 * 60 * 60 * 1000L); // 30天前
+            Long endTime = System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L);   // 7天前
+            
+            MainStatsDTO statsWithRange = homeStatsService.getMainStats(startTime, endTime);
+            MainStatsDTO statsAllTime = homeStatsService.getMainStats(null, null);
+            
+            // 验证结果不为空
+            assertNotNull(statsWithRange, "带时间范围的统计数据不能为空");
+            assertNotNull(statsAllTime, "全时间统计数据不能为空");
+            
+            System.out.println("时间范围过滤测试:");
+            System.out.println("30天前到7天前 - 购买项目数: " + statsWithRange.getPrivilege_cnt());
+            System.out.println("全时间 - 购买项目数: " + statsAllTime.getPrivilege_cnt());
+            
+            // 验证在线项目数不受时间范围影响（应该相同）
+            assertEquals(statsWithRange.getOnline_privilege_cnt(), 
+                        statsAllTime.getOnline_privilege_cnt(), 
+                        "在线项目数应该不受时间范围影响");
+            
+        } catch (Exception e) {
+            fail("时间范围过滤测试失败: " + e.getMessage());
         }
     }
 }
