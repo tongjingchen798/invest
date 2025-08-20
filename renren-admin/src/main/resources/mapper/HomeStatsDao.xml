@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.home.dao.HomeStatsDao">
+
+    <!-- 获取充值订单统计 -->
+    <select id="getChargeOrderStats" resultType="map">
+        SELECT 
+            COALESCE(SUM(CASE WHEN state = 1 THEN amount ELSE 0 END), 0) as chargeOrderAmount,
+            COUNT(*) as charge_order_cnt
+        FROM tb_charge_order
+        <where>
+            <if test="startTime != null">
+                AND create_time >= FROM_UNIXTIME(#{startTime}/1000)
+            </if>
+            <if test="endTime != null">
+                AND create_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
+            </if>
+        </where>
+    </select>
+
+    <!-- 获取提现订单统计 -->
+    <select id="getWithdrawOrderStats" resultType="map">
+        SELECT 
+            COALESCE(SUM(CASE WHEN state = 1 THEN amount ELSE 0 END), 0) as withdrawOrderAmount,
+            COUNT(*) as withdraw_order_cnt
+        FROM tb_withdraw_order
+        <where>
+            <if test="startTime != null">
+                AND create_time >= FROM_UNIXTIME(#{startTime}/1000)
+            </if>
+            <if test="endTime != null">
+                AND create_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
+            </if>
+        </where>
+    </select>
+
+    <!-- 获取项目统计 -->
+    <select id="getProjectStats" resultType="map">
+        SELECT 
+            COUNT(CASE WHEN status = 1 THEN 1 END) as online_privilege_cnt,
+            COUNT(*) as privilege_cnt
+        FROM tb_project
+    </select>
+
+    <!-- 获取用户注册统计 -->
+    <select id="getUserRegistrationStats" resultType="map">
+        SELECT 
+            COUNT(*) as zc_cnt
+        FROM tb_user
+        <where>
+            <if test="startTime != null">
+                AND create_date >= FROM_UNIXTIME(#{startTime}/1000)
+            </if>
+            <if test="endTime != null">
+                AND create_date &lt;= FROM_UNIXTIME(#{endTime}/1000)
+            </if>
+        </where>
+    </select>
+
+    <!-- 获取销售总额统计 -->
+    <select id="getSalesAmountStats" resultType="map">
+        SELECT 
+            COALESCE(SUM(CASE WHEN state = 1 THEN amount ELSE 0 END), 0) as xs_amount
+        FROM tb_charge_order
+        <where>
+            <if test="startTime != null">
+                AND create_time >= FROM_UNIXTIME(#{startTime}/1000)
+            </if>
+            <if test="endTime != null">
+                AND create_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
+            </if>
+        </where>
+    </select>
+
+</mapper>
