@@ -141,4 +141,19 @@ public class MemberController {
             return new Result<PageData<SettlementReportDTO>>().error("查询结算报表失败: " + e.getMessage());
         }
     }
+
+    @GetMapping("getBiaoQianList")
+    @ApiOperation("获取标签列表")
+    public Result<java.util.List<String>> getBiaoQianList() {
+        try {
+            // 调用服务获取所有标签列表
+            java.util.List<String> tagList = memberService.getBiaoQianList();
+            return new Result<java.util.List<String>>().ok(tagList);
+        } catch (Exception e) {
+            return new Result<java.util.List<String>>().error("获取标签列表失败: " + e.getMessage());
+        }
+    }
+
+
+    
 }

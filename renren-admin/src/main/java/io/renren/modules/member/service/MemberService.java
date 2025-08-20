@@ -56,7 +56,14 @@ public interface MemberService {
      * @param startTime 开始时间戳
      * @return 结算报表分页数据
      */
-    PageData<SettlementReportDTO> getSettlementReport(Integer page, Integer limit, Long agent, 
-        Long endTime, String order, String orderField, Long salesmanid, Long startTime);
+    PageData<SettlementReportDTO> getSettlementReport(Integer page, Integer limit, Long agent, Long endTime,
+                                                      String order, String orderField, Long salesmanid, Long startTime);
+
+    /**
+     * 获取所有标签列表
+     *
+     * @return 标签列表
+     */
+    java.util.List<String> getBiaoQianList();
 
 }

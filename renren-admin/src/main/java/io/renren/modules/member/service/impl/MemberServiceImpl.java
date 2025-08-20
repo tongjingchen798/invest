@@ -207,4 +207,33 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             throw new RuntimeException("查询结算报表失败: " + e.getMessage());
         }
     }
+
+    @Override
+    public java.util.List<String> getBiaoQianList() {
+        try {
+            // 查询所有非空且非空的标签
+            QueryWrapper<MemberEntity> queryWrapper = new QueryWrapper<>();
+            queryWrapper.select("DISTINCT biaoqian")
+                       .isNotNull("biaoqian")
+                       .ne("biaoqian", "")
+                       .orderByAsc("biaoqian");
+            
+            List<MemberEntity> memberList = baseDao.selectList(queryWrapper);
+            
+            // 提取标签值并去重
+            java.util.List<String> tagList = memberList.stream()
+                .map(MemberEntity::getBiaoqian)
+                .filter(StringUtils::isNotBlank)
+                .distinct()
+                .sorted()
+                .collect(java.util.stream.Collectors.toList());
+            
+            log.info("成功获取标签列表，共 {} 个标签", tagList.size());
+            return tagList;
+            
+        } catch (Exception e) {
+            log.error("获取标签列表失败", e);
+            throw new RuntimeException("获取标签列表失败: " + e.getMessage());
+        }
+    }
 }
