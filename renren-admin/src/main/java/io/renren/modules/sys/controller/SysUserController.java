@@ -57,25 +57,16 @@ public class SysUserController {
 	@GetMapping("page")
 	@ApiOperation("分页")
 	@ApiImplicitParams({
-		@ApiImplicitParam(name = Constant.PAGE, value = "当前页码，从1开始", paramType = "query", required = true, dataType="int") ,
-		@ApiImplicitParam(name = Constant.LIMIT, value = "每页显示记录数", paramType = "query",required = true, dataType="int") ,
 		@ApiImplicitParam(name = "username", value = "用户名", paramType = "query", dataType="String")
 	})
 	@RequiresPermissions("sys:user:page")
-	public Result<PageData<SysUserDTO>> page(
-			@ApiParam(value = "当前页码，从1开始") @RequestParam(Constant.PAGE) Integer page,
-			@ApiParam(value = "每页显示记录数", required = true) @RequestParam(Constant.LIMIT) Integer limit,
-			@ApiParam(value = "用户名", required = false) @RequestParam(required = false) String username) {
-		
+	public Result<PageData<SysUserDTO>> page(@ApiParam(value = "用户名", required = false) @RequestParam(required = false) String username) {
+
 		// 构建查询参数
 		Map<String, Object> params = new HashMap<>();
-		params.put(Constant.PAGE, page);
-		params.put(Constant.LIMIT, limit);
 		if (StringUtils.isNotBlank(username)) {
 			params.put("username", username);
 		}
-		
-		// 调用服务层分页查询
 		PageData<SysUserDTO> pageData = sysUserService.page(params);
 
 		return new Result<PageData<SysUserDTO>>().ok(pageData);
@@ -126,7 +117,7 @@ public class SysUserController {
 	@RequiresPermissions("sys:user:save")
 	public Result save(@RequestBody SysUserDTO dto){
 		//效验数据
-		ValidatorUtils.validateEntity(dto, AddGroup.class, DefaultGroup.class);
+//		ValidatorUtils.validateEntity(dto, AddGroup.class, DefaultGroup.class);
 
 		sysUserService.save(dto);
 
