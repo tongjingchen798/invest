@@ -23,9 +23,11 @@ public class BankServiceImpl extends CrudServiceImpl<BankDao, BankEntity, BankDT
     @Override
     public QueryWrapper<BankEntity> getWrapper(Map<String, Object> params){
         String id = (String)params.get("id");
+        Integer state = (Integer)params.get("state");
 
         QueryWrapper<BankEntity> wrapper = new QueryWrapper<>();
         wrapper.eq(StringUtils.isNotBlank(id), "id", id);
+        wrapper.eq(state != null, "state", state);
 
         return wrapper;
     }

@@ -44,7 +44,8 @@ public class BankController {
         @ApiImplicitParam(name = Constant.PAGE, value = "当前页码，从1开始", paramType = "query", required = true, dataType="int") ,
         @ApiImplicitParam(name = Constant.LIMIT, value = "每页显示记录数", paramType = "query",required = true, dataType="int") ,
         @ApiImplicitParam(name = Constant.ORDER_FIELD, value = "排序字段", paramType = "query", dataType="String") ,
-        @ApiImplicitParam(name = Constant.ORDER, value = "排序方式，可选值(asc、desc)", paramType = "query", dataType="String")
+        @ApiImplicitParam(name = Constant.ORDER, value = "排序方式，可选值(asc、desc)", paramType = "query", dataType="String"),
+        @ApiImplicitParam(name = "state", value = "状态 0：停用 1：正常", paramType = "query", dataType="int")
     })
 //    @RequiresPermissions("sys:bank:page")
     public Result<PageData<BankDTO>> page(@ApiIgnore @RequestParam Map<String, Object> params){
