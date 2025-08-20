@@ -1,10 +1,10 @@
-package io.renren.modules.withdraw.controller;
+package io.renren.modules.transfer.controller;
 
 import io.renren.common.constant.Constant;
 import io.renren.common.utils.Result;
-import io.renren.modules.withdraw.dto.ManualWithdrawDTO;
-import io.renren.modules.withdraw.dto.ManualWithdrawPageData;
-import io.renren.modules.withdraw.service.ManualWithdrawService;
+import io.renren.modules.transfer.dto.ManualTransferDTO;
+import io.renren.modules.transfer.dto.ManualTransferPageData;
+import io.renren.modules.transfer.service.ManualTransferService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -17,21 +17,21 @@ import springfox.documentation.annotations.ApiIgnore;
 import java.util.Map;
 
 /**
- * 提现管理
+ * 人工转帐管理
  *
  * @author renren
  * @email renren@gmail.com
  * @date 2024-01-01 00:00:00
  */
 @RestController
-@RequestMapping("withdraw")
-@Api(tags="提现管理")
-public class ManualWithdrawController {
+@RequestMapping("manualWithdraw")
+@Api(tags="人工转帐管理")
+public class ManualTransferController {
     @Autowired
-    private ManualWithdrawService manualWithdrawService;
+    private ManualTransferService manualTransferService;
 
     @GetMapping("page")
-    @ApiOperation("手工提现分页")
+    @ApiOperation("人工转帐分页")
     @ApiImplicitParams({
         @ApiImplicitParam(name = Constant.PAGE, value = "当前页码，从1开始", paramType = "query", required = true, dataType="int") ,
         @ApiImplicitParam(name = Constant.LIMIT, value = "每页显示记录数", paramType = "query",required = true, dataType="int") ,
@@ -45,13 +45,13 @@ public class ManualWithdrawController {
         @ApiImplicitParam(name = "threeorder_no", value = "三方订单号", paramType = "query", dataType="String") ,
         @ApiImplicitParam(name = "withdraw_type", value = "提现类型 1 余额提现 2 佣金提现", paramType = "query", dataType="String")
     })
-//    @RequiresPermissions("withdraw:manual:page")
-    public Result<ManualWithdrawPageData> page(@ApiIgnore @RequestParam Map<String, Object> params){
+//    @RequiresPermissions("transfer:manual:page")
+    public Result<ManualTransferPageData> page(@ApiIgnore @RequestParam Map<String, Object> params){
         try {
-            ManualWithdrawPageData pageData = manualWithdrawService.getManualWithdrawPage(params);
-            return new Result<ManualWithdrawPageData>().ok(pageData);
+            ManualTransferPageData pageData = manualTransferService.getManualTransferPage(params);
+            return new Result<ManualTransferPageData>().ok(pageData);
         } catch (Exception e) {
-            return new Result<ManualWithdrawPageData>().error("查询手工提现列表失败: " + e.getMessage());
+            return new Result<ManualTransferPageData>().error("查询人工转帐列表失败: " + e.getMessage());
         }
     }
 }
