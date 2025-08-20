@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.mail.dao.MailDao">
+
+    <resultMap type="io.renren.modules.mail.entity.MailEntity" id="mailMap">
+        <result property="mailId" column="mail_id"/>
+        <result property="theme" column="theme"/>
+        <result property="content" column="content"/>
+        <result property="fromUser" column="from_user"/>
+        <result property="addresseename" column="addresseename"/>
+        <result property="dataType" column="data_type"/>
+        <result property="isWebsend" column="is_websend"/>
+        <result property="sendTime" column="send_time"/>
+        <result property="expirationTime" column="expiration_time"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateDate" column="update_date"/>
+    </resultMap>
+
+    <!-- 分页查询 -->
+    <select id="selectPage" resultMap="mailMap">
+        SELECT * FROM tb_mail
+        <where>
+            <if test="theme != null and theme != ''">
+                AND theme LIKE CONCAT('%', #{theme}, '%')
+            </if>
+            <if test="fromUser != null and fromUser != ''">
+                AND from_user LIKE CONCAT('%', #{fromUser}, '%')
+            </if>
+            <if test="startTime != null">
+                AND send_time >= #{startTime}
+            </if>
+            <if test="endTime != null">
+                AND send_time &lt;= #{endTime}
+            </if>
+        </where>
+        ORDER BY send_time DESC
+    </select>
+
+    <!-- 统计总数 -->
+    <select id="selectCount" resultType="int">
+        SELECT COUNT(*) FROM tb_mail
+        <where>
+            <if test="theme != null and theme != ''">
+                AND theme LIKE CONCAT('%', #{theme}, '%')
+            </if>
+            <if test="fromUser != null and fromUser != ''">
+                AND from_user LIKE CONCAT('%', #{fromUser}, '%')
+            </if>
+            <if test="startTime != null">
+                AND send_time >= #{startTime}
+            </if>
+            <if test="endTime != null">
+                AND send_time &lt;= #{endTime}
+            </if>
+        </where>
+    </select>
+
+    <!-- 根据ID查询 -->
+    <select id="selectById" resultMap="mailMap">
+        SELECT * FROM tb_mail WHERE mail_id = #{id}
+    </select>
+
+    <!-- 查询列表 -->
+    <select id="selectList" resultMap="mailMap">
+        SELECT * FROM tb_mail
+        <where>
+            <if test="theme != null and theme != ''">
+                AND theme LIKE CONCAT('%', #{theme}, '%')
+            </if>
+            <if test="fromUser != null and fromUser != ''">
+                AND from_user LIKE CONCAT('%', #{fromUser}, '%')
+            </if>
+            <if test="startTime != null">
+                AND send_time >= #{startTime}
+            </if>
+            <if test="endTime != null">
+                AND send_time &lt;= #{endTime}
+            </if>
+        </where>
+        ORDER BY send_time DESC
+    </select>
+
+    <!-- 插入 -->
+    <insert id="insert" parameterType="io.renren.modules.mail.entity.MailEntity" useGeneratedKeys="true" keyProperty="mailId">
+        INSERT INTO tb_mail (
+            theme, content, from_user, addresseename, data_type, is_websend, 
+            send_time, expiration_time, create_date, update_date
+        ) VALUES (
+            #{theme}, #{content}, #{fromUser}, #{addresseename}, #{dataType}, #{isWebsend}, 
+            #{sendTime}, #{expirationTime}, #{createDate}, #{updateDate}
+        )
+    </insert>
+
+    <!-- 更新 -->
+    <update id="updateById" parameterType="io.renren.modules.mail.entity.MailEntity">
+        UPDATE tb_mail SET
+            theme = #{theme},
+            content = #{content},
+            from_user = #{fromUser},
+            addresseename = #{addresseename},
+            data_type = #{dataType},
+            is_websend = #{isWebsend},
+            send_time = #{sendTime},
+            expiration_time = #{expirationTime},
+            update_date = #{updateDate}
+        WHERE mail_id = #{mailId}
+    </update>
+
+    <!-- 删除 -->
+    <delete id="deleteById">
+        DELETE FROM tb_mail WHERE mail_id = #{id}
+    </delete>
+
+    <!-- 批量删除 -->
+    <delete id="deleteBatchIds">
+        DELETE FROM tb_mail WHERE mail_id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

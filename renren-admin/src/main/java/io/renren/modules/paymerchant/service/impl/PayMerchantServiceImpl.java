@@ -40,8 +40,10 @@ public class PayMerchantServiceImpl extends CrudServiceImpl<PayMerchantDao, PayM
         
         // 转换为实体对象
         PayMerchantEntity entity = ConvertUtils.sourceToTarget(dto, PayMerchantEntity.class);
-        
+        if(baseDao.updateById(entity)>0){
+            return true;
+        }
         // 更新优先级
-        return baseDao.updateById(entity);
+        return false;
     }
 }

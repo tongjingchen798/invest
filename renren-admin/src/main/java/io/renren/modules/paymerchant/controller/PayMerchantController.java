@@ -117,7 +117,8 @@ public class PayMerchantController {
             if (existingMerchant == null) {
                 return new Result().error("商户不存在");
             }
-            
+
+
             // 更新优先级
             if (payMerchantService.updateDegreeHeat(dto)) {
                 return new Result().ok("success");
