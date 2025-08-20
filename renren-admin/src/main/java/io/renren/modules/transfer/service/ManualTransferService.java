@@ -3,6 +3,7 @@ package io.renren.modules.transfer.service;
 import io.renren.common.service.BaseService;
 import io.renren.modules.transfer.dto.ManualTransferDTO;
 import io.renren.modules.transfer.dto.ManualTransferPageData;
+import io.renren.modules.transfer.dto.WithdrawSHRequest;
 import io.renren.modules.transfer.entity.ManualTransferEntity;
 
 import java.util.List;
@@ -23,6 +24,12 @@ public interface ManualTransferService extends BaseService<ManualTransferEntity>
      * @return 分页数据
      */
     ManualTransferPageData getManualTransferPage(Map<String, Object> params);
+
+    /**
+     * 处理人工转账
+     * @param request 转账请求参数
+     */
+    void processManualTransfer(WithdrawSHRequest request);
 
     /**
      * 根据订单号查询人工转帐记录

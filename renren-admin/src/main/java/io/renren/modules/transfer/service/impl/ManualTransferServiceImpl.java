@@ -7,12 +7,14 @@ import io.renren.common.service.impl.BaseServiceImpl;
 import io.renren.modules.transfer.dao.ManualTransferDao;
 import io.renren.modules.transfer.dto.ManualTransferDTO;
 import io.renren.modules.transfer.dto.ManualTransferPageData;
+import io.renren.modules.transfer.dto.WithdrawSHRequest;
 import io.renren.modules.transfer.entity.ManualTransferEntity;
 import io.renren.modules.transfer.service.ManualTransferService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -34,6 +36,49 @@ public class ManualTransferServiceImpl extends BaseServiceImpl<ManualTransferDao
 
     @Autowired
     private ManualTransferDao manualTransferDao;
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void processManualTransfer(WithdrawSHRequest request) {
+        try {
+            log.info("开始处理人工转账请求: {}", request);
+            
+            // 创建人工转账记录
+            ManualTransferEntity transferEntity = new ManualTransferEntity();
+            
+            // 设置基本信息
+            transferEntity.setId(String.valueOf(System.currentTimeMillis()));
+            transferEntity.setPayNo(request.getPayNo());
+            transferEntity.setPayName(request.getPayName());
+            transferEntity.setIfsc(request.getIfsc());
+            transferEntity.setAmount(request.getAmount());
+            
+            // 设置默认值
+            transferEntity.setState(0); // 0-待处理
+            transferEntity.setWithdrawType(0); // 0-余额转帐
+            transferEntity.setTransferSource(2); // 2-管理员操作
+            transferEntity.setCreateTime(new Date());
+            transferEntity.setStateTime(new Date());
+            transferEntity.setUpdateTime(new Date());
+            
+            // 生成订单号
+            String orderno = generateOrderNo();
+            transferEntity.setOrderno(orderno);
+            
+            // 设置备注
+            transferEntity.setRemark("管理员人工转账操作");
+            
+            // 保存到数据库
+            manualTransferDao.insert(transferEntity);
+            //TODO 需要调用三方代付直接支付
+            
+            log.info("人工转账记录创建成功，订单号: {}", orderno);
+            
+        } catch (Exception e) {
+            log.error("处理人工转账失败", e);
+            throw new RuntimeException("处理人工转账失败: " + e.getMessage());
+        }
+    }
 
     @Override
     public ManualTransferPageData getManualTransferPage(Map<String, Object> params) {
@@ -167,6 +212,16 @@ public class ManualTransferServiceImpl extends BaseServiceImpl<ManualTransferDao
         return transfers.stream()
                 .mapToLong(transfer -> transfer.getAmount() != null ? transfer.getAmount() : 0L)
                 .sum();
+    }
+
+    /**
+     * 生成订单号
+     */
+    private String generateOrderNo() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+        String timestamp = sdf.format(new Date());
+        String random = String.valueOf((int)((Math.random() * 9 + 1) * 1000));
+        return "M" + timestamp + random;
     }
 
     /**

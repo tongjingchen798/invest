@@ -4,6 +4,7 @@ import io.renren.common.constant.Constant;
 import io.renren.common.utils.Result;
 import io.renren.modules.transfer.dto.ManualTransferDTO;
 import io.renren.modules.transfer.dto.ManualTransferPageData;
+import io.renren.modules.transfer.dto.WithdrawSHRequest;
 import io.renren.modules.transfer.service.ManualTransferService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -52,6 +53,18 @@ public class ManualTransferController {
             return new Result<ManualTransferPageData>().ok(pageData);
         } catch (Exception e) {
             return new Result<ManualTransferPageData>().error("查询人工转帐列表失败: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("withdrawSH")
+    @ApiOperation("人工转账")
+//    @RequiresPermissions("transfer:manual:withdraw")
+    public Result withdrawSH(@RequestBody WithdrawSHRequest request) {
+        try {
+            manualTransferService.processManualTransfer(request);
+            return new Result().ok(null);
+        } catch (Exception e) {
+            return new Result<Void>().error("人工转账失败: " + e.getMessage());
         }
     }
 }
