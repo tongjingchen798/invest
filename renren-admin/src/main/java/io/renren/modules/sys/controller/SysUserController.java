@@ -37,15 +37,17 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
+import org.apache.commons.lang3.StringUtils;
 
 /**
- * 用户管理
+ * 系统用户管理
  * 
  * @author Mark sunlightcs@gmail.com
  */
 @RestController
 @RequestMapping("/sys/user")
-@Api(tags="用户管理")
+@Api(tags="系统用户管理")
 public class SysUserController {
 	@Autowired
 	private SysUserService sysUserService;
@@ -57,24 +59,24 @@ public class SysUserController {
 	@ApiImplicitParams({
 		@ApiImplicitParam(name = Constant.PAGE, value = "当前页码，从1开始", paramType = "query", required = true, dataType="int") ,
 		@ApiImplicitParam(name = Constant.LIMIT, value = "每页显示记录数", paramType = "query",required = true, dataType="int") ,
-		@ApiImplicitParam(name = Constant.ORDER_FIELD, value = "排序字段", paramType = "query", dataType="String") ,
-		@ApiImplicitParam(name = Constant.ORDER, value = "排序方式，可选值(asc、desc)", paramType = "query", dataType="String") ,
-		@ApiImplicitParam(name = "username", value = "用户名", paramType = "query", dataType="String"),
-		@ApiImplicitParam(name = "gender", value = "性别", paramType = "query", dataType="String"),
-		@ApiImplicitParam(name = "deptId", value = "部门ID", paramType = "query", dataType="String")
+		@ApiImplicitParam(name = "username", value = "用户名", paramType = "query", dataType="String")
 	})
 	@RequiresPermissions("sys:user:page")
 	public Result<PageData<SysUserDTO>> page(
-			@ApiParam(value = "当前页码，从1开始", required = true) @RequestParam(Constant.PAGE) Integer page,
+			@ApiParam(value = "当前页码，从1开始") @RequestParam(Constant.PAGE) Integer page,
 			@ApiParam(value = "每页显示记录数", required = true) @RequestParam(Constant.LIMIT) Integer limit,
-			@ApiParam(value = "用户名", required = false) @RequestParam(required = false) String username,
-			@ApiParam(value = "性别", required = false) @RequestParam(required = false) String gender,
-			@ApiParam(value = "部门ID", required = false) @RequestParam(required = false) String deptId,
-			@ApiParam(value = "排序方式，可选值(asc、desc)", required = false) @RequestParam(value = Constant.ORDER, required = false) String order,
-			@ApiParam(value = "排序字段", required = false) @RequestParam(value = Constant.ORDER_FIELD, required = false) String orderField) {
+			@ApiParam(value = "用户名", required = false) @RequestParam(required = false) String username) {
 		
-		// 直接使用MyBatis-Plus分页，无需构建Map
-		PageData<SysUserDTO> pageData = sysUserService.page(page, limit, username, gender, deptId, order, orderField);
+		// 构建查询参数
+		Map<String, Object> params = new HashMap<>();
+		params.put(Constant.PAGE, page);
+		params.put(Constant.LIMIT, limit);
+		if (StringUtils.isNotBlank(username)) {
+			params.put("username", username);
+		}
+		
+		// 调用服务层分页查询
+		PageData<SysUserDTO> pageData = sysUserService.page(params);
 
 		return new Result<PageData<SysUserDTO>>().ok(pageData);
 	}

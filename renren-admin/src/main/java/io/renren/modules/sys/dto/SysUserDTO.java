@@ -84,4 +84,36 @@ public class SysUserDTO implements Serializable {
     @ApiModelProperty(value = "部门名称")
     private String deptName;
 
+    @ApiModelProperty(value = "渠道")
+    private String channel;
+
+    @ApiModelProperty(value = "类型 0最大权限管理员 1代理商 2渠道商")
+    private Integer type;
+
+    @ApiModelProperty(value = "代理编号")
+    private String agent;
+
+    @ApiModelProperty(value = "域名 (业务员才拥有)")
+    private String domainname;
+
+    @ApiModelProperty(value = "下载推荐号")
+    private String dowloadCode;
+
+    @ApiModelProperty(value = "客服的头像")
+    private String wsimage;
+
+    @ApiModelProperty(value = "客服的号码")
+    private String wsnumber;
+
+    @ApiModelProperty(value = "客服名称")
+    private String wsname;
+
+    @ApiModelProperty(value = "客服的tg号码")
+    private String tgnumber;
+
+    @ApiModelProperty(value = "双重认证码")
+    private String twoFactorCode;
+
+    // @ApiModelProperty(value = "代理邀请码")
+    // private String agentInviteCode;
 }
