@@ -141,4 +141,258 @@
         ORDER BY date
     </select>
 
+    <!-- 获取数量统计分析图数据 -->
+    <select id="getQuantityAnalysisData" resultType="map">
+        <choose>
+            <when test="type == 'd'">
+                <!-- 日统计：按天分组 -->
+                SELECT 
+                    DATE_FORMAT(date_column, '%Y-%m-%d') as date,
+                    COALESCE(SUM(CASE WHEN source = 'register' THEN cnt ELSE 0 END), 0) as newRegisteredMembers,
+                    COALESCE(SUM(CASE WHEN source = 'recharge' THEN cnt ELSE 0 END), 0) as newRechargeMembers,
+                    COALESCE(SUM(CASE WHEN source = 'order' THEN cnt ELSE 0 END), 0) as rechargeOrderCount,
+                    COALESCE(SUM(CASE WHEN source = 'signin' THEN cnt ELSE 0 END), 0) as signInCount
+                FROM (
+                    <!-- 新增注册会员 -->
+                    SELECT 
+                        create_date as date_column,
+                        'register' as source,
+                        COUNT(*) as cnt
+                    FROM tb_user
+                    <where>
+                        <if test="startTime != null">
+                            AND create_date >= FROM_UNIXTIME(#{startTime}/1000)
+                        </if>
+                        <if test="endTime != null">
+                            AND create_date &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                        </if>
+                    </where>
+                    GROUP BY DATE_FORMAT(create_date, '%Y-%m-%d')
+                    
+                    UNION ALL
+                    
+                    <!-- 新增充值会员 -->
+                    SELECT 
+                        create_time as date_column,
+                        'recharge' as source,
+                        COUNT(DISTINCT user_id) as cnt
+                    FROM tb_charge_order
+                    <where>
+                        <if test="startTime != null">
+                            AND create_time >= FROM_UNIXTIME(#{startTime}/1000)
+                        </if>
+                        <if test="endTime != null">
+                            AND create_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                        </if>
+                    </where>
+                    GROUP BY DATE_FORMAT(create_time, '%Y-%m-%d')
+                    
+                    UNION ALL
+                    
+                    <!-- 充值订单数 -->
+                    SELECT 
+                        create_time as date_column,
+                        'order' as source,
+                        COUNT(*) as cnt
+                    FROM tb_charge_order
+                    <where>
+                        <if test="startTime != null">
+                            AND create_time >= FROM_UNIXTIME(#{startTime}/1000)
+                        </if>
+                        <if test="endTime != null">
+                            AND create_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                        </if>
+                    </where>
+                    GROUP BY DATE_FORMAT(create_time, '%Y-%m-%d')
+                    
+                    UNION ALL
+                    
+                    <!-- 签到人数 -->
+                    SELECT 
+                        sign_time as date_column,
+                        'signin' as source,
+                        COUNT(DISTINCT user_id) as cnt
+                    FROM tb_user_sign_in
+                    <where>
+                        <if test="startTime != null">
+                            AND sign_time >= FROM_UNIXTIME(#{startTime}/1000)
+                        </if>
+                        <if test="endTime != null">
+                            AND sign_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                        </if>
+                    </where>
+                    GROUP BY DATE_FORMAT(sign_time, '%Y-%m-%d')
+                ) combined_data
+                GROUP BY DATE_FORMAT(date_column, '%Y-%m-%d')
+                ORDER BY date
+            </when>
+            
+            <when test="type == 'w'">
+                <!-- 周统计：按周分组 -->
+                SELECT 
+                    CONCAT(YEAR(date_column), '-W', WEEK(date_column)) as date,
+                    COALESCE(SUM(CASE WHEN source = 'register' THEN cnt ELSE 0 END), 0) as newRegisteredMembers,
+                    COALESCE(SUM(CASE WHEN source = 'recharge' THEN cnt ELSE 0 END), 0) as newRechargeMembers,
+                    COALESCE(SUM(CASE WHEN source = 'order' THEN cnt ELSE 0 END), 0) as rechargeOrderCount,
+                    COALESCE(SUM(CASE WHEN source = 'signin' THEN cnt ELSE 0 END), 0) as signInCount
+                FROM (
+                    <!-- 新增注册会员 -->
+                    SELECT 
+                        create_date as date_column,
+                        'register' as source,
+                        COUNT(*) as cnt
+                    FROM tb_user
+                    <where>
+                        <if test="startTime != null">
+                            AND create_date >= FROM_UNIXTIME(#{startTime}/1000)
+                        </if>
+                        <if test="endTime != null">
+                            AND create_date &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                        </if>
+                    </where>
+                    GROUP BY YEAR(create_date), WEEK(create_date)
+                    
+                    UNION ALL
+                    
+                    <!-- 新增充值会员 -->
+                    SELECT 
+                        create_time as date_column,
+                        'recharge' as source,
+                        COUNT(DISTINCT user_id) as cnt
+                    FROM tb_charge_order
+                    <where>
+                        <if test="startTime != null">
+                            AND create_time >= FROM_UNIXTIME(#{startTime}/1000)
+                        </if>
+                        <if test="endTime != null">
+                            AND create_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                        </if>
+                    </where>
+                    GROUP BY YEAR(create_time), WEEK(create_time)
+                    
+                    UNION ALL
+                    
+                    <!-- 充值订单数 -->
+                    SELECT 
+                        create_time as date_column,
+                        'order' as source,
+                        COUNT(*) as cnt
+                    FROM tb_charge_order
+                    <where>
+                        <if test="startTime != null">
+                            AND create_time >= FROM_UNIXTIME(#{startTime}/1000)
+                        </if>
+                        <if test="endTime != null">
+                            AND create_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                        </if>
+                    </where>
+                    GROUP BY YEAR(create_time), WEEK(create_time)
+                    
+                    UNION ALL
+                    
+                    <!-- 签到人数 -->
+                    SELECT 
+                        sign_time as date_column,
+                        'signin' as source,
+                        COUNT(DISTINCT user_id) as cnt
+                    FROM tb_user_sign_in
+                    <where>
+                        <if test="startTime != null">
+                            AND sign_time >= FROM_UNIXTIME(#{startTime}/1000)
+                        </if>
+                        <if test="endTime != null">
+                            AND sign_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                        </if>
+                    </where>
+                    GROUP BY YEAR(sign_time), WEEK(sign_time)
+                ) combined_data
+                GROUP BY YEAR(date_column), WEEK(date_column)
+                ORDER BY date
+            </when>
+            
+            <otherwise>
+                <!-- 月统计：按月分组 -->
+                SELECT 
+                    DATE_FORMAT(date_column, '%Y-%m') as date,
+                    COALESCE(SUM(CASE WHEN source = 'register' THEN cnt ELSE 0 END), 0) as newRegisteredMembers,
+                    COALESCE(SUM(CASE WHEN source = 'recharge' THEN cnt ELSE 0 END), 0) as newRechargeMembers,
+                    COALESCE(SUM(CASE WHEN source = 'order' THEN cnt ELSE 0 END), 0) as rechargeOrderCount,
+                    COALESCE(SUM(CASE WHEN source = 'signin' THEN cnt ELSE 0 END), 0) as signInCount
+                FROM (
+                    <!-- 新增注册会员 -->
+                    SELECT 
+                        create_date as date_column,
+                        'register' as source,
+                        COUNT(*) as cnt
+                    FROM tb_user
+                    <where>
+                        <if test="startTime != null">
+                            AND create_date >= FROM_UNIXTIME(#{startTime}/1000)
+                        </if>
+                        <if test="endTime != null">
+                            AND create_date &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                        </if>
+                    </where>
+                    GROUP BY YEAR(create_date), MONTH(create_date)
+                    
+                    UNION ALL
+                    
+                    <!-- 新增充值会员 -->
+                    SELECT 
+                        create_time as date_column,
+                        'recharge' as source,
+                        COUNT(DISTINCT user_id) as cnt
+                    FROM tb_charge_order
+                    <where>
+                        <if test="startTime != null">
+                            AND create_time >= FROM_UNIXTIME(#{startTime}/1000)
+                        </if>
+                        <if test="endTime != null">
+                            AND create_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                        </if>
+                    </where>
+                    GROUP BY YEAR(create_time), MONTH(create_time)
+                    
+                    UNION ALL
+                    
+                    <!-- 充值订单数 -->
+                    SELECT 
+                        create_time as date_column,
+                        'order' as source,
+                        COUNT(*) as cnt
+                    FROM tb_charge_order
+                    <where>
+                        <if test="startTime != null">
+                            AND create_time >= FROM_UNIXTIME(#{startTime}/1000)
+                        </if>
+                        <if test="endTime != null">
+                            AND create_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                        </if>
+                    </where>
+                    GROUP BY YEAR(create_time), MONTH(create_time)
+                    
+                    UNION ALL
+                    
+                    <!-- 签到人数 -->
+                    SELECT 
+                        sign_time as date_column,
+                        'signin' as source,
+                        COUNT(DISTINCT user_id) as cnt
+                    FROM tb_user_sign_in
+                    <where>
+                        <if test="startTime != null">
+                            AND sign_time >= FROM_UNIXTIME(#{startTime}/1000)
+                        </if>
+                        <if test="endTime != null">
+                            AND sign_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                        </if>
+                    </where>
+                    GROUP BY YEAR(sign_time), MONTH(sign_time)
+                ) combined_data
+                GROUP BY YEAR(date_column), MONTH(date_column)
+                ORDER BY date
+            </otherwise>
+        </choose>
+    </select>
+
 </mapper>

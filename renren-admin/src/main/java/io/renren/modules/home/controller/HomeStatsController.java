@@ -3,6 +3,7 @@ package io.renren.modules.home.controller;
 import io.renren.common.utils.Result;
 import io.renren.modules.home.dto.DailyReportDTO;
 import io.renren.modules.home.dto.MainStatsDTO;
+import io.renren.modules.home.dto.QuantityAnalysisDTO;
 import io.renren.modules.home.service.HomeStatsService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -124,4 +125,54 @@ public class HomeStatsController {
             return new Result().ok(Collections.emptyList());
         }
     }
+
+    @GetMapping("/ReportNum")
+    @ApiOperation("数量统计分析图")
+    public Result<List<QuantityAnalysisDTO>> getReportNum(
+            @ApiParam(value = "开始日期时间戳", required = false) @RequestParam(required = false) Long startTime,
+            @ApiParam(value = "结束日期时间戳", required = false) @RequestParam(required = false) Long endTime,
+            @ApiParam(value = "统计类型", required = true, example = "d") @RequestParam String type) {
+        try {
+            // 根据统计类型自动设置时间范围
+            Long calculatedStartTime;
+            Long calculatedEndTime;
+            LocalDate now = LocalDate.now();
+            switch (type.toLowerCase()) {
+                case "d": // 日统计
+                    // 今天0点到23:59:59
+                    calculatedStartTime = LocalDate.now().atStartOfDay(ZoneOffset.of("+8")).toInstant().toEpochMilli();
+                    calculatedEndTime = LocalDate.now().atTime(23, 59, 59).atZone(ZoneOffset.of("+8")).toInstant().toEpochMilli();
+                    break;
+                case "w": // 周统计
+                    // 本周一到周日
+                    LocalDate startOfWeek = now.with(DayOfWeek.MONDAY);
+                    LocalDate endOfWeek = now.with(DayOfWeek.SUNDAY);
+                    calculatedStartTime = startOfWeek.atStartOfDay(ZoneOffset.of("+8")).toInstant().toEpochMilli();
+                    calculatedEndTime = endOfWeek.atTime(23, 59, 59).atZone(ZoneOffset.of("+8")).toInstant().toEpochMilli();
+                    break;
+                case "m": // 月统计
+                    // 本月1号到最后一天
+                    LocalDate startOfMonth = now.withDayOfMonth(1);
+                    LocalDate endOfMonth = now.with(TemporalAdjusters.lastDayOfMonth());
+                    calculatedStartTime = startOfMonth.atStartOfDay(ZoneOffset.of("+8")).toInstant().toEpochMilli();
+                    calculatedEndTime = endOfMonth.atTime(23, 59, 59).atZone(ZoneOffset.of("+8")).toInstant().toEpochMilli();
+                    break;
+                default:
+                    // 默认今天
+                    calculatedStartTime = LocalDate.now().atStartOfDay(ZoneOffset.of("+8")).toInstant().toEpochMilli();
+                    calculatedEndTime = LocalDate.now().atTime(23, 59, 59).atZone(ZoneOffset.of("+8")).toInstant().toEpochMilli();
+                    break;
+            }
+
+            // 调用服务获取数量统计分析数据
+            List<QuantityAnalysisDTO> analysisData = homeStatsService.getQuantityAnalysisData(calculatedStartTime, calculatedEndTime, type);
+            return new Result<List<QuantityAnalysisDTO>>().ok(analysisData);
+        } catch (Exception e) {
+            logger.error("获取数量统计分析图数据失败", e);
+            return new Result<List<QuantityAnalysisDTO>>().ok(Collections.emptyList());
+        }
+    }
+
+
+
 }

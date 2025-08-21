@@ -3,6 +3,7 @@ package io.renren.modules.home.service.impl;
 import io.renren.modules.home.dao.HomeStatsDao;
 import io.renren.modules.home.dto.DailyReportDTO;
 import io.renren.modules.home.dto.MainStatsDTO;
+import io.renren.modules.home.dto.QuantityAnalysisDTO;
 import io.renren.modules.home.service.HomeStatsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -119,6 +120,39 @@ public class HomeStatsServiceImpl implements HomeStatsService {
         
         logger.info("日报表统计完成，返回 {} 条记录", reportList.size());
         return reportList;
+    }
+
+    @Override
+    public List<QuantityAnalysisDTO> getQuantityAnalysisData(Long startTime, Long endTime, String type) {
+        logger.info("开始获取数量统计分析图数据，时间范围: {} - {}, 类型: {}", startTime, endTime, type);
+        
+        List<QuantityAnalysisDTO> analysisList = new ArrayList<>();
+        
+        try {
+            List<Map<String, Object>> rawData = homeStatsDao.getQuantityAnalysisData(startTime, endTime, type);
+            
+            if (rawData != null && !rawData.isEmpty()) {
+                for (Map<String, Object> data : rawData) {
+                    QuantityAnalysisDTO analysisDTO = new QuantityAnalysisDTO();
+                    analysisDTO.setDate(getStringValue(data.get("date")));
+                    analysisDTO.setNewRegisteredMembers(getLongValue(data.get("newRegisteredMembers")));
+                    analysisDTO.setNewRechargeMembers(getLongValue(data.get("newRechargeMembers")));
+                    analysisDTO.setRechargeOrderCount(getLongValue(data.get("rechargeOrderCount")));
+                    analysisDTO.setSignInCount(getLongValue(data.get("signInCount")));
+                    analysisDTO.setType(type);
+                    analysisList.add(analysisDTO);
+                }
+                logger.debug("成功转换数量统计分析数据，共 {} 条记录", analysisList.size());
+            } else {
+                logger.warn("未查询到数量统计分析数据");
+            }
+            
+        } catch (Exception e) {
+            logger.error("获取数量统计分析图数据时发生异常", e);
+        }
+        
+        logger.info("数量统计分析完成，返回 {} 条记录", analysisList.size());
+        return analysisList;
     }
 
     /**

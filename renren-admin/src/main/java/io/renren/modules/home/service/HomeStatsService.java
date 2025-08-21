@@ -2,6 +2,7 @@ package io.renren.modules.home.service;
 
 import io.renren.modules.home.dto.DailyReportDTO;
 import io.renren.modules.home.dto.MainStatsDTO;
+import io.renren.modules.home.dto.QuantityAnalysisDTO;
 
 import java.util.List;
 
@@ -30,4 +31,13 @@ public interface HomeStatsService {
      * @return 日报表数据列表
      */
     List<DailyReportDTO> getDailyReportStats(Long startTime, Long endTime, String type);
+
+    /**
+     * 获取数量统计分析图数据
+     * @param startTime 开始时间戳
+     * @param endTime 结束时间戳
+     * @param type 统计类型 (d: 日, w: 周, m: 月)
+     * @return 数量统计分析数据列表
+     */
+    List<QuantityAnalysisDTO> getQuantityAnalysisData(Long startTime, Long endTime, String type);
 }
