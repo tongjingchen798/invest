@@ -9,6 +9,8 @@ import io.renren.modules.order.entity.InvestmentRecordEntity;
 import io.renren.modules.order.service.InvestmentRecordService;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -51,8 +53,34 @@ public class InvestmentRecordServiceImpl extends ServiceImpl<InvestmentRecordDao
         // 使用XML联表查询
         Page<InvestmentRecordDTO> resultPage = baseMapper.selectPageWithUser(page, params);
         
-        // 转换为PageData
-        return new PageData<>(resultPage.getRecords(), resultPage.getTotal());
+        // 计算统计数据
+        Map<String, Object> sum = calculateSum(resultPage.getRecords());
+        
+        // 转换为PageData，包含list和sum
+        return new PageData<>(resultPage.getRecords(), resultPage.getTotal(), sum);
     }
-
+    
+    /**
+     * 计算统计数据
+     */
+    private Map<String, Object> calculateSum(List<InvestmentRecordDTO> records) {
+        Map<String, Object> sum = new HashMap<>();
+        
+        long totalActualAmount = 0;
+        int totalInvestCount = 0;
+        
+        for (InvestmentRecordDTO record : records) {
+            if (record.getActualAmount() != null) {
+                totalActualAmount += record.getActualAmount();
+            }
+            if (record.getInvestCount() != null) {
+                totalInvestCount += record.getInvestCount();
+            }
+        }
+        
+        sum.put("actualAmount", totalActualAmount);
+        sum.put("investCount", totalInvestCount);
+        
+        return sum;
+    }
 }
