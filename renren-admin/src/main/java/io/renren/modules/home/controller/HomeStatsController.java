@@ -14,6 +14,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 import java.util.List;
+import java.time.LocalDate;
+import java.time.DayOfWeek;
+import java.time.ZoneOffset;
+import java.time.temporal.TemporalAdjusters;
 
 /**
  * 首页统计接口
@@ -64,20 +68,57 @@ public class HomeStatsController {
      *
      * @param startTime 开始时间戳
      * @param endTime 结束时间戳
-     * @param type 统计类型 (d: 日报, m: 月报, y: 年报)
+     * @param type 统计类型 (d: 日报, m: 周报, y: 月报)
      * @return 日报表数据列表
      */
     @GetMapping("/ReportAmount")
     @ApiOperation("获取报表统计数据")
     public Result<List<DailyReportDTO>> getDailyReportStats(
-            @ApiParam(value = "开始日期时间戳", required = true) @RequestParam Long startTime,
-            @ApiParam(value = "结束日期时间戳", required = true) @RequestParam Long endTime,
+            @ApiParam(value = "开始日期时间戳", required = false) @RequestParam(required = false) Long startTime,
+            @ApiParam(value = "结束日期时间戳", required = false) @RequestParam(required = false) Long endTime,
             @ApiParam(value = "统计类型", required = true, example = "d") @RequestParam String type) {
 
-        logger.info("收到日报表统计数据请求，时间范围: {} - {}, 类型: {}", startTime, endTime, type);
-
         try {
-            List<DailyReportDTO> reportList = homeStatsService.getDailyReportStats(startTime, endTime, type);
+            // 根据统计类型自动设置时间范围
+            Long calculatedStartTime;
+            Long calculatedEndTime;
+            
+            switch (type.toLowerCase()) {
+                case "d": // 日统计
+                    // 今天0点到23:59:59
+                    calculatedStartTime = LocalDate.now().atStartOfDay(ZoneOffset.of("+8")).toInstant().toEpochMilli();
+                    calculatedEndTime = LocalDate.now().atTime(23, 59, 59).atZone(ZoneOffset.of("+8")).toInstant().toEpochMilli();
+                    break;
+                case "w": // 周统计
+                    // 本周一到周日
+                    LocalDate now = LocalDate.now();
+                    LocalDate startOfWeek = now.with(DayOfWeek.MONDAY);
+                    LocalDate endOfWeek = now.with(DayOfWeek.SUNDAY);
+                    calculatedStartTime = startOfWeek.atStartOfDay(ZoneOffset.of("+8")).toInstant().toEpochMilli();
+                    calculatedEndTime = endOfWeek.atTime(23, 59, 59).atZone(ZoneOffset.of("+8")).toInstant().toEpochMilli();
+                    break;
+                case "m": // 月统计
+                    // 本月1号到最后一天
+                    LocalDate startOfMonth = now.withDayOfMonth(1);
+                    LocalDate endOfMonth = now.with(TemporalAdjusters.lastDayOfMonth());
+                    calculatedStartTime = startOfMonth.atStartOfDay(ZoneOffset.of("+8")).toInstant().toEpochMilli();
+                    calculatedEndTime = endOfMonth.atTime(23, 59, 59).atZone(ZoneOffset.of("+8")).toInstant().toEpochMilli();
+                    break;
+                case "y": // 年统计
+                    // 今年1月1号到12月31号
+                    LocalDate startOfYear = now.withDayOfYear(1);
+                    LocalDate endOfYear = now.withDayOfYear(now.lengthOfYear());
+                    calculatedStartTime = startOfYear.atStartOfDay(ZoneOffset.of("+8")).toInstant().toEpochMilli();
+                    calculatedEndTime = endOfYear.atTime(23, 59, 59).atZone(ZoneOffset.of("+8")).toInstant().toEpochMilli();
+                    break;
+                default:
+                    // 默认今天
+                    calculatedStartTime = LocalDate.now().atStartOfDay(ZoneOffset.of("+8")).toInstant().toEpochMilli();
+                    calculatedEndTime = LocalDate.now().atTime(23, 59, 59).atZone(ZoneOffset.of("+8")).toInstant().toEpochMilli();
+                    break;
+            }
+            
+            List<DailyReportDTO> reportList = homeStatsService.getDailyReportStats(calculatedStartTime, calculatedEndTime, type);
             return new Result().ok(reportList);
         } catch (Exception e) {
             logger.error("获取日报表统计数据失败", e);

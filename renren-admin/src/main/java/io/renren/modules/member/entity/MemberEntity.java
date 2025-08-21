@@ -417,6 +417,11 @@ public class MemberEntity implements Serializable {
      */
     private Long flag;
 
+    /**
+     * 是否裂变
+     */
+    private Integer liebian;
+
 
     /**
      * 项目数
