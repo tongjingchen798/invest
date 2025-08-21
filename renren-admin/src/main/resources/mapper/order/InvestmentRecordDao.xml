@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.order.dao.InvestmentRecordDao">
+
+    <!-- 联表分页查询购买记录（关联tb_user表） -->
+    <select id="selectPageWithUser" resultType="io.renren.modules.order.dto.InvestmentRecordDTO">
+        SELECT
+        ir.user_id,
+        ir.invest_name,
+        tp.project_type,
+        u.mobile,
+        tp.invest_name,
+        tp.abbreviation,
+        ir.order_id,
+        ir.project_id,
+        ir.order_date,
+        ir.profit_date expirationTime,
+        ir.investment_amount actualAmount,
+        ir.invest_count,
+        u.biaoqian,
+        u.username,
+        u.agent,
+        u.agent_name,
+        u.salesmanid,
+        u.salesman_name,
+        u.superior_name as supmobile
+        FROM
+        tb_investment_record ir
+        LEFT JOIN tb_project tp ON ir.project_id = tp.invest_id
+        LEFT JOIN tb_user u ON ir.user_id = u.id
+        <where>
+            <!-- 基础字段查询 -->
+            <if test="params.abbreviation != null and params.abbreviation != ''">
+                AND tp.abbreviation LIKE CONCAT('%', #{params.abbreviation}, '%')
+            </if>
+            
+            <if test="params.agent != null and params.agent != ''">
+                AND u.agent LIKE CONCAT('%', #{params.agent}, '%')
+            </if>
+            
+            <if test="params.salesmanid != null and params.salesmanid != ''">
+                AND u.salesmanid = #{params.salesmanid}
+            </if>
+            
+            <if test="params.status != null">
+                AND ir.status = #{params.status}
+            </if>
+            
+            <if test="params.projectId != null">
+                AND ir.project_id = #{params.projectId}
+            </if>
+            
+            <if test="params.userId != null">
+                AND ir.user_id = #{params.userId}
+            </if>
+            
+            <!-- 时间范围查询 -->
+            <if test="params.startTime != null">
+                AND ir.order_date >= FROM_UNIXTIME(#{params.startTime} / 1000)
+            </if>
+            
+            <if test="params.endTime != null">
+                AND ir.order_date &lt;= FROM_UNIXTIME(#{params.endTime} / 1000)
+            </if>
+            
+            <!-- 关联tb_user表的筛选条件 -->
+            <if test="params.biaoqian != null and params.biaoqian != ''">
+                AND u.biaoqian = #{params.biaoqian}
+            </if>
+            
+            <if test="params.biaoqianFlag != null">
+                <choose>
+                    <when test="params.biaoqianFlag == 1">
+                        AND u.biaoqian IS NOT NULL AND u.biaoqian != ''
+                    </when>
+                    <when test="params.biaoqianFlag == 0">
+                        AND (u.biaoqian IS NULL OR u.biaoqian = '')
+                    </when>
+                </choose>
+            </if>
+            
+<!--            <if test="params.liebian != null">-->
+<!--                <choose>-->
+<!--                    <when test="params.liebian == 1">-->
+<!--                        AND u.biaoqian IS NOT NULL AND u.biaoqian != ''-->
+<!--                    </when>-->
+<!--                    <when test="params.liebian == 0">-->
+<!--                        AND (u.biaoqian IS NULL OR u.biaoqian = '')-->
+<!--                    </when>-->
+<!--                </choose>-->
+<!--            </if>-->
+            
+            <if test="params.mobile != null and params.mobile != ''">
+                AND u.mobile LIKE CONCAT('%', #{params.mobile}, '%')
+            </if>
+        </where>
+        
+        <!-- 排序 -->
+        <choose>
+            <when test="params.orderField != null and params.orderField != '' and params.order != null and params.order != ''">
+                ORDER BY ir.${params.orderField} ${params.order}
+            </when>
+            <otherwise>
+                ORDER BY ir.order_date DESC
+            </otherwise>
+        </choose>
+    </select>
+
+</mapper>
