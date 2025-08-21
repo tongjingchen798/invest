@@ -3,6 +3,7 @@ package io.renren.modules.usdtrecord.controller;
 import io.renren.common.page.PageData;
 import io.renren.common.utils.Result;
 import io.renren.modules.usdtrecord.dto.UsdtRecordDTO;
+import io.renren.modules.usdtrecord.dto.UsdtRecordMatchOrderDTO;
 import io.renren.modules.usdtrecord.service.UsdtRecordService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -21,7 +22,7 @@ import java.util.Map;
  * @since 2024-01-01
  */
 @RestController
-@RequestMapping("/usdtrecord")
+@RequestMapping("/admin/usdtrecord")
 @Api(tags = "USDT钱包收款记录")
 public class UsdtRecordController {
     @Autowired
@@ -52,6 +53,34 @@ public class UsdtRecordController {
             return new Result<PageData<UsdtRecordDTO>>().ok(pageData);
         } catch (Exception e) {
             return new Result<PageData<UsdtRecordDTO>>().error("查询USDT收款记录失败: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("matchOrder")
+    @ApiOperation("手工匹配订单")
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "dto", value = "前端匹配订单传参", required = true, dataType = "UsdtRecordMatchOrderDTO", paramType = "body")
+    })
+    public Result<Object> matchOrder(@RequestBody UsdtRecordMatchOrderDTO dto) {
+        try {
+            // 参数验证
+            if (dto.getId() == null) {
+                return new Result<Object>().error("USDT记录ID不能为空");
+            }
+            if (dto.getOrderno() == null || dto.getOrderno().trim().isEmpty()) {
+                return new Result<Object>().error("订单号不能为空");
+            }
+            
+            // 调用服务进行订单匹配
+            boolean success = usdtRecordService.matchOrder(dto.getId(), dto.getOrderno());
+            
+            if (success) {
+                return new Result<Object>().ok("订单匹配成功");
+            } else {
+                return new Result<Object>().error("订单匹配失败");
+            }
+        } catch (Exception e) {
+            return new Result<Object>().error("订单匹配失败: " + e.getMessage());
         }
     }
 }

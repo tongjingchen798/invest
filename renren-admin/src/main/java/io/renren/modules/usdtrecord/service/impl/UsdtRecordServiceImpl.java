@@ -9,6 +9,7 @@ import io.renren.modules.usdtrecord.dao.UsdtRecordDao;
 import io.renren.modules.usdtrecord.dto.UsdtRecordDTO;
 import io.renren.modules.usdtrecord.entity.UsdtRecordEntity;
 import io.renren.modules.usdtrecord.service.UsdtRecordService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
  * @since 2024-01-01
  */
 @Service
+@Slf4j
 public class UsdtRecordServiceImpl extends ServiceImpl<UsdtRecordDao, UsdtRecordEntity> implements UsdtRecordService {
 
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -183,5 +185,29 @@ public class UsdtRecordServiceImpl extends ServiceImpl<UsdtRecordDao, UsdtRecord
         }
         
         return wrapper;
+    }
+
+    @Override
+    public boolean matchOrder(Long id, String orderno) {
+        try {
+            // 查询USDT记录是否存在
+            UsdtRecordEntity entity = this.getById(id);
+            if (entity == null) {
+                return false;
+            }
+            
+            // 更新订单号
+            entity.setOrderNo(orderno);
+            entity.setUpdateDate(new Date());
+            
+            // 保存更新
+            boolean result = this.updateById(entity);
+            
+            return result;
+        } catch (Exception e) {
+            // 记录错误日志
+            log.error("匹配订单失败，ID: {}, 订单号: {}, 错误: {}", id, orderno, e.getMessage(), e);
+            return false;
+        }
     }
 }

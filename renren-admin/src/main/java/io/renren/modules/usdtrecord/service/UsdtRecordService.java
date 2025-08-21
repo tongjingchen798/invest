@@ -21,4 +21,12 @@ public interface UsdtRecordService extends IService<UsdtRecordEntity> {
      * @return 分页数据
      */
     PageData<UsdtRecordDTO> page(Map<String, Object> params);
+
+    /**
+     * 手工匹配订单
+     * @param id USDT记录ID
+     * @param orderno 订单号
+     * @return 是否匹配成功
+     */
+    boolean matchOrder(Long id, String orderno);
 }
