@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.qd.dao.QdDao">
+
+    <!-- 分页查询签到记录（关联用户表） -->
+    <select id="selectQdRecordPage" resultType="io.renren.modules.qd.dto.QdRecordDTO">
+        SELECT
+        q.id,
+        q.user_id as userId,
+        q.continuous_days as day,
+        q.reward_amount as amount,
+        q.reward_type as qdtype,
+        DATE_FORMAT(q.sign_time, '%Y-%m-%d %H:%i:%s') as createDate,
+        q.user_id as creator,
+        u.mobile,
+        u.agent as agent,
+        CASE
+        WHEN u.agent IS NOT NULL THEN CONCAT('代理', u.agent)
+        ELSE ''
+        END as agentName,
+        u.salesmanid as salesmanid,
+        CASE
+        WHEN u.salesmanid IS NOT NULL THEN CONCAT('业务员', u.salesmanid)
+        ELSE ''
+        END as salesmanName,
+        CASE
+        WHEN q.continuous_days = 1 THEN 1
+        WHEN q.continuous_days = 2 THEN 2
+        WHEN q.continuous_days = 3 THEN 3
+        WHEN q.continuous_days = 4 THEN 4
+        WHEN q.continuous_days = 5 THEN 5
+        WHEN q.continuous_days = 6 THEN 6
+        WHEN q.continuous_days = 7 THEN 7
+        ELSE 0
+        END as partDay,
+        (SELECT COUNT(*) FROM tb_user_sign_in WHERE user_id = q.user_id AND status = 1) as sumday,
+        0 as couponid,
+        '' as couponName,
+        0 as privilegeid,
+        '' as privilegeName,
+        u.biaoqian,
+        CASE
+        WHEN u.invite_code IS NOT NULL AND u.invite_code != '' THEN 1
+        ELSE 0
+        END as inviteCodeStatus
+        FROM tb_user_sign_in q
+        LEFT JOIN tb_user u ON q.user_id = u.id
+        WHERE q.status = 1
+        <if test="params.mobile != null and params.mobile != ''">
+            AND u.mobile LIKE CONCAT('%', #{params.mobile}, '%')
+        </if>
+        <if test="params.username != null and params.username != ''">
+            AND u.username LIKE CONCAT('%', #{params.username}, '%')
+        </if>
+        <if test="params.agent != null">
+            AND u.agent_id = #{params.agent}
+        </if>
+        <if test="params.salesmanid != null">
+            AND u.salesman_id = #{params.salesmanid}
+        </if>
+        <if test="params.biaoqian != null and params.biaoqian != ''">
+            AND u.biaoqian LIKE CONCAT('%', #{params.biaoqian}, '%')
+        </if>
+        <if test="params.biaoqianFlag != null">
+            <choose>
+                <when test="params.biaoqianFlag == 1">
+                    AND u.biaoqian IS NOT NULL AND u.biaoqian != ''
+                </when>
+                <when test="params.biaoqianFlag == 0">
+                    AND (u.biaoqian IS NULL OR u.biaoqian = '')
+                </when>
+            </choose>
+        </if>
+        <if test="params.liebian != null">
+            AND u.liebian = #{params.liebian}
+        </if>
+        <if test="params.startTime != null">
+            AND q.sign_time >= FROM_UNIXTIME(#{params.startTime}/1000)
+        </if>
+        <if test="params.endTime != null">
+            AND q.sign_time &lt;= FROM_UNIXTIME(#{params.endTime}/1000)
+        </if>
+        <choose>
+            <when test="params.orderField != null and params.orderField != ''">
+                ORDER BY ${params.orderField}
+                <if test="params.order != null and params.order != ''">
+                    <choose>
+                        <when test="params.order == 'asc'">ASC</when>
+                        <when test="params.order == 'desc'">DESC</when>
+                        <otherwise>DESC</otherwise>
+                    </choose>
+                </if>
+            </when>
+            <otherwise>
+                ORDER BY q.sign_time DESC
+            </otherwise>
+        </choose>
+    </select>
+
+</mapper>
