@@ -22,7 +22,7 @@ import java.util.Map;
  * @since 2024-01-01
  */
 @RestController
-@RequestMapping("/admin/usdtrecord")
+@RequestMapping("/usdtrecord")
 @Api(tags = "USDT钱包收款记录")
 public class UsdtRecordController {
     @Autowired
