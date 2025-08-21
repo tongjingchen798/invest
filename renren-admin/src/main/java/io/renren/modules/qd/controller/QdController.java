@@ -21,7 +21,7 @@ import java.util.Map;
  * @since 2024-01-01
  */
 @RestController
-@RequestMapping("/admin/qd")
+@RequestMapping("/qd")
 @Api(tags = "用户签到记录管理")
 public class QdController {
     @Autowired
