@@ -82,7 +82,7 @@ public class HomeStatsController {
             // 根据统计类型自动设置时间范围
             Long calculatedStartTime;
             Long calculatedEndTime;
-            
+            LocalDate now = LocalDate.now();
             switch (type.toLowerCase()) {
                 case "d": // 日统计
                     // 今天0点到23:59:59
@@ -91,7 +91,6 @@ public class HomeStatsController {
                     break;
                 case "w": // 周统计
                     // 本周一到周日
-                    LocalDate now = LocalDate.now();
                     LocalDate startOfWeek = now.with(DayOfWeek.MONDAY);
                     LocalDate endOfWeek = now.with(DayOfWeek.SUNDAY);
                     calculatedStartTime = startOfWeek.atStartOfDay(ZoneOffset.of("+8")).toInstant().toEpochMilli();
@@ -104,13 +103,13 @@ public class HomeStatsController {
                     calculatedStartTime = startOfMonth.atStartOfDay(ZoneOffset.of("+8")).toInstant().toEpochMilli();
                     calculatedEndTime = endOfMonth.atTime(23, 59, 59).atZone(ZoneOffset.of("+8")).toInstant().toEpochMilli();
                     break;
-                case "y": // 年统计
-                    // 今年1月1号到12月31号
-                    LocalDate startOfYear = now.withDayOfYear(1);
-                    LocalDate endOfYear = now.withDayOfYear(now.lengthOfYear());
-                    calculatedStartTime = startOfYear.atStartOfDay(ZoneOffset.of("+8")).toInstant().toEpochMilli();
-                    calculatedEndTime = endOfYear.atTime(23, 59, 59).atZone(ZoneOffset.of("+8")).toInstant().toEpochMilli();
-                    break;
+//                case "y": // 年统计
+//                    // 今年1月1号到12月31号
+//                    LocalDate startOfYear = now.withDayOfYear(1);
+//                    LocalDate endOfYear = now.withDayOfYear(now.lengthOfYear());
+//                    calculatedStartTime = startOfYear.atStartOfDay(ZoneOffset.of("+8")).toInstant().toEpochMilli();
+//                    calculatedEndTime = endOfYear.atTime(23, 59, 59).atZone(ZoneOffset.of("+8")).toInstant().toEpochMilli();
+//                    break;
                 default:
                     // 默认今天
                     calculatedStartTime = LocalDate.now().atStartOfDay(ZoneOffset.of("+8")).toInstant().toEpochMilli();
