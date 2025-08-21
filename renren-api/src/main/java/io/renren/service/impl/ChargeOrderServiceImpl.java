@@ -2,10 +2,16 @@ package io.renren.service.impl;
 
 import io.renren.common.service.impl.BaseServiceImpl;
 import io.renren.dao.ChargeOrderDao;
+import io.renren.dao.PayChannelDao;
+import io.renren.dao.PayMerchantDao;
+import io.renren.dao.UserDao;
 import io.renren.dto.ChargeOrderDetailDTO;
 import io.renren.dto.ChargePageData;
 import io.renren.dto.UserChargeInfoDTO;
 import io.renren.entity.ChargeOrderEntity;
+import io.renren.entity.PayChannelEntity;
+import io.renren.entity.PayMerchantEntity;
+import io.renren.entity.UserEntity;
 import io.renren.enums.ChargeTypeEnum;
 import io.renren.service.ChargeOrderService;
 import org.springframework.beans.BeanUtils;
@@ -35,6 +41,14 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
 
     @Autowired
     private ChargeOrderDao chargeOrderDao;
+    @Autowired
+    private UserDao userDao;
+
+    @Autowired
+    private PayChannelDao payChannelDao;
+
+    @Autowired
+    private PayMerchantDao  payMerchantDao;
 
     @Override
     public ChargeOrderDetailDTO getChargeOrderDetail(Long userId) {
@@ -266,7 +280,22 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
             chargeOrder.setState(0); // 待审核
             chargeOrder.setCreateTime(new Date());
             chargeOrder.setUpdateTime(new Date());
-            
+            chargeOrder.setChargeTime(new Date());
+            chargeOrder.setChannelid(channelid);
+            UserEntity user=userDao.selectById(userId);
+            chargeOrder.setMobile(user.getMobile());
+            chargeOrder.setAgent(user.getAgent());
+            chargeOrder.setSalesmanid(user.getSalesmanid());
+            chargeOrder.setRemark("前端充值");
+            PayChannelEntity payChannelEntity=payChannelDao.selectById(chargeOrder.getChannelid());
+            if(payChannelEntity!=null){
+                chargeOrder.setMerchantid(payChannelEntity.getMerchantid());
+                PayMerchantEntity payMerchantEntity=payMerchantDao.selectById(payChannelEntity.getMerchantid());
+                if(payMerchantEntity!=null){
+                    chargeOrder.setMerchantname(payMerchantEntity.getMerchantname());
+                }
+            }
+
             // 设置支付通道ID
             chargeOrder.setChannelid(channelid);
             
