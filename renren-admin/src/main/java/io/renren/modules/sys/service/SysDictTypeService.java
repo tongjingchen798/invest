@@ -7,6 +7,7 @@ import io.renren.common.service.BaseService;
 import io.renren.modules.sys.dto.SysDictTypeDTO;
 import io.renren.modules.sys.entity.DictType;
 import io.renren.modules.sys.entity.SysDictTypeEntity;
+import io.renren.modules.sys.dto.BalanceDetailBusiTypeDTO;
 
 import java.util.List;
 import java.util.Map;
@@ -33,4 +34,9 @@ public interface SysDictTypeService extends BaseService<SysDictTypeEntity> {
      */
     List<DictType> getAllList();
 
+    /**
+     * 获取余额明细业务类型
+     * @return 业务类型数据
+     */
+    BalanceDetailBusiTypeDTO getBalanceDetailBusiType();
 }

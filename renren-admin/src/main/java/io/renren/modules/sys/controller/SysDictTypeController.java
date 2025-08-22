@@ -11,6 +11,7 @@ import io.renren.common.validator.ValidatorUtils;
 import io.renren.common.validator.group.DefaultGroup;
 import io.renren.common.validator.group.UpdateGroup;
 import io.renren.modules.sys.dto.SysDictTypeDTO;
+import io.renren.modules.sys.dto.BalanceDetailBusiTypeDTO;
 import io.renren.modules.sys.entity.DictType;
 import io.renren.modules.sys.service.SysDictTypeService;
 import io.swagger.annotations.Api;
@@ -111,4 +112,19 @@ public class SysDictTypeController {
         return new Result<List<DictType>>().ok(list);
     }
 
+    /**
+     * 获取余额明细业务类型
+     */
+    @GetMapping("/balanceDetailBusiType")
+    @ApiOperation("获取余额明细业务类型")
+    @ApiImplicitParams({})
+    public Result<BalanceDetailBusiTypeDTO> getBalanceDetailBusiType() {
+
+        try {
+            BalanceDetailBusiTypeDTO result = sysDictTypeService.getBalanceDetailBusiType();
+            return new Result<BalanceDetailBusiTypeDTO>().ok(result);
+        } catch (Exception e) {
+            return new Result<BalanceDetailBusiTypeDTO>().error("获取余额明细业务类型失败: " + e.getMessage());
+        }
+    }
 }
