@@ -3,31 +3,4 @@
 
 <mapper namespace="io.renren.dao.PayMerchantDao">
 
-    <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="io.renren.entity.PayMerchantEntity">
-        <id column="id" property="id"/>
-        <result column="merchant_id" property="merchantid"/>
-        <result column="merchant_no" property="merchantno"/>
-        <result column="merchant_name" property="merchantname"/>
-        <result column="channel_key" property="channelkey"/>
-        <result column="password" property="password"/>
-        <result column="ds_free" property="dsFree"/>
-        <result column="df_free" property="dfFree"/>
-        <result column="one_free" property="oneFree"/>
-        <result column="houtai_url" property="houtaiurl"/>
-        <result column="channel_type_ds" property="channeltypeds"/>
-        <result column="channel_type_df" property="channeltypedf"/>
-        <result column="degree_heat" property="degreeheat"/>
-        <result column="status" property="status"/>
-        <result column="create_date" property="createDate"/>
-        <result column="update_date" property="updateDate"/>
-    </resultMap>
-
-    <!-- 通用查询结果列 -->
-    <sql id="Base_Column_List">
-        id, merchant_id, merchant_no, merchant_name, channel_key, password, ds_free, df_free, 
-        one_free, houtai_url, channel_type_ds, channel_type_df, degree_heat, status, 
-        create_date, update_date
-    </sql>
-
 </mapper>

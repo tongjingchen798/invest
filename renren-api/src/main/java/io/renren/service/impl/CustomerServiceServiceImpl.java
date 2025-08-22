@@ -37,6 +37,9 @@ public class CustomerServiceServiceImpl implements CustomerServiceService {
             CustomerServiceDTO dto = new CustomerServiceDTO();
             dto.setId(String.valueOf(sysUser.getId())); // 转换为String类型
             dto.setUsername(sysUser.getUsername());
+            dto.setTgnumber(sysUser.getTgnumber());
+            dto.setWsnumber(sysUser.getWsnumber());
+            dto.setWsimage(sysUser.getWsimage());
             return dto;
         }).collect(Collectors.toList());
     }

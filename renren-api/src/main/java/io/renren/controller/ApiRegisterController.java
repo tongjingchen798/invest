@@ -4,9 +4,13 @@ package io.renren.controller;
 
 import io.renren.common.utils.Result;
 import io.renren.common.validator.ValidatorUtils;
+import io.renren.dao.UserBalanceDetailDao;
+import io.renren.dao.UserDao;
 import io.renren.entity.TokenEntity;
+import io.renren.entity.UserBalanceDetailEntity;
 import io.renren.entity.UserEntity;
 import io.renren.dto.RegisterDTO;
+import io.renren.enums.BusinessTypeEnum;
 import io.renren.service.TokenService;
 import io.renren.service.UserService;
 import io.renren.service.ReferralRewardService;
@@ -27,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 注册接口
@@ -46,6 +51,11 @@ public class ApiRegisterController {
 
     @Autowired
     private TokenService tokenService;
+    @Autowired
+    private UserDao userDao;
+
+    @Autowired
+    private UserBalanceDetailDao userBalanceDetailDao;
 
     @PostMapping("register")
     @ApiOperation("注册")
@@ -98,6 +108,26 @@ public class ApiRegisterController {
             log.error("处理推荐返利时发生异常，用户ID: {}", user.getId(), e);
             // 不影响注册流程，只记录日志
         }
+        //注册奖励
+        if(Objects.nonNull(user.getId())) {
+            Long regAmount=30000L;
+            if (userDao.addUserBalance(user.getId(), regAmount) > 0) {
+                UserBalanceDetailEntity detail = new UserBalanceDetailEntity();
+                detail.setBusiType(BusinessTypeEnum.REGISTRATION_REWARD.getCode());
+                detail.setUserId(user.getId());
+                detail.setOriginalAmount(0L);
+                detail.setUseAmount(regAmount);
+                detail.setTransactionAmount(regAmount);
+                detail.setStatus(1); // 成功状态
+                detail.setTransactionDate(new Date());
+                detail.setCreateDate(new Date());
+                detail.setUpdateDate(new Date());
+                detail.setRemarks("注册奖励");
+                detail.setStreamId("");
+                userBalanceDetailDao.insert(detail);
+            }
+        }
+
         //获取登录token
         TokenEntity tokenEntity = tokenService.createToken(user.getId());
         Map<String, Object> map = new HashMap<>(2);

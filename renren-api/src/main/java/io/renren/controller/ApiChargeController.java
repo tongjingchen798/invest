@@ -77,7 +77,7 @@ public class ApiChargeController {
             ChargeResponseDTO responseDTO = new ChargeResponseDTO();
             responseDTO.setOrderNo(orderno);
             responseDTO.setPOrderNo(orderno);
-            responseDTO.setAmount(BigDecimal.valueOf(amount));
+            responseDTO.setAmount(amount);
 
             // 根据充值类型设置不同的响应数据
             ChargeTypeEnum chargeTypeEnum = ChargeTypeEnum.getByCode(charge_type);

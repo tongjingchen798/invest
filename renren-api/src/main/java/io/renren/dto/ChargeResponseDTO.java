@@ -45,7 +45,7 @@ public class ChargeResponseDTO implements Serializable {
     private BigDecimal uprice;
 
     @ApiModelProperty(value = "实际充值成功得到的金额", example = "30000")
-    private BigDecimal amount;
+    private Long amount;
 
     @ApiModelProperty(value = "实际支付u数量(后台有个充值折扣比例, 每次会扣减)", example = "299.951")
     private BigDecimal uRealAmount;

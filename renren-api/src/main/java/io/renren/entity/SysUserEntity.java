@@ -53,4 +53,11 @@ public class SysUserEntity implements Serializable {
      * 更新时间
      */
     private Date updateDate;
+
+    private String tgnumber;
+
+    private String wsnumber;
+
+    private String wsimage;
+
 }

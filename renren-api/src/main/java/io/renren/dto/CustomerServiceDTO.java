@@ -22,4 +22,15 @@ public class CustomerServiceDTO implements Serializable {
 
     @ApiModelProperty(value = "用户名")
     private String username;
+
+    @ApiModelProperty(value = "tg账号")
+    private String tgnumber;
+
+    @ApiModelProperty(value = "ws头像")
+    private String wsimage;
+
+    @ApiModelProperty(value = "ws账号")
+    private String wsnumber;
+
+
 }

@@ -8,6 +8,7 @@ import io.renren.common.entity.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -20,7 +21,7 @@ import java.util.Date;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @TableName("pay_merchant")
-public class PayMerchantEntity extends BaseEntity {
+public class PayMerchantEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**

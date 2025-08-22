@@ -31,7 +31,7 @@ public enum BusinessTypeEnum {
     COMMISSION_B(30, "返佣B", "Commission B"),
     COMMISSION_WITHDRAWAL_FLOW(33, "佣金提现流水", "Commission Withdrawal Flow"),
 
-    // 奖励相关
+    // 奖励相关  x写死固定值
     TASK_REWARD(28, "任务奖励", "Task Reward"),
     REGISTRATION_REWARD(27, "注册奖励", "Registration Reward"),
     GROUP_BUY_REWARD(26, "拼团奖励", "Group Buy Reward"),
