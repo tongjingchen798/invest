@@ -1,5 +1,7 @@
 package io.renren.modules.projecttype.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -18,10 +20,12 @@ public class ProjectTypeEntity {
     /**
      * 项目分类id
      */
+	@TableId
 	private Long typeId;
     /**
      * 分类名称
      */
+    @TableField("type_name")
 	private String typeName;
     /**
      * 排序

@@ -44,14 +44,20 @@ public class ProjectTypeController {
     @ApiImplicitParams({
         @ApiImplicitParam(name = Constant.PAGE, value = "当前页码，从1开始", paramType = "query", required = true, dataType="int") ,
         @ApiImplicitParam(name = Constant.LIMIT, value = "每页显示记录数", paramType = "query",required = true, dataType="int") ,
+        @ApiImplicitParam(name = "typeId", value = "项目分类ID", paramType = "query", dataType="String") ,
+        @ApiImplicitParam(name = "typeName", value = "分类名称(支持模糊查询)", paramType = "query", dataType="String") ,
+        @ApiImplicitParam(name = "status", value = "状态 0=禁用 1=启用", paramType = "query", dataType="String") ,
         @ApiImplicitParam(name = Constant.ORDER_FIELD, value = "排序字段", paramType = "query", dataType="String") ,
         @ApiImplicitParam(name = Constant.ORDER, value = "排序方式，可选值(asc、desc)", paramType = "query", dataType="String")
     })
 //    @RequiresPermissions("sys:projecttype:page")
     public Result<PageData<ProjectTypeDTO>> page(@ApiIgnore @RequestParam Map<String, Object> params){
-        PageData<ProjectTypeDTO> page = projectTypeService.page(params);
-
-        return new Result<PageData<ProjectTypeDTO>>().ok(page);
+        try {
+            PageData<ProjectTypeDTO> page = projectTypeService.page(params);
+            return new Result<PageData<ProjectTypeDTO>>().ok(page);
+        } catch (Exception e) {
+            return new Result<PageData<ProjectTypeDTO>>().error("分页查询失败: " + e.getMessage());
+        }
     }
 
     @GetMapping("{id}")
