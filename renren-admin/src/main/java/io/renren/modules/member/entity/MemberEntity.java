@@ -372,7 +372,7 @@ public class MemberEntity implements Serializable {
     private Integer tzWithdrawStatus;
 
     /**
-     * 奖励提现状态 0：禁用 1：正常
+     *佣金提现状态 0：禁用 1：正常
      */
     @TableField("reward_withdraw_status")
     private Integer rewardWithdrawStatus;

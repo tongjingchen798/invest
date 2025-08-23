@@ -154,4 +154,13 @@ public interface MemberService {
      */
     Result updatestatus(Long userId, Integer status, String biaoqian);
 
+    /**
+     * 启用禁用佣金账户的提现
+     *
+     * @param userId 用户ID
+     * @param status 状态：1-启用提现，0-禁用提现
+     * @return 操作结果
+     */
+    Result updatetzrewardWithdrawStatus(Long userId, Integer status);
+
 }
