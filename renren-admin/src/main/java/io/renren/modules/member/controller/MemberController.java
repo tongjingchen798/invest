@@ -401,6 +401,37 @@ public class MemberController {
         }
     }
 
+    @PutMapping("updatestatus")
+    @ApiOperation("用户启用禁用")
+    @LogOperation("用户启用禁用")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "用户ID", paramType = "query", required = true, dataType = "long"),
+            @ApiImplicitParam(name = "status", value = "状态：1-启用，0-禁用", paramType = "query", required = true, dataType = "int"),
+            @ApiImplicitParam(name = "biaoqian", value = "标签", paramType = "query", required = false, dataType = "string")
+    })
+//    @RequiresPermissions("member:user:updatestatus")
+    public Result updatestatus(@RequestParam("id") Long userId, 
+                              @RequestParam("status") Integer status,
+                              @RequestParam(value = "biaoqian", required = false) String biaoqian) {
+        try {
+            // 参数验证
+            if (userId == null || userId <= 0) {
+                return new Result().error("用户ID不能为空");
+            }
+            if (status == null || (status != 0 && status != 1)) {
+                return new Result().error("状态值必须为0(禁用)或1(启用)");
+            }
+
+            // 调用服务更新用户状态
+            Result result = memberService.updatestatus(userId, status, biaoqian);
+            return result;
+
+        } catch (Exception e) {
+            log.error("用户状态更新异常，用户ID: {}, 状态: {}, 标签: {}", userId, status, biaoqian, e);
+            return new Result().error("状态更新失败: " + e.getMessage());
+        }
+    }
+
 
     
 }

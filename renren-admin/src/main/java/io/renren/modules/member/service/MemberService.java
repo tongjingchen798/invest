@@ -144,4 +144,14 @@ public interface MemberService {
      */
     Result updatePws(Long userId, String password);
 
+    /**
+     * 用户启用禁用
+     *
+     * @param userId 用户ID
+     * @param status 状态：1-启用，0-禁用
+     * @param biaoqian 标签（可选）
+     * @return 操作结果
+     */
+    Result updatestatus(Long userId, Integer status, String biaoqian);
+
 }

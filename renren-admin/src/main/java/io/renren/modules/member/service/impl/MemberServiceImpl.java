@@ -661,4 +661,46 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             throw new RuntimeException("修改用户密码失败: " + e.getMessage());
         }
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result updatestatus(Long userId, Integer status, String biaoqian) {
+        try {
+            log.info("开始更新用户状态，用户ID: {}, 状态: {}, 标签: {}", userId, status, biaoqian);
+            
+            // 参数验证
+            if (userId == null || userId <= 0) {
+                return new Result().error("用户ID不能为空");
+            }
+            if (status == null || (status != 0 && status != 1)) {
+                return new Result().error("状态值必须为0(禁用)或1(启用)");
+            }
+            
+            // 查询用户信息
+            MemberEntity member = this.selectById(userId);
+            if (member == null) {
+                return new Result().error("用户不存在");
+            }
+            
+            // 更新用户状态
+            member.setStatus(status);
+            
+            // 如果提供了标签，则同时更新标签
+            if (biaoqian != null) {
+                member.setBiaoqian(biaoqian.trim());
+                log.info("同时更新用户标签，用户ID: {}, 标签: {}", userId, biaoqian);
+            }
+            
+            // 更新用户信息
+            this.updateById(member);
+            
+            String statusText = status == 1 ? "启用" : "禁用";
+            log.info("用户状态更新成功，用户ID: {}, 状态: {}", userId, statusText);
+            return new Result().ok("用户" + statusText + "成功");
+            
+        } catch (Exception e) {
+            log.error("更新用户状态失败，用户ID: {}, 状态: {}", userId, status, e);
+            throw new RuntimeException("更新用户状态失败: " + e.getMessage());
+        }
+    }
 }
