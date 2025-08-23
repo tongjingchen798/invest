@@ -51,7 +51,7 @@ public class UserBalanceDetailEntity implements Serializable {
      * 28任务奖励 27注册奖励 26拼团奖励 24转给投资账户 23投资账户转出 22代理转出 21转入投资 20出售产品
      * 18领取红包 19今日福利 14邀请福利  13签到奖励 33佣金提现流水 15返现
      */
-    private Integer businessType;
+    private Integer busiType;
 
     /**
      * 渠道

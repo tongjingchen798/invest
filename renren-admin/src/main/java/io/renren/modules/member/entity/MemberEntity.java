@@ -63,7 +63,7 @@ public class MemberEntity implements Serializable {
     /**
      * 代理信息
      */
-    private String agent;
+    private Long agent;
 
     /**
      * 代理名称

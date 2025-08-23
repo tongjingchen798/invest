@@ -88,7 +88,7 @@ public class ApiRegisterController {
         String registerIp = IpAddressUtil.getClientIpAddress();
         user.setRegisterIp(registerIp);
         user.setAgent("1748403763980");
-        user.setAgent("xiaolaohu");
+        user.setAgentName("xiaolaohu");
         user.setSalesmanid("1748403763980");
         user.setSalesmanName("Doris");
         user.setCreateDate(new Date());

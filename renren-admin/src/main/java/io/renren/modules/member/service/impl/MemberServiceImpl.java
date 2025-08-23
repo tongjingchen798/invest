@@ -277,9 +277,9 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             UserBalanceDetailEntity balanceDetail = new UserBalanceDetailEntity();
             balanceDetail.setUserId(userId);
             balanceDetail.setTransactionDate(new Date());
-            balanceDetail.setAgentId(member.getAgent() != null ? Long.valueOf(member.getAgent()) : null);
+            balanceDetail.setAgentId(member.getAgent());
             balanceDetail.setAgentName(member.getAgentName());
-            balanceDetail.setBusinessType(12); // 12表示工资
+            balanceDetail.setBusiType(12); // 12表示工资
             balanceDetail.setChannel("后台发放");
             balanceDetail.setOriginalAmount(amount);
             balanceDetail.setRemarks("工资发放");
@@ -519,9 +519,9 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             UserBalanceDetailEntity balanceDetail = new UserBalanceDetailEntity();
             balanceDetail.setUserId(userId);
             balanceDetail.setTransactionDate(new Date());
-            balanceDetail.setAgentId(member.getAgent() != null ? Long.valueOf(member.getAgent()) : null);
+            balanceDetail.setAgentId(member.getAgent());
             balanceDetail.setAgentName(member.getAgentName());
-            balanceDetail.setBusinessType(businessType); // 7表示手工充值，8表示手工扣款
+            balanceDetail.setBusiType(businessType); // 7表示手工充值，8表示手工扣款
             balanceDetail.setChannel("后台手工调整");
             balanceDetail.setOriginalAmount(amount);
             balanceDetail.setRemarks(remark != null ? remark : operationType);
@@ -601,9 +601,9 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             UserBalanceDetailEntity balanceDetail = new UserBalanceDetailEntity();
             balanceDetail.setUserId(userId);
             balanceDetail.setTransactionDate(new Date());
-            balanceDetail.setAgentId(member.getAgent() != null ? Long.valueOf(member.getAgent()) : null);
+            balanceDetail.setAgentId(member.getAgent());
             balanceDetail.setAgentName(member.getAgentName());
-            balanceDetail.setBusinessType(businessType); // 5表示冻结金额，6表示解冻金额
+            balanceDetail.setBusiType(businessType); // 5表示冻结金额，6表示解冻金额
             balanceDetail.setChannel("后台冻结操作");
             balanceDetail.setOriginalAmount(amount);
             balanceDetail.setRemarks(remark != null ? remark : operationType);
