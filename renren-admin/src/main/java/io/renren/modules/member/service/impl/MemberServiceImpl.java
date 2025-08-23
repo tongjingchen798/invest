@@ -760,7 +760,6 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             }
             
             // 更新投资账户提现状态
-            // 假设字段名为 tzWithdrawStatus，如果字段名不同请调整
             member.setTzWithdrawStatus(status);
             
             // 更新用户信息
