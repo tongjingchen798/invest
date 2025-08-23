@@ -91,7 +91,7 @@ public class SysOssController {
 
 	@PostMapping("upload")
 	@ApiOperation(value = "上传文件")
-	@RequiresPermissions("sys:oss:all")
+//	@RequiresPermissions("sys:oss:all")
 	public Result<Map<String, Object>> upload(@RequestParam("file") MultipartFile file) throws Exception {
 		if (file.isEmpty()) {
 			return new Result<Map<String, Object>>().error(ErrorCode.UPLOAD_FILE_EMPTY);
