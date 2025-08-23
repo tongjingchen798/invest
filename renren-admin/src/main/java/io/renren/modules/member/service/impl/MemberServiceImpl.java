@@ -492,13 +492,14 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             Long currentBalance = member.getAssets() != null ? member.getAssets() : 0L;
             Long newBalance;
             String operationType;
-            Integer type=7;
+            Integer businessType = 7; // 7表示手工充值，8表示手工扣款
             
             // 根据操作类型调整余额
             if (balanceType == 1) {
                 // 增加余额
                 newBalance = currentBalance + amount;
                 operationType = "增加余额";
+                businessType = 7; // 手工充值
             } else {
                 // 减少余额
                 if (currentBalance < amount) {
@@ -506,7 +507,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
                 }
                 newBalance = currentBalance - amount;
                 operationType = "减少余额";
-                type=8;
+                businessType = 8; // 手工扣款
             }
             
             // 更新用户余额
@@ -519,7 +520,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             balanceDetail.setTransactionDate(new Date());
             balanceDetail.setAgentId(member.getAgent() != null ? Long.valueOf(member.getAgent()) : null);
             balanceDetail.setAgentName(member.getAgentName());
-            balanceDetail.setBusinessType(type); // 7表示手工充值 8手工扣款
+            balanceDetail.setBusinessType(businessType); // 7表示手工充值，8表示手工扣款
             balanceDetail.setChannel("后台手工调整");
             balanceDetail.setOriginalAmount(amount);
             balanceDetail.setRemarks(remark != null ? remark : operationType);
@@ -567,7 +568,8 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             Long currentFrozenBalance = member.getFreezeBalance() != null ? member.getFreezeBalance() : 0L;
             Long newBalance, newFrozenBalance;
             String operationType;
-            Integer type=5;//冻结
+            Integer businessType = 5; // 5表示冻结金额，6表示解冻金额
+            
             // 根据操作类型处理冻结金额
             if (balanceType == 1) {
                 // 冻结金额
@@ -577,6 +579,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
                 newBalance = currentBalance - amount;
                 newFrozenBalance = currentFrozenBalance + amount;
                 operationType = "冻结金额";
+                businessType = 5; // 冻结金额
             } else {
                 // 解冻金额
                 if (currentFrozenBalance < amount) {
@@ -585,7 +588,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
                 newBalance = currentBalance + amount;
                 newFrozenBalance = currentFrozenBalance - amount;
                 operationType = "解冻金额";
-                type=6;
+                businessType = 6; // 解冻金额
             }
             
             // 更新用户余额和冻结余额
@@ -599,7 +602,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             balanceDetail.setTransactionDate(new Date());
             balanceDetail.setAgentId(member.getAgent() != null ? Long.valueOf(member.getAgent()) : null);
             balanceDetail.setAgentName(member.getAgentName());
-            balanceDetail.setBusinessType(type); // 5表示冻结金额操作 6解冻
+            balanceDetail.setBusinessType(businessType); // 5表示冻结金额，6表示解冻金额
             balanceDetail.setChannel("后台冻结操作");
             balanceDetail.setOriginalAmount(amount);
             balanceDetail.setRemarks(remark != null ? remark : operationType);
