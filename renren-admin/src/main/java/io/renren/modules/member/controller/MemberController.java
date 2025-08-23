@@ -1,10 +1,15 @@
 package io.renren.modules.member.controller;
 
+import io.renren.common.annotation.LogOperation;
 import io.renren.common.page.PageData;
 import io.renren.common.utils.Result;
+import io.renren.common.validator.ValidatorUtils;
+import io.renren.common.validator.group.DefaultGroup;
+import io.renren.common.validator.group.UpdateGroup;
 import io.renren.modules.member.dto.MemberInfoDTO;
 import io.renren.modules.member.dto.SettlementReportDTO;
 import io.renren.modules.member.service.MemberService;
+import io.renren.modules.sys.dto.SysDeptDTO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -12,6 +17,9 @@ import io.swagger.annotations.ApiOperation;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
 
 /**
  * 会员查询管理
@@ -22,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/user")
 @Api(tags = "会员查询管理")
+@Slf4j
 public class MemberController {
 
     @Autowired
@@ -147,10 +156,36 @@ public class MemberController {
     public Result<java.util.List<String>> getBiaoQianList() {
         try {
             // 调用服务获取所有标签列表
-            java.util.List<String> tagList = memberService.getBiaoQianList();
+            List<String> tagList = memberService.getBiaoQianList();
             return new Result<java.util.List<String>>().ok(tagList);
         } catch (Exception e) {
             return new Result<java.util.List<String>>().error("获取标签列表失败: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("fgz")
+    @ApiOperation("付工资")
+    @LogOperation("付工资")
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "id", value = "用户ID", paramType = "query", required = true, dataType = "long"),
+        @ApiImplicitParam(name = "balance", value = "工资金额（分）", paramType = "query", required = true, dataType = "long")
+    })
+//    @RequiresPermissions("sys:user:fgz")
+    public Result paySalary(@RequestParam("id") Long userId, @RequestParam("balance") Long amount) {
+        try {
+            // 参数验证
+            if (userId == null || userId <= 0) {
+                return new Result<String>().error("用户ID不能为空");
+            }
+            if (amount == null || amount <= 0) {
+                return new Result<String>().error("工资金额必须大于0");
+            }
+            // 调用服务发放工资
+            return memberService.paySalary(userId, amount);
+            
+        } catch (Exception e) {
+            log.error("工资发放异常，用户ID: {}, 金额: {} 分", userId, amount, e);
+            return new Result().error("工资发放失败" );
         }
     }
 

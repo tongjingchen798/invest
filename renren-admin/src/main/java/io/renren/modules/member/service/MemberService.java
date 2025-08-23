@@ -1,6 +1,7 @@
 package io.renren.modules.member.service;
 
 import io.renren.common.page.PageData;
+import io.renren.common.utils.Result;
 import io.renren.modules.member.dto.MemberInfoDTO;
 import io.renren.modules.member.dto.SettlementReportDTO;
 
@@ -65,5 +66,14 @@ public interface MemberService {
      * @return 标签列表
      */
     java.util.List<String> getBiaoQianList();
+
+    /**
+     * 发放工资
+     *
+     * @param userId 用户ID
+     * @param amount 工资金额（分）
+     * @return 操作结果
+     */
+    Result paySalary(Long userId, Long amount);
 
 }

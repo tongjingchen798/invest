@@ -18,10 +18,15 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 import java.util.List;
 import io.renren.modules.member.dto.SettlementReportDTO;
+import io.renren.modules.finance.entity.UserBalanceDetailEntity;
+import io.renren.modules.finance.service.UserBalanceDetailService;
+import io.renren.common.utils.Result;
 import java.util.Map;
 import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 会员查询服务实现类
@@ -32,6 +37,9 @@ import org.slf4j.LoggerFactory;
 @Slf4j
 @Service
 public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> implements MemberService {
+
+    @Autowired
+    private UserBalanceDetailService userBalanceDetailService;
 
     @Override
     public PageData<MemberInfoDTO> getMemberPage(Integer page, Integer limit, Long agent, Integer balanceFlag,
@@ -234,6 +242,58 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
         } catch (Exception e) {
             log.error("获取标签列表失败", e);
             throw new RuntimeException("获取标签列表失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result paySalary(Long userId, Long amount) {
+        try {
+            log.info("开始发放工资，用户ID: {}, 金额: {} 分", userId, amount);
+            
+            // 参数验证
+            if (userId == null || userId <= 0) {
+                return new Result().error("用户ID不能为空");
+            }
+            if (amount == null || amount <= 0) {
+                return new Result().error("工资金额必须大于0");
+            }
+            
+            // 查询用户信息
+            MemberEntity member = this.selectById(userId);
+            if (member == null) {
+                return new Result().error("用户不存在");
+            }
+            
+            // 更新用户余额
+            Long currentBalance = member.getAssets() != null ? member.getAssets() : 0L;
+            Long newBalance = currentBalance + amount;
+            
+            member.setAssets(newBalance);
+            this.updateById(member);
+            
+            // 记录余额明细
+            UserBalanceDetailEntity balanceDetail = new UserBalanceDetailEntity();
+            balanceDetail.setUserId(userId);
+            balanceDetail.setTransactionDate(new Date());
+            balanceDetail.setAgentId(member.getAgent() != null ? Long.valueOf(member.getAgent()) : null);
+            balanceDetail.setAgentName(member.getAgentName());
+            balanceDetail.setBusinessType(12); // 12表示工资
+            balanceDetail.setChannel("后台发放");
+            balanceDetail.setOriginalAmount(amount);
+            balanceDetail.setRemarks("工资发放");
+            balanceDetail.setSalesmanName(member.getSalesmanName());
+            balanceDetail.setSalesmanId(member.getSalesmanid() != null ? Long.valueOf(member.getSalesmanid()) : null);
+            balanceDetail.setStatus(1); // 1表示正常
+            
+            userBalanceDetailService.insert(balanceDetail);
+            
+            log.info("工资发放成功，用户ID: {}, 金额: {} 分, 新余额: {} 分", userId, amount, newBalance);
+            return new Result().ok("工资发放成功");
+            
+        } catch (Exception e) {
+            log.error("工资发放失败，用户ID: {}, 金额: {} 分", userId, amount, e);
+            throw new RuntimeException("工资发放失败: " + e.getMessage());
         }
     }
 }
