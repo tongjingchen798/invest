@@ -338,6 +338,41 @@ public class MemberController {
         }
     }
 
+    @PutMapping("freeBalance")
+    @ApiOperation("操作冻结金额")
+    @LogOperation("操作冻结金额")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "用户ID", paramType = "query", required = true, dataType = "long"),
+            @ApiImplicitParam(name = "balance", value = "金额（分）", paramType = "query", required = true, dataType = "long"),
+            @ApiImplicitParam(name = "balance_type", value = "操作类型：1-冻结金额，2-解冻金额", paramType = "query", required = true, dataType = "int"),
+            @ApiImplicitParam(name = "remark", value = "备注", paramType = "query", required = false, dataType = "string")
+    })
+//    @RequiresPermissions("member:user:freeBalance")
+    public Result freeBalance(@RequestParam("id") Long userId, 
+                            @RequestParam("balance") Long amount,
+                            @RequestParam("balance_type") Integer balanceType,
+                            @RequestParam(value = "remark", required = false) String remark) {
+        try {
+            // 参数验证
+            if (userId == null || userId <= 0) {
+                return new Result().error("用户ID不能为空");
+            }
+            if (amount == null || amount <= 0) {
+                return new Result().error("金额必须大于0");
+            }
+            if (balanceType == null || (balanceType != 1 && balanceType != 2)) {
+                return new Result().error("操作类型必须为1(冻结金额)或2(解冻金额)");
+            }
+
+            // 调用服务操作冻结金额
+            return memberService.freeBalance(userId, amount, balanceType, remark);
+
+        } catch (Exception e) {
+            log.error("操作冻结金额异常，用户ID: {}, 金额: {}, 操作类型: {}", userId, amount, balanceType, e);
+            return new Result().error("冻结金额操作失败: " + e.getMessage());
+        }
+    }
+
 
     
 }

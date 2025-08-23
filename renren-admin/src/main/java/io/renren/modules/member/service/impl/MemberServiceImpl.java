@@ -492,6 +492,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             Long currentBalance = member.getAssets() != null ? member.getAssets() : 0L;
             Long newBalance;
             String operationType;
+            Integer type=7;
             
             // 根据操作类型调整余额
             if (balanceType == 1) {
@@ -505,6 +506,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
                 }
                 newBalance = currentBalance - amount;
                 operationType = "减少余额";
+                type=8;
             }
             
             // 更新用户余额
@@ -517,7 +519,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             balanceDetail.setTransactionDate(new Date());
             balanceDetail.setAgentId(member.getAgent() != null ? Long.valueOf(member.getAgent()) : null);
             balanceDetail.setAgentName(member.getAgentName());
-            balanceDetail.setBusinessType(13); // 13表示手工调整余额
+            balanceDetail.setBusinessType(type); // 7表示手工充值 8手工扣款
             balanceDetail.setChannel("后台手工调整");
             balanceDetail.setOriginalAmount(amount);
             balanceDetail.setRemarks(remark != null ? remark : operationType);
@@ -534,6 +536,86 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
         } catch (Exception e) {
             log.error("手工调整余额失败，用户ID: {}, 金额: {}, 操作类型: {}", userId, amount, balanceType, e);
             throw new RuntimeException("手工调整余额失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result freeBalance(Long userId, Long amount, Integer balanceType, String remark) {
+        try {
+            log.info("开始操作冻结金额，用户ID: {}, 金额: {} 分, 操作类型: {}, 备注: {}", userId, amount, balanceType, remark);
+            
+            // 参数验证
+            if (userId == null || userId <= 0) {
+                return new Result().error("用户ID不能为空");
+            }
+            if (amount == null || amount <= 0) {
+                return new Result().error("金额必须大于0");
+            }
+            if (balanceType == null || (balanceType != 1 && balanceType != 2)) {
+                return new Result().error("操作类型必须为1(冻结金额)或2(解冻金额)");
+            }
+            
+            // 查询用户信息
+            MemberEntity member = this.selectById(userId);
+            if (member == null) {
+                return new Result().error("用户不存在");
+            }
+            
+            // 获取当前余额和冻结金额
+            Long currentBalance = member.getAssets() != null ? member.getAssets() : 0L;
+            Long currentFrozenBalance = member.getFreezeBalance() != null ? member.getFreezeBalance() : 0L;
+            Long newBalance, newFrozenBalance;
+            String operationType;
+            Integer type=5;//冻结
+            // 根据操作类型处理冻结金额
+            if (balanceType == 1) {
+                // 冻结金额
+                if (currentBalance < amount) {
+                    return new Result().error("用户可用余额不足，当前余额: " + currentBalance + " 分，需要冻结: " + amount + " 分");
+                }
+                newBalance = currentBalance - amount;
+                newFrozenBalance = currentFrozenBalance + amount;
+                operationType = "冻结金额";
+            } else {
+                // 解冻金额
+                if (currentFrozenBalance < amount) {
+                    return new Result().error("用户冻结余额不足，当前冻结余额: " + currentFrozenBalance + " 分，需要解冻: " + amount + " 分");
+                }
+                newBalance = currentBalance + amount;
+                newFrozenBalance = currentFrozenBalance - amount;
+                operationType = "解冻金额";
+                type=6;
+            }
+            
+            // 更新用户余额和冻结余额
+            member.setAssets(newBalance);
+            member.setFreezeBalance(newFrozenBalance);
+            this.updateById(member);
+            
+            // 记录余额明细
+            UserBalanceDetailEntity balanceDetail = new UserBalanceDetailEntity();
+            balanceDetail.setUserId(userId);
+            balanceDetail.setTransactionDate(new Date());
+            balanceDetail.setAgentId(member.getAgent() != null ? Long.valueOf(member.getAgent()) : null);
+            balanceDetail.setAgentName(member.getAgentName());
+            balanceDetail.setBusinessType(type); // 5表示冻结金额操作 6解冻
+            balanceDetail.setChannel("后台冻结操作");
+            balanceDetail.setOriginalAmount(amount);
+            balanceDetail.setRemarks(remark != null ? remark : operationType);
+            balanceDetail.setSalesmanName(member.getSalesmanName());
+            balanceDetail.setSalesmanId(member.getSalesmanid() != null ? Long.valueOf(member.getSalesmanid()) : null);
+            balanceDetail.setStatus(1); // 1表示正常
+            
+            userBalanceDetailService.insert(balanceDetail);
+            
+            log.info("冻结金额操作成功，用户ID: {}, 原余额: {} 分, 原冻结余额: {} 分, 操作金额: {} 分, 新余额: {} 分, 新冻结余额: {} 分, 操作类型: {}", 
+                    userId, currentBalance, currentFrozenBalance, amount, newBalance, newFrozenBalance, operationType);
+            return new Result().ok("冻结金额操作成功");
+            
+        } catch (Exception e) {
+            log.error("操作冻结金额失败，用户ID: {}, 金额: {}, 操作类型: {}", userId, amount, balanceType, e);
+            throw new RuntimeException("操作冻结金额失败: " + e.getMessage());
         }
     }
 }

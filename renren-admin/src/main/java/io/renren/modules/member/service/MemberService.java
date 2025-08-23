@@ -124,4 +124,15 @@ public interface MemberService {
      */
     Result addBalance(Long userId, Long amount, Integer balanceType, String remark);
 
+    /**
+     * 操作冻结金额
+     *
+     * @param userId 用户ID
+     * @param amount 金额（分）
+     * @param balanceType 操作类型：1-冻结金额，2-解冻金额
+     * @param remark 备注
+     * @return 操作结果
+     */
+    Result freeBalance(Long userId, Long amount, Integer balanceType, String remark);
+
 }
