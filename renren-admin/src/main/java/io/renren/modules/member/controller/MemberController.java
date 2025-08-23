@@ -245,8 +245,34 @@ public class MemberController {
             return result;
 
         } catch (Exception e) {
-            log.error("用户业务员修改异常，用户ID: {}, 业务员ID: {}, 业务员姓名: {}", userId, salesmanid, e);
+            log.error("用户业务员修改异常，用户ID: {}, 业务员ID: {}", userId, salesmanid, e);
             return new Result().error("业务员修改失败: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("updateUp")
+    @ApiOperation("设置用户上级")
+    @LogOperation("设置用户上级")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "用户ID", paramType = "query", required = true, dataType = "long"),
+            @ApiImplicitParam(name = "mobile", value = "上级用户手机号", paramType = "query", required = true, dataType = "string")
+    })
+//    @RequiresPermissions("member:user:updateUp")
+    public Result updateUp(@RequestParam("id") Long userId, @RequestParam("mobile") String mobile) {
+        try {
+            // 参数验证
+            if (userId == null || userId <= 0) {
+                return new Result().error("用户ID不能为空");
+            }
+            if (mobile == null || mobile.trim().isEmpty()) {
+                return new Result().error("上级用户手机号不能为空");
+            }
+
+            return memberService.updateUp(userId, mobile);
+
+        } catch (Exception e) {
+            log.error("设置用户上级异常，用户ID: {}, 上级手机号: {}", userId, mobile, e);
+            return new Result().error("设置上级失败: " + e.getMessage());
         }
     }
 

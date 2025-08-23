@@ -68,8 +68,8 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, UserEntity> implem
 		BeanUtils.copyProperties(user, userInfoDTO);
 
 		// 如果用户有上级，获取上级用户信息
-		if (StringUtils.isNotBlank(user.getSuperiorCode())) {
-			UserEntity superiorUser = baseDao.getUserByInviteCode(user.getSuperiorCode());
+		if (StringUtils.isNotBlank(user.getUpinviteCode())) {
+			UserEntity superiorUser = baseDao.getUserByInviteCode(user.getUpinviteCode());
 			if (superiorUser != null) {
 				// 创建上级用户信息DTO
 				SuperiorUserInfoDTO superiorInfo = new SuperiorUserInfoDTO();

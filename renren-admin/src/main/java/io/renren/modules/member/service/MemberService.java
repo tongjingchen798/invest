@@ -95,4 +95,13 @@ public interface MemberService {
      */
     Result updateUserToAgent(Long userId, Long salesmanid);
 
+    /**
+     * 设置用户上级
+     *
+     * @param userId 用户ID
+     * @param mobile 上级用户手机号
+     * @return 操作结果
+     */
+    Result updateUp(Long userId, String mobile);
+
 }

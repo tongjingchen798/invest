@@ -376,4 +376,51 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             throw new RuntimeException("用户业务员修改失败: " + e.getMessage());
         }
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result updateUp(Long userId, String mobile) {
+        try {
+            log.info("开始设置用户上级，用户ID: {}, 上级手机号: {}", userId, mobile);
+            
+            // 参数验证
+            if (userId == null || userId <= 0) {
+                return new Result().error("用户ID不能为空");
+            }
+            if (mobile == null || mobile.trim().isEmpty()) {
+                return new Result().error("上级用户手机号不能为空");
+            }
+            
+            // 查询用户信息
+            MemberEntity member = this.selectById(userId);
+            if (member == null) {
+                return new Result().error("用户不存在");
+            }
+            
+            // 查询上级用户信息
+            QueryWrapper<MemberEntity> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("mobile", mobile.trim());
+            MemberEntity upMember = this.selectById(queryWrapper);
+            if (upMember == null) {
+                return new Result().error("上级用户不存在");
+            }
+            
+            // 检查是否设置自己为上级
+            if (userId.equals(upMember.getId())) {
+                return new Result().error("不能设置自己为上级");
+            }
+            
+            // 更新用户上级信息
+            member.setUpinviteCode(upMember.getInviteCode());
+            // 更新用户信息
+            this.updateById(member);
+            
+            log.info("用户上级设置成功，用户ID: {}, 上级ID: {}, 上级姓名: {}", userId, upMember.getId(), upMember.getUsername());
+            return new Result().ok("上级设置成功");
+            
+        } catch (Exception e) {
+            log.error("设置用户上级失败，用户ID: {}, 上级手机号: {}", userId, mobile, e);
+            throw new RuntimeException("设置用户上级失败: " + e.getMessage());
+        }
+    }
 }
