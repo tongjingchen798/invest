@@ -8,7 +8,9 @@ import io.renren.common.validator.group.DefaultGroup;
 import io.renren.common.validator.group.UpdateGroup;
 import io.renren.modules.member.dto.MemberInfoDTO;
 import io.renren.modules.member.dto.SettlementReportDTO;
+import io.renren.modules.member.dto.BlacklistDTO;
 import io.renren.modules.member.service.MemberService;
+import io.renren.modules.member.service.BlacklistService;
 import io.renren.modules.sys.dto.SysDeptDTO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -35,30 +37,33 @@ public class MemberController {
 
     @Autowired
     private MemberService memberService;
+    
+    @Autowired
+    private BlacklistService blacklistService;
 
     @GetMapping("page")
     @ApiOperation("分页查询会员信息")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "page", value = "当前页码，从1开始", paramType = "query", required = true, dataType = "int"),
-            @ApiImplicitParam(name = "limit", value = "每页显示记录数", paramType = "query", required = true, dataType = "int"),
-            @ApiImplicitParam(name = "agent", value = "代理下拉框", paramType = "query", required = false, dataType = "long"),
-            @ApiImplicitParam(name = "balanceFlag", value = "可用余额筛选：有余额=1，无余额=0，查全部，不传参", paramType = "query", required = false, dataType = "int"),
-            @ApiImplicitParam(name = "biaoqian", value = "标签筛选：传标签", paramType = "query", required = false, dataType = "string"),
-            @ApiImplicitParam(name = "biaoqianFlag", value = "标签筛选：1 有 0 无 查全部，不传参", paramType = "query", required = false, dataType = "int"),
-            @ApiImplicitParam(name = "channel", value = "渠道筛选：传渠道", paramType = "query", required = false, dataType = "string"),
-            @ApiImplicitParam(name = "chargeFlag", value = "充值筛选：有充值=1，无充值=0，查全部，不传参", paramType = "query", required = false, dataType = "int"),
-            @ApiImplicitParam(name = "endTime", value = "结束日期:时间戳", paramType = "query", required = false, dataType = "long"),
-            @ApiImplicitParam(name = "liebian", value = "裂变筛选：是 =1，否 =0，查全部，不传参", paramType = "query", required = false, dataType = "int"),
-            @ApiImplicitParam(name = "mobile", value = "用户账号", paramType = "query", required = false, dataType = "string"),
-            @ApiImplicitParam(name = "order", value = "排序方式，可选值(asc、desc)", paramType = "query", required = false, dataType = "string"),
-            @ApiImplicitParam(name = "orderField", value = "排序字段", paramType = "query", required = false, dataType = "string"),
-            @ApiImplicitParam(name = "salesmanid", value = "业务员下拉框", paramType = "query", required = false, dataType = "long"),
-            @ApiImplicitParam(name = "startTime", value = "开始日期:时间戳", paramType = "query", required = false, dataType = "string"),
-            @ApiImplicitParam(name = "tzFlag", value = "投资筛选：有投资=1，无投资=0，查全部，不传参", paramType = "query", required = false, dataType = "int"),
-            @ApiImplicitParam(name = "username", value = "用户姓名", paramType = "query", required = false, dataType = "string"),
-            @ApiImplicitParam(name = "vip", value = "0-6 查全部，不传参", paramType = "query", required = false, dataType = "int"),
-            @ApiImplicitParam(name = "viplr", value = "0-4,5,6 查全部，不传参", paramType = "query", required = false, dataType = "int"),
-            @ApiImplicitParam(name = "withdrawFlag", value = "提现筛选：有提现=1，无提现=0，查全部，不传参", paramType = "query", required = false, dataType = "int")
+        @ApiImplicitParam(name = "page", value = "当前页码，从1开始", paramType = "query", required = true, dataType = "int"),
+        @ApiImplicitParam(name = "limit", value = "每页显示记录数", paramType = "query", required = true, dataType = "int"),
+        @ApiImplicitParam(name = "agent", value = "代理下拉框", paramType = "query", required = false, dataType = "long"),
+        @ApiImplicitParam(name = "balanceFlag", value = "可用余额筛选：有余额=1，无余额=0，查全部，不传参", paramType = "query", required = false, dataType = "int"),
+        @ApiImplicitParam(name = "biaoqian", value = "标签筛选：传标签", paramType = "query", required = false, dataType = "string"),
+        @ApiImplicitParam(name = "biaoqianFlag", value = "标签筛选：1 有 0 无 查全部，不传参", paramType = "query", required = false, dataType = "int"),
+        @ApiImplicitParam(name = "channel", value = "渠道筛选：传渠道", paramType = "query", required = false, dataType = "string"),
+        @ApiImplicitParam(name = "chargeFlag", value = "充值筛选：有充值=1，无充值=0，查全部，不传参", paramType = "query", required = false, dataType = "int"),
+        @ApiImplicitParam(name = "endTime", value = "结束日期:时间戳", paramType = "query", required = false, dataType = "long"),
+        @ApiImplicitParam(name = "liebian", value = "裂变筛选：是 =1，否 =0，查全部，不传参", paramType = "query", required = false, dataType = "int"),
+        @ApiImplicitParam(name = "mobile", value = "用户账号", paramType = "query", required = false, dataType = "string"),
+        @ApiImplicitParam(name = "order", value = "排序方式，可选值(asc、desc)", paramType = "query", required = false, dataType = "string"),
+        @ApiImplicitParam(name = "orderField", value = "排序字段", paramType = "query", required = false, dataType = "string"),
+        @ApiImplicitParam(name = "salesmanid", value = "业务员下拉框", paramType = "query", required = false, dataType = "long"),
+        @ApiImplicitParam(name = "startTime", value = "开始日期:时间戳", paramType = "query", required = false, dataType = "string"),
+        @ApiImplicitParam(name = "tzFlag", value = "投资筛选：有投资=1，无投资=0，查全部，不传参", paramType = "query", required = false, dataType = "int"),
+        @ApiImplicitParam(name = "username", value = "用户姓名", paramType = "query", required = false, dataType = "string"),
+        @ApiImplicitParam(name = "vip", value = "0-6 查全部，不传参", paramType = "query", required = false, dataType = "int"),
+        @ApiImplicitParam(name = "viplr", value = "0-4,5,6 查全部，不传参", paramType = "query", required = false, dataType = "int"),
+        @ApiImplicitParam(name = "withdrawFlag", value = "提现筛选：有提现=1，无提现=0，查全部，不传参", paramType = "query", required = false, dataType = "int")
     })
 //    @RequiresPermissions("member:user:page")
     public Result<PageData<MemberInfoDTO>> page(
@@ -94,9 +99,9 @@ public class MemberController {
 
             // 调用服务查询分页数据
             PageData<MemberInfoDTO> pageData = memberService.getMemberPage(
-                    page, limit, agent, balanceFlag, biaoqian, biaoqianFlag, channel, chargeFlag,
-                    endTime, liebian, mobile, order, orderField, salesmanid, startTime, tzFlag,
-                    username, vip, viplr, withdrawFlag
+                page, limit, agent, balanceFlag, biaoqian, biaoqianFlag, channel, chargeFlag,
+                endTime, liebian, mobile, order, orderField, salesmanid, startTime, tzFlag,
+                username, vip, viplr, withdrawFlag
             );
 
             return new Result<PageData<MemberInfoDTO>>().ok(pageData);
@@ -109,14 +114,14 @@ public class MemberController {
     @GetMapping("settlement")
     @ApiOperation("结算报表")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "page", value = "当前页码，从1开始", paramType = "query", required = true, dataType = "int"),
-            @ApiImplicitParam(name = "limit", value = "每页显示记录数", paramType = "query", required = true, dataType = "int"),
-            @ApiImplicitParam(name = "agent", value = "代理下拉框", paramType = "query", required = false, dataType = "long"),
-            @ApiImplicitParam(name = "endTime", value = "结束日期:时间戳", paramType = "query", required = false, dataType = "long"),
-            @ApiImplicitParam(name = "order", value = "排序方式，可选值(asc、desc)", paramType = "query", required = false, dataType = "string"),
-            @ApiImplicitParam(name = "orderField", value = "排序字段", paramType = "query", required = false, dataType = "string"),
-            @ApiImplicitParam(name = "salesmanid", value = "业务员下拉框", paramType = "query", required = false, dataType = "long"),
-            @ApiImplicitParam(name = "startTime", value = "开始日期:时间戳", paramType = "query", required = false, dataType = "long")
+        @ApiImplicitParam(name = "page", value = "当前页码，从1开始", paramType = "query", required = true, dataType = "int"),
+        @ApiImplicitParam(name = "limit", value = "每页显示记录数", paramType = "query", required = true, dataType = "int"),
+        @ApiImplicitParam(name = "agent", value = "代理下拉框", paramType = "query", required = false, dataType = "long"),
+        @ApiImplicitParam(name = "endTime", value = "结束日期:时间戳", paramType = "query", required = false, dataType = "long"),
+        @ApiImplicitParam(name = "order", value = "排序方式，可选值(asc、desc)", paramType = "query", required = false, dataType = "string"),
+        @ApiImplicitParam(name = "orderField", value = "排序字段", paramType = "query", required = false, dataType = "string"),
+        @ApiImplicitParam(name = "salesmanid", value = "业务员下拉框", paramType = "query", required = false, dataType = "long"),
+        @ApiImplicitParam(name = "startTime", value = "开始日期:时间戳", paramType = "query", required = false, dataType = "long")
     })
 //    @RequiresPermissions("member:user:settlement")
     public Result<PageData<SettlementReportDTO>> settlement(
@@ -141,7 +146,7 @@ public class MemberController {
 
             // 调用服务查询结算报表数据
             PageData<SettlementReportDTO> pageData = memberService.getSettlementReport(
-                    page, limit, agent, endTime, order, orderField, salesmanid, startTime
+                page, limit, agent, endTime, order, orderField, salesmanid, startTime
             );
 
             return new Result<PageData<SettlementReportDTO>>().ok(pageData);
@@ -489,6 +494,94 @@ public class MemberController {
             return new Result().error("提现状态更新失败: " + e.getMessage());
         }
     }
+
+    @GetMapping("getAllBlackList")
+    @ApiOperation("查询所有黑白名单")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "当前页码，从1开始", paramType = "query", required = true, dataType = "int"),
+            @ApiImplicitParam(name = "limit", value = "每页显示记录数", paramType = "query", required = true, dataType = "int"),
+            @ApiImplicitParam(name = "mobile", value = "会员账号", paramType = "query", required = false, dataType = "string"),
+            @ApiImplicitParam(name = "type", value = "类型：1-白名单，2-黑名单，不传查所有", paramType = "query", required = false, dataType = "string")
+    })
+//    @RequiresPermissions("member:user:getAllBlackList")
+    public Result<PageData<BlacklistDTO>> getAllBlackList(
+            @RequestParam("page") Integer page,
+            @RequestParam("limit") Integer limit,
+            @RequestParam(value = "mobile", required = false) String mobile,
+            @RequestParam(value = "type", required = false) String type) {
+        try {
+            // 参数验证
+            if (page == null || page < 1) {
+                return new Result<PageData<BlacklistDTO>>().error("页码必须大于0");
+            }
+            if (limit == null || limit < 1 || limit > 1000) {
+                return new Result<PageData<BlacklistDTO>>().error("每页记录数必须在1-1000之间");
+            }
+
+            // 调用黑白名单服务查询分页数据
+            PageData<BlacklistDTO> pageData = blacklistService.getBlacklistPage(
+                    page, limit, mobile, type
+            );
+
+            return new Result<PageData<BlacklistDTO>>().ok(pageData);
+
+        } catch (Exception e) {
+            log.error("查询黑白名单失败", e);
+            return new Result<PageData<BlacklistDTO>>().error("查询黑白名单失败: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("addblack")
+    @ApiOperation("新增黑白名单")
+    @LogOperation("新增黑白名单")
+//    @RequiresPermissions("member:user:addblack")
+    public Result addblack(@RequestBody BlacklistDTO dto) {
+        try {
+            // 参数验证
+            if (dto.getUserId() == null || dto.getUserId() <= 0) {
+                return new Result().error("用户ID不能为空");
+            }
+            if (dto.getMobile() == null || dto.getMobile().trim().isEmpty()) {
+                return new Result().error("会员账号不能为空");
+            }
+            if (dto.getType() == null || (dto.getType() != 1 && dto.getType() != 2)) {
+                return new Result().error("类型必须为1(白名单)或2(黑名单)");
+            }
+
+            // 调用服务添加用户到黑白名单
+            return blacklistService.addToBlacklist(dto.getUserId(), dto.getMobile().trim(), dto.getType());
+
+        } catch (Exception e) {
+            log.error("新增黑白名单失败，用户ID: {}, 类型: {}", dto.getUserId(), dto.getType(), e);
+            return new Result().error("新增黑白名单失败: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("deleteblack")
+    @ApiOperation("删除黑白名单")
+    @LogOperation("删除黑白名单")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "黑白名单记录ID", paramType = "query", required = true, dataType = "long"),
+            @ApiImplicitParam(name = "loginUserId", value = "登录用户ID", paramType = "header", required = true, dataType = "long")
+    })
+//    @RequiresPermissions("member:user:deleteblack")
+    public Result deleteblack(@RequestParam("id") Long id) {
+        try {
+            // 参数验证
+            if (id == null || id <= 0) {
+                return new Result().error("记录ID不能为空");
+            }
+
+            // 调用服务删除黑白名单记录
+            return blacklistService.removeFromBlacklist(id);
+
+        } catch (Exception e) {
+            log.error("删除黑白名单失败，记录ID: {}", id, e);
+            return new Result().error("删除黑白名单失败: " + e.getMessage());
+        }
+    }
+
+
 
 
     
