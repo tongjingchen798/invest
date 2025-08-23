@@ -464,4 +464,76 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             throw new RuntimeException("修改用户姓名失败: " + e.getMessage());
         }
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result addBalance(Long userId, Long amount, Integer balanceType, String remark) {
+        try {
+            log.info("开始手工调整余额，用户ID: {}, 金额: {} 分, 操作类型: {}, 备注: {}", userId, amount, balanceType, remark);
+            
+            // 参数验证
+            if (userId == null || userId <= 0) {
+                return new Result().error("用户ID不能为空");
+            }
+            if (amount == null || amount <= 0) {
+                return new Result().error("金额必须大于0");
+            }
+            if (balanceType == null || (balanceType != 1 && balanceType != 2)) {
+                return new Result().error("操作类型必须为1(增加余额)或2(减少余额)");
+            }
+            
+            // 查询用户信息
+            MemberEntity member = this.selectById(userId);
+            if (member == null) {
+                return new Result().error("用户不存在");
+            }
+            
+            // 获取当前余额
+            Long currentBalance = member.getAssets() != null ? member.getAssets() : 0L;
+            Long newBalance;
+            String operationType;
+            
+            // 根据操作类型调整余额
+            if (balanceType == 1) {
+                // 增加余额
+                newBalance = currentBalance + amount;
+                operationType = "增加余额";
+            } else {
+                // 减少余额
+                if (currentBalance < amount) {
+                    return new Result().error("用户余额不足，当前余额: " + currentBalance + " 分，需要扣除: " + amount + " 分");
+                }
+                newBalance = currentBalance - amount;
+                operationType = "减少余额";
+            }
+            
+            // 更新用户余额
+            member.setAssets(newBalance);
+            this.updateById(member);
+            
+            // 记录余额明细
+            UserBalanceDetailEntity balanceDetail = new UserBalanceDetailEntity();
+            balanceDetail.setUserId(userId);
+            balanceDetail.setTransactionDate(new Date());
+            balanceDetail.setAgentId(member.getAgent() != null ? Long.valueOf(member.getAgent()) : null);
+            balanceDetail.setAgentName(member.getAgentName());
+            balanceDetail.setBusinessType(13); // 13表示手工调整余额
+            balanceDetail.setChannel("后台手工调整");
+            balanceDetail.setOriginalAmount(amount);
+            balanceDetail.setRemarks(remark != null ? remark : operationType);
+            balanceDetail.setSalesmanName(member.getSalesmanName());
+            balanceDetail.setSalesmanId(member.getSalesmanid() != null ? Long.valueOf(member.getSalesmanid()) : null);
+            balanceDetail.setStatus(1); // 1表示正常
+            
+            userBalanceDetailService.insert(balanceDetail);
+            
+            log.info("余额调整成功，用户ID: {}, 原余额: {} 分, 调整金额: {} 分, 新余额: {} 分, 操作类型: {}", 
+                    userId, currentBalance, amount, newBalance, operationType);
+            return new Result().ok("余额调整成功");
+            
+        } catch (Exception e) {
+            log.error("手工调整余额失败，用户ID: {}, 金额: {}, 操作类型: {}", userId, amount, balanceType, e);
+            throw new RuntimeException("手工调整余额失败: " + e.getMessage());
+        }
+    }
 }

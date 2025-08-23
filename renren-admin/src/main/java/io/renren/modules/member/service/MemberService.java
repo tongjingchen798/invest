@@ -113,4 +113,15 @@ public interface MemberService {
      */
     Result updateUserName(Long userId, String username);
 
+    /**
+     * 手工调整余额
+     *
+     * @param userId 用户ID
+     * @param amount 金额（分）
+     * @param balanceType 操作类型：1-增加余额，2-减少余额
+     * @param remark 备注
+     * @return 操作结果
+     */
+    Result addBalance(Long userId, Long amount, Integer balanceType, String remark);
+
 }

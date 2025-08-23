@@ -303,6 +303,41 @@ public class MemberController {
         }
     }
 
+    @PutMapping("addBalance")
+    @ApiOperation("手工调整余额")
+    @LogOperation("手工调整余额")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "用户ID", paramType = "query", required = true, dataType = "long"),
+            @ApiImplicitParam(name = "balance", value = "金额（分）", paramType = "query", required = true, dataType = "long"),
+            @ApiImplicitParam(name = "balance_type", value = "操作类型：1-增加余额，2-减少余额", paramType = "query", required = true, dataType = "int"),
+            @ApiImplicitParam(name = "remark", value = "备注", paramType = "query", required = false, dataType = "string")
+    })
+//    @RequiresPermissions("member:user:addBalance")
+    public Result addBalance(@RequestParam("id") Long userId, 
+                           @RequestParam("balance") Long amount,
+                           @RequestParam("balance_type") Integer balanceType,
+                           @RequestParam(value = "remark", required = false) String remark) {
+        try {
+            // 参数验证
+            if (userId == null || userId <= 0) {
+                return new Result().error("用户ID不能为空");
+            }
+            if (amount == null || amount <= 0) {
+                return new Result().error("金额必须大于0");
+            }
+            if (balanceType == null || (balanceType != 1 && balanceType != 2)) {
+                return new Result().error("操作类型必须为1(增加余额)或2(减少余额)");
+            }
+
+            // 调用服务调整余额
+            return memberService.addBalance(userId, amount, balanceType, remark);
+
+        } catch (Exception e) {
+            log.error("手工调整余额异常，用户ID: {}, 金额: {}, 操作类型: {}", userId, amount, balanceType, e);
+            return new Result().error("余额调整失败: " + e.getMessage());
+        }
+    }
+
 
     
 }
