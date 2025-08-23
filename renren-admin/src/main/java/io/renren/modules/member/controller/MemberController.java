@@ -200,11 +200,11 @@ public class MemberController {
     @LogOperation("设置用户标签")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "id", value = "用户ID", paramType = "query", required = true, dataType = "long"),
-            @ApiImplicitParam(name = "biaoqian", value = "标签值", paramType = "query", required = true, dataType = "int"),
+            @ApiImplicitParam(name = "biaoqian", value = "标签值", paramType = "query", required = true, dataType = "string"),
             @ApiImplicitParam(name = "type", value = "操作类型：1-设置标签，2-清除标签", paramType = "query", required = true, dataType = "int")
     })
 //    @RequiresPermissions("member:user:updateBq")
-    public Result updateUserBq(@RequestParam("id") Long userId, @RequestParam("biaoqian") Integer biaoqian, @RequestParam("type") Integer type) {
+    public Result updateUserBq(@RequestParam("id") Long userId, @RequestParam("biaoqian") String biaoqian, @RequestParam("type") Integer type) {
         try {
             // 参数验证
             if (userId == null || userId <= 0) {

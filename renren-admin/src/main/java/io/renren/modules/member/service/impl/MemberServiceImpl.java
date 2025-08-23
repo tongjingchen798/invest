@@ -300,7 +300,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Result updateUserBiaoqian(Long userId, Integer biaoqian, Integer type) {
+    public Result updateUserBiaoqian(Long userId, String biaoqian, Integer type) {
         try {
             log.info("开始修改用户标签，用户ID: {}, 标签: {}, 操作类型: {}", userId, biaoqian, type);
             
@@ -324,7 +324,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             // 根据操作类型处理标签
             if (type == 1) {
                 // 设置标签
-                member.setBiaoqian(String.valueOf(biaoqian));
+                member.setBiaoqian(biaoqian);
                 log.info("设置用户标签，用户ID: {}, 标签: {}", userId, biaoqian);
             } else if (type == 2) {
                 // 清除标签

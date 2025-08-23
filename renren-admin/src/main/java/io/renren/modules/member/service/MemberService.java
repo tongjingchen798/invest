@@ -84,7 +84,7 @@ public interface MemberService {
      * @param type 操作类型：1-设置标签，2-清除标签
      * @return 操作结果
      */
-    Result updateUserBiaoqian(Long userId, Integer biaoqian, Integer type);
+    Result updateUserBiaoqian(Long userId, String biaoqian, Integer type);
 
     /**
      * 修改用户业务员
