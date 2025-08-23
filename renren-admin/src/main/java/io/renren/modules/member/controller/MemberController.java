@@ -276,6 +276,33 @@ public class MemberController {
         }
     }
 
+    @PutMapping("updateUserName")
+    @ApiOperation("修改用户真实姓名")
+    @LogOperation("修改用户真实姓名")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "用户ID", paramType = "query", required = true, dataType = "long"),
+            @ApiImplicitParam(name = "username", value = "用户真实姓名", paramType = "query", required = true, dataType = "string")
+    })
+//    @RequiresPermissions("member:user:updateUserName")
+    public Result updateUserName(@RequestParam("id") Long userId, @RequestParam("username") String username) {
+        try {
+            // 参数验证
+            if (userId == null || userId <= 0) {
+                return new Result().error("用户ID不能为空");
+            }
+            if (username == null || username.trim().isEmpty()) {
+                return new Result().error("用户姓名不能为空");
+            }
+
+            // 调用服务修改用户姓名
+            return memberService.updateUserName(userId, username);
+
+        } catch (Exception e) {
+            log.error("修改用户姓名异常，用户ID: {}, 姓名: {}", userId, username, e);
+            return new Result().error("姓名修改失败: " + e.getMessage());
+        }
+    }
+
 
     
 }

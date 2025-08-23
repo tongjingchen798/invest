@@ -423,4 +423,45 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             throw new RuntimeException("设置用户上级失败: " + e.getMessage());
         }
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result updateUserName(Long userId, String username) {
+        try {
+            log.info("开始修改用户姓名，用户ID: {}, 新姓名: {}", userId, username);
+            
+            // 参数验证
+            if (userId == null || userId <= 0) {
+                return new Result().error("用户ID不能为空");
+            }
+            if (username == null || username.trim().isEmpty()) {
+                return new Result().error("用户姓名不能为空");
+            }
+            
+            // 查询用户信息
+            MemberEntity member = this.selectById(userId);
+            if (member == null) {
+                return new Result().error("用户不存在");
+            }
+            
+            // 检查姓名长度限制（假设最大长度为20个字符）
+            String trimmedUsername = username.trim();
+            if (trimmedUsername.length() > 20) {
+                return new Result().error("用户姓名不能超过20个字符");
+            }
+            
+            // 更新用户姓名
+            member.setUsername(trimmedUsername);
+            
+            // 更新用户信息
+            this.updateById(member);
+            
+            log.info("用户姓名修改成功，用户ID: {}, 新姓名: {}", userId, trimmedUsername);
+            return new Result().ok("姓名修改成功");
+            
+        } catch (Exception e) {
+            log.error("修改用户姓名失败，用户ID: {}, 姓名: {}", userId, username, e);
+            throw new RuntimeException("修改用户姓名失败: " + e.getMessage());
+        }
+    }
 }

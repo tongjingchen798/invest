@@ -104,4 +104,13 @@ public interface MemberService {
      */
     Result updateUp(Long userId, String mobile);
 
+    /**
+     * 修改用户真实姓名
+     *
+     * @param userId 用户ID
+     * @param username 用户真实姓名
+     * @return 操作结果
+     */
+    Result updateUserName(Long userId, String username);
+
 }
