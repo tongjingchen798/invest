@@ -114,6 +114,6 @@ public class SysUserDTO implements Serializable {
     @ApiModelProperty(value = "双重认证码")
     private String twoFactorCode;
 
-    // @ApiModelProperty(value = "代理邀请码")
-    // private String agentInviteCode;
+     @ApiModelProperty(value = "代理邀请码")
+     private String agentInviteCode;
 }
