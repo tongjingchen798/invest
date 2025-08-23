@@ -461,6 +461,35 @@ public class MemberController {
         }
     }
 
+    @PutMapping("updatetzWithdrawStatus")
+    @ApiOperation("启用禁用投资账户提现")
+    @LogOperation("启用禁用投资账户提现")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "用户ID", paramType = "query", required = true, dataType = "long"),
+            @ApiImplicitParam(name = "status", value = "状态：1-启用提现，0-禁用提现", paramType = "query", required = true, dataType = "int")
+    })
+//    @RequiresPermissions("member:user:updatetzWithdrawStatus")
+    public Result updatetzWithdrawStatus(@RequestParam("id") Long userId, 
+                                       @RequestParam("status") Integer status) {
+        try {
+            // 参数验证
+            if (userId == null || userId <= 0) {
+                return new Result().error("用户ID不能为空");
+            }
+            if (status == null || (status != 0 && status != 1)) {
+                return new Result().error("状态值必须为0(禁用提现)或1(启用提现)");
+            }
+
+            // 调用服务更新投资账户提现状态
+            Result result = memberService.updatetzWithdrawStatus(userId, status);
+            return result;
+
+        } catch (Exception e) {
+            log.error("投资账户提现状态更新异常，用户ID: {}, 状态: {}", userId, status, e);
+            return new Result().error("提现状态更新失败: " + e.getMessage());
+        }
+    }
+
 
     
 }

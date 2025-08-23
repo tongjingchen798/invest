@@ -163,4 +163,13 @@ public interface MemberService {
      */
     Result updatetzrewardWithdrawStatus(Long userId, Integer status);
 
+    /**
+     * 启用禁用投资账户提现
+     *
+     * @param userId 用户ID
+     * @param status 状态：1-启用提现，0-禁用提现
+     * @return 操作结果
+     */
+    Result updatetzWithdrawStatus(Long userId, Integer status);
+
 }
