@@ -12,6 +12,7 @@ import io.renren.modules.member.dto.MemberInfoDTO;
 import io.renren.modules.member.entity.MemberEntity;
 import io.renren.modules.member.service.MemberService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -619,6 +620,45 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
         } catch (Exception e) {
             log.error("操作冻结金额失败，用户ID: {}, 金额: {}, 操作类型: {}", userId, amount, balanceType, e);
             throw new RuntimeException("操作冻结金额失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result updatePws(Long userId, String password) {
+        try {
+            // 参数验证
+            if (userId == null || userId <= 0) {
+                return new Result().error("用户ID不能为空");
+            }
+            if (password == null || password.trim().isEmpty()) {
+                return new Result().error("新密码不能为空");
+            }
+            
+            // 检查密码长度限制（假设最小长度为6个字符，最大长度为20个字符）
+            String trimmedPassword = password.trim();
+            if (trimmedPassword.length() < 6) {
+                return new Result().error("密码长度不能少于6个字符");
+            }
+            if (trimmedPassword.length() > 20) {
+                return new Result().error("密码长度不能超过20个字符");
+            }
+            
+            // 查询用户信息
+            MemberEntity member = this.selectById(userId);
+            if (member == null) {
+                return new Result().error("用户不存在");
+            }
+            member.setPassword(DigestUtils.sha256Hex(trimmedPassword));
+            // 更新用户信息
+            this.updateById(member);
+            
+            log.info("用户密码修改成功，用户ID: {}", userId);
+            return new Result().ok("密码修改成功");
+            
+        } catch (Exception e) {
+            log.error("修改用户密码失败，用户ID: {}", userId, e);
+            throw new RuntimeException("修改用户密码失败: " + e.getMessage());
         }
     }
 }

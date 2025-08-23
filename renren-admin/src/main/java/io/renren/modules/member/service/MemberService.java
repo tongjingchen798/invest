@@ -135,4 +135,13 @@ public interface MemberService {
      */
     Result freeBalance(Long userId, Long amount, Integer balanceType, String remark);
 
+    /**
+     * 修改登录密码
+     *
+     * @param userId 用户ID
+     * @param password 新密码
+     * @return 操作结果
+     */
+    Result updatePws(Long userId, String password);
+
 }
