@@ -296,4 +296,50 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             throw new RuntimeException("工资发放失败: " + e.getMessage());
         }
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result updateUserBiaoqian(Long userId, Integer biaoqian, Integer type) {
+        try {
+            log.info("开始修改用户标签，用户ID: {}, 标签: {}, 操作类型: {}", userId, biaoqian, type);
+            
+            // 参数验证
+            if (userId == null || userId <= 0) {
+                return new Result().error("用户ID不能为空");
+            }
+            if (biaoqian == null) {
+                return new Result().error("标签值不能为空");
+            }
+            if (type == null || (type != 1 && type != 2)) {
+                return new Result().error("操作类型必须为1(设置标签)或2(清除标签)");
+            }
+            
+            // 查询用户信息
+            MemberEntity member = this.selectById(userId);
+            if (member == null) {
+                return new Result().error("用户不存在");
+            }
+            
+            // 根据操作类型处理标签
+            if (type == 1) {
+                // 设置标签
+                member.setBiaoqian(String.valueOf(biaoqian));
+                log.info("设置用户标签，用户ID: {}, 标签: {}", userId, biaoqian);
+            } else if (type == 2) {
+                // 清除标签
+                member.setBiaoqian(null);
+                log.info("清除用户标签，用户ID: {}", userId);
+            }
+            
+            // 更新用户信息
+            this.updateById(member);
+            
+            log.info("用户标签修改成功，用户ID: {}, 标签: {}, 操作类型: {}", userId, biaoqian, type);
+            return new Result().ok("标签修改成功");
+            
+        } catch (Exception e) {
+            log.error("用户标签修改失败，用户ID: {}, 标签: {}, 操作类型: {}", userId, biaoqian, type, e);
+            throw new RuntimeException("用户标签修改失败: " + e.getMessage());
+        }
+    }
 }

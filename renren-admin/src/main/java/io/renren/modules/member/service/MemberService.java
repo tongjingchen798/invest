@@ -76,4 +76,14 @@ public interface MemberService {
      */
     Result paySalary(Long userId, Long amount);
 
+    /**
+     * 修改用户标签
+     *
+     * @param userId 用户ID
+     * @param biaoqian 标签值
+     * @param type 操作类型：1-设置标签，2-清除标签
+     * @return 操作结果
+     */
+    Result updateUserBiaoqian(Long userId, Integer biaoqian, Integer type);
+
 }
