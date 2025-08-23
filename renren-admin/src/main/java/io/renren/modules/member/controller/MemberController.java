@@ -222,6 +222,34 @@ public class MemberController {
         }
     }
 
+    @PutMapping("updateUserToAgent")
+    @ApiOperation("修改用户业务员")
+    @LogOperation("修改用户业务员")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "用户ID", paramType = "query", required = true, dataType = "long"),
+            @ApiImplicitParam(name = "salesmanid", value = "业务员ID", paramType = "query", required = true, dataType = "long")
+    })
+//    @RequiresPermissions("member:user:updateToAgent")
+    public Result updateUserToAgent(@RequestParam("id") Long userId, @RequestParam("salesmanid") Long salesmanid) {
+        try {
+            // 参数验证
+            if (userId == null || userId <= 0) {
+                return new Result().error("用户ID不能为空");
+            }
+            if (salesmanid == null || salesmanid <= 0) {
+                return new Result().error("业务员ID不能为空");
+            }
+
+            // 调用服务修改用户业务员
+            Result result = memberService.updateUserToAgent(userId, salesmanid);
+            return result;
+
+        } catch (Exception e) {
+            log.error("用户业务员修改异常，用户ID: {}, 业务员ID: {}, 业务员姓名: {}", userId, salesmanid, e);
+            return new Result().error("业务员修改失败: " + e.getMessage());
+        }
+    }
+
 
     
 }

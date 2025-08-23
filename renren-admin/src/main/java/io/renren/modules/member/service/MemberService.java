@@ -86,4 +86,13 @@ public interface MemberService {
      */
     Result updateUserBiaoqian(Long userId, Integer biaoqian, Integer type);
 
+    /**
+     * 修改用户业务员
+     *
+     * @param userId 用户ID
+     * @param salesmanid 业务员ID
+     * @return 操作结果
+     */
+    Result updateUserToAgent(Long userId, Long salesmanid);
+
 }

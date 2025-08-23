@@ -342,4 +342,38 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             throw new RuntimeException("用户标签修改失败: " + e.getMessage());
         }
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result updateUserToAgent(Long userId, Long salesmanid) {
+        try {
+            log.info("开始修改用户业务员，用户ID: {}, 业务员ID: {}", userId, salesmanid);
+            
+            // 参数验证
+            if (userId == null || userId <= 0) {
+                return new Result().error("用户ID不能为空");
+            }
+            if (salesmanid == null || salesmanid <= 0) {
+                return new Result().error("业务员ID不能为空");
+            }
+
+            // 查询用户信息
+            MemberEntity member = this.selectById(userId);
+            if (member == null) {
+                return new Result().error("用户不存在");
+            }
+            
+            // 更新用户业务员信息
+            member.setSalesmanid(String.valueOf(salesmanid));
+            // 更新用户信息
+            this.updateById(member);
+            
+            log.info("用户业务员修改成功，用户ID: {}, 业务员ID: {}", userId, salesmanid);
+            return new Result().ok("业务员修改成功");
+            
+        } catch (Exception e) {
+            log.error("用户业务员修改失败，用户ID: {}, 业务员ID: {}", userId, salesmanid, e);
+            throw new RuntimeException("用户业务员修改失败: " + e.getMessage());
+        }
+    }
 }
