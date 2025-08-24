@@ -52,13 +52,13 @@ public class BalanceDetailDTO implements Serializable {
     private String remarks;
 
     @ApiModelProperty(value = "渠道")
-    private String channel;
+    private Long channel;
 
     @ApiModelProperty(value = "代理信息")
     private String agent;
 
     @ApiModelProperty(value = "业务员ID")
-    private String salesmanid;
+    private Long salesmanid;
 
     @ApiModelProperty(value = "返佣来源，谁返给userId的")
     private Long formuserid;

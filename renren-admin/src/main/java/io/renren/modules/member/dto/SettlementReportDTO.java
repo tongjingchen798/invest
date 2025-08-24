@@ -18,7 +18,7 @@ public class SettlementReportDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "代理编号")
-    private String agent;
+    private Long agent;
 
     @ApiModelProperty(value = "代理名称")
     private String agentName;
@@ -33,7 +33,7 @@ public class SettlementReportDTO implements Serializable {
     private String salesmanName;
 
     @ApiModelProperty(value = "业务员编号")
-    private String salesmanid;
+    private Long salesmanid;
 
     @ApiModelProperty(value = "结算提现金额")
     private Integer txRealAmount;

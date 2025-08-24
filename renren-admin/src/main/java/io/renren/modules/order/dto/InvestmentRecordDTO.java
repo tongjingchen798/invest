@@ -74,7 +74,7 @@ public class InvestmentRecordDTO implements Serializable {
     private String agent;
 
     @ApiModelProperty(value = "销售员ID")
-    private String salesmanid;
+    private Long salesmanid;
 
     @ApiModelProperty(value = "创建时间")
     private Date createDate;

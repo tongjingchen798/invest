@@ -20,6 +20,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -81,16 +82,23 @@ public class ApiRegisterController {
         user.setUpinviteCode(dto.getInviteCode());
         String newInviteCode = InviteCodeGenerator.generateInviteCode();
         user.setInviteCode(newInviteCode);
-        user.setAgent(dto.getAgent());
+        //根据渠道查询对应代理
+        if(StringUtils.isNotBlank(dto.getChannel())){
+
+
+            user.setAgent(0L);
+            user.setSalesmanid("1748403763980");
+            user.setSalesmanName("Doris");
+        }
+
+
+
         user.setChannel(dto.getChannel());
         user.setEquipment(dto.getEquipment());
         // 获取用户注册IP地址
         String registerIp = IpAddressUtil.getClientIpAddress();
         user.setRegisterIp(registerIp);
-        user.setAgent("1748403763980");
-        user.setAgentName("xiaolaohu");
-        user.setSalesmanid("1748403763980");
-        user.setSalesmanName("Doris");
+
         user.setCreateDate(new Date());
         userService.insert(user);
 

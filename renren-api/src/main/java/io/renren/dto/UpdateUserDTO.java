@@ -23,10 +23,10 @@ public class UpdateUserDTO {
     private String inviteCode;
 
     @ApiModelProperty(value = "代理信息")
-    private String agent;
+    private Long agent;
 
     @ApiModelProperty(value = "客户渠道号")
-    private String channel;
+    private Long channel;
 
     @ApiModelProperty(value = "登录端口(1:安卓, 2:ios, 3:pc, 4:未知)")
     private Integer equipment;

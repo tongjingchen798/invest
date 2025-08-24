@@ -91,15 +91,15 @@
      /**
       * 渠道
       */
-     private String channel;
+     private Long channel;
  
      /**
       * 代理
       */
-     private String agent;
+     private Long agent;
  
      /**
       * 业务员ID
       */
-     private String salesmanid;
+     private Long salesmanid;
  }

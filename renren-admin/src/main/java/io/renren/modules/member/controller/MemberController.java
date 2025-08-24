@@ -42,6 +42,9 @@ public class MemberController {
     
     @Autowired
     private BlacklistService blacklistService;
+//
+//    @Autowired
+//    private AgentCommissionStatsService agentCommissionStatsService;
 
     @GetMapping("page")
     @ApiOperation("分页查询会员信息")

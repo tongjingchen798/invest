@@ -38,17 +38,17 @@ public class ChargeOrderEntity implements Serializable {
     /**
      * 代理编号
      */
-    private String agent;
+    private Long agent;
 
     /**
      * 业务员编号
      */
-    private String salesmanid;
+    private Long salesmanid;
 
     /**
      * 渠道
      */
-    private String channel;
+    private Long channel;
 
     /**
      * 通道类型

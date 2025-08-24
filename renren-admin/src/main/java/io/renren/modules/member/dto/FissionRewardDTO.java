@@ -77,7 +77,7 @@ public class FissionRewardDTO implements Serializable {
     /**
      * 业务员编号
      */
-    private String salesmanid;
+    private Long salesmanid;
 
     /**
      * 三级佣金

@@ -71,7 +71,7 @@ public class ManualWithdrawDTO implements Serializable {
     private String salesmanName;
 
     @ApiModelProperty(value = "业务员编号")
-    private String salesmanid;
+    private Long salesmanid;
 
     @ApiModelProperty(value = "状态 申请中=0 转账中=1 已提现=2 取消=3")
     private Integer state;

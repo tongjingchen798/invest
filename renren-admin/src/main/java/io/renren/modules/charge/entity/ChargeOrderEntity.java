@@ -43,12 +43,12 @@ public class ChargeOrderEntity implements Serializable {
     /**
      * 业务员编号
      */
-    private String salesmanid;
+    private Long salesmanid;
 
     /**
      * 渠道
      */
-    private String channel;
+    private Long channel;
 
     /**
      * 通道类型

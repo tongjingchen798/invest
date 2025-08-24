@@ -67,7 +67,7 @@ public class QdRecordDTO implements Serializable {
     /**
      * 业务员编号
      */
-    private String salesmanid;
+    private Long salesmanid;
 
     /**
      * 业务员名称

@@ -85,13 +85,13 @@ public class SysUserDTO implements Serializable {
     private String deptName;
 
     @ApiModelProperty(value = "渠道")
-    private String channel;
+    private Long channel;
 
     @ApiModelProperty(value = "类型 0最大权限管理员 1代理商 2渠道商")
     private Integer type;
 
     @ApiModelProperty(value = "代理编号")
-    private String agent;
+    private Long agent;
 
     @ApiModelProperty(value = "域名 (业务员才拥有)")
     private String domainname;

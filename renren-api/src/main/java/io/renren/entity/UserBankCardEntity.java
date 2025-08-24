@@ -51,7 +51,7 @@ public class UserBankCardEntity implements Serializable {
     /**
      * 渠道
      */
-    private String channel;
+    private Long channel;
 
     /**
      * IFSC代码

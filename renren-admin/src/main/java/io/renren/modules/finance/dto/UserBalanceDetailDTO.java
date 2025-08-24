@@ -34,7 +34,7 @@ public class UserBalanceDetailDTO implements Serializable {
     private Integer busiType;
 
     @ApiModelProperty(value = "渠道")
-    private String channel;
+    private Long channel;
 
     @ApiModelProperty(value = "返佣来源，谁返给userId的")
     private Long formuserid;
@@ -55,7 +55,7 @@ public class UserBalanceDetailDTO implements Serializable {
     private String salesmanName;
 
     @ApiModelProperty(value = "业务员编号")
-    private String salesmanid;
+    private Long salesmanid;
 
     @ApiModelProperty(value = "状态 0：交易失败 1：正常")
     private Integer status;

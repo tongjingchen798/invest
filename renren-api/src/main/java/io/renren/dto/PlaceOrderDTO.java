@@ -25,7 +25,7 @@ public class PlaceOrderDTO {
     private Long amount;
     
     @ApiModelProperty(value = "支付渠道")
-    private String channel;
+    private Long channel;
     
     @ApiModelProperty(value = "购买份数")
     @NotNull(message = "购买份数不能为空")

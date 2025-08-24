@@ -53,7 +53,7 @@ public class UserBalanceDetailDTO implements Serializable {
     /**
      * 渠道
      */
-    private String channel;
+    private Long channel;
 
     /**
      * 表单用户ID

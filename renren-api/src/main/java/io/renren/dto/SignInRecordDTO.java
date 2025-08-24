@@ -37,10 +37,10 @@ public class SignInRecordDTO {
     private String mobile;
 
     @ApiModelProperty(value = "代理信息")
-    private String agent;
+    private Long agent;
 
     @ApiModelProperty(value = "业务员ID")
-    private String salesmanid;
+    private Long salesmanid;
 
     @ApiModelProperty(value = "天分区")
     private Integer partDay;

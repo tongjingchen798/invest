@@ -60,4 +60,8 @@ public class SysUserEntity implements Serializable {
 
     private String wsimage;
 
+    private Long channel;
+
+    private Long agent;
+
 }

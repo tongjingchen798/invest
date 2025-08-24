@@ -62,7 +62,7 @@ public class PayInfoDTO implements Serializable {
 	private Date stateTime;
 
 	@ApiModelProperty(value = "渠道")
-	private String channel;
+	private Long channel;
 
 	@ApiModelProperty(value = "代理")
 	private String agent;

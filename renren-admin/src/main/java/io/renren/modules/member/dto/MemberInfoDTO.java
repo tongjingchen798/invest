@@ -117,7 +117,7 @@ public class MemberInfoDTO implements Serializable {
     private String salesmanName;
 
     @ApiModelProperty(value = "业务员编号")
-    private String salesmanid;
+    private Long salesmanid;
 
     @ApiModelProperty(value = "状态 0：停用 1：正常")
     private Integer status;

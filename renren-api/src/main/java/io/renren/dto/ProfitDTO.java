@@ -80,10 +80,10 @@ public class ProfitDTO implements Serializable {
     private Integer status;
 
     @ApiModelProperty(value = "代理ID")
-    private String agent;
+    private Long agent;
 
     @ApiModelProperty(value = "业务员ID")
-    private String salesmanid;
+    private Long salesmanid;
 
     @ApiModelProperty(value = "手机号")
     private String mobile;

@@ -45,7 +45,7 @@ public class WithdrawOrderEntity implements Serializable {
     /**
      * 提现渠道
      */
-    private String channel;
+    private Long channel;
 
     /**
      * 消息
@@ -191,12 +191,12 @@ public class WithdrawOrderEntity implements Serializable {
     /**
      * 代理ID
      */
-    private String agent;
+    private Long agent;
 
     /**
      * 业务员ID
      */
-    private String salesmanid;
+    private Long salesmanid;
 
     /**
      * 业务员姓名

@@ -66,11 +66,11 @@
      private String stateTime;
  
      @ApiModelProperty(value = "渠道")
-     private String channel;
+     private Long channel;
  
      @ApiModelProperty(value = "代理")
-     private String agent;
+     private Long agent;
  
      @ApiModelProperty(value = "业务员ID")
-     private String salesmanid;
+     private Long salesmanid;
  }

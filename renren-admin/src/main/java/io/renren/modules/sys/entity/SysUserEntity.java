@@ -80,7 +80,7 @@ public class SysUserEntity extends BaseEntity {
 	/**
 	 * 渠道
 	 */
-	private String channel;
+	private Long channel;
 	
 	/**
 	 * 类型 1代理 2客服

@@ -32,10 +32,10 @@ public class UserInfoDTO {
     private Long superiorId;
 
     @ApiModelProperty(value = "代理信息")
-    private String agent;
+    private Long agent;
 
     @ApiModelProperty(value = "客户渠道号")
-    private String channel;
+    private Long channel;
 
     @ApiModelProperty(value = "登录端口(1:安卓, 2:ios, 3:pc, 4:未知)")
     private Integer equipment;
@@ -86,7 +86,7 @@ public class UserInfoDTO {
     private Integer rewardWithdrawStatus;
 
     @ApiModelProperty(value = "业务员ID")
-    private String salesmanid;
+    private Long salesmanid;
 
     @ApiModelProperty(value = "状态 0：禁用 1：正常")
     private Integer status;

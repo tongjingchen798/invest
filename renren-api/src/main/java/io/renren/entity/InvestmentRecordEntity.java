@@ -97,7 +97,7 @@ public class InvestmentRecordEntity implements Serializable {
 	/**
 	 * 销售员ID
 	 */
-	private String salesmanid;
+	private Long salesmanid;
 	/**
 	 * 创建时间
 	 */

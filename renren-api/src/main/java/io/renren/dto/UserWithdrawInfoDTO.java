@@ -37,7 +37,7 @@ public class UserWithdrawInfoDTO implements Serializable {
     private String blankName;
 
     @ApiModelProperty(value = "渠道")
-    private String channel;
+    private Long channel;
 
     @ApiModelProperty(value = "提现通道费用")
     private Long channelAmount;
@@ -94,7 +94,7 @@ public class UserWithdrawInfoDTO implements Serializable {
     private String remark;
 
     @ApiModelProperty(value = "业务员编号")
-    private String salesmanid;
+    private Long salesmanid;
 
     @ApiModelProperty(value = "渠道中文名")
     private String sourcetypeName;

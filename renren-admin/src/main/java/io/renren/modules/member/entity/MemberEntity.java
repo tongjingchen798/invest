@@ -74,7 +74,7 @@ public class MemberEntity implements Serializable {
     /**
      * 业务员ID
      */
-    private String salesmanid;
+    private Long salesmanid;
 
     /**
      * 业务员名称
@@ -97,7 +97,7 @@ public class MemberEntity implements Serializable {
     /**
      * 客户渠道号
      */
-    private String channel;
+    private Long channel;
 
     /**
      * 登录端口(1:安卓, 2:ios, 3:pc, 4:未知)

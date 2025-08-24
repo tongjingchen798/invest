@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.dao.AgentCommissionStatsDao">
+
+    <resultMap type="io.renren.entity.AgentCommissionStatsEntity" id="agentCommissionStatsMap">
+        <result property="id" column="id"/>
+        <result property="agentId" column="agent_id"/>
+        <result property="agentName" column="agent_name"/>
+        <result property="salesmanId" column="salesman_id"/>
+        <result property="salesmanName" column="salesman_name"/>
+        <result property="statisticsDate" column="statistics_date"/>
+        <result property="totalChargeAmount" column="total_charge_amount"/>
+        <result property="totalWithdrawAmount" column="total_withdraw_amount"/>
+        <result property="netAmount" column="net_amount"/>
+        <result property="commissionAmount" column="commission_amount"/>
+        <result property="commissionRate" column="commission_rate"/>
+        <result property="userCount" column="user_count"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- 根据统计日期查询统计数据 -->
+    <select id="selectByStatisticsDate" resultMap="agentCommissionStatsMap">
+        SELECT * FROM tb_agent_commission_stats 
+        WHERE statistics_date = #{statisticsDate}
+        ORDER BY agent_id, salesman_id
+    </select>
+
+    <!-- 根据代理ID查询统计数据 -->
+    <select id="selectByAgentId" resultMap="agentCommissionStatsMap">
+        SELECT * FROM tb_agent_commission_stats 
+        WHERE agent_id = #{agentId}
+        <if test="startDate != null">
+            AND statistics_date >= #{startDate}
+        </if>
+        <if test="endDate != null">
+            AND statistics_date &lt;= #{endDate}
+        </if>
+        ORDER BY statistics_date DESC, salesman_id
+    </select>
+
+    <!-- 根据业务员ID查询统计数据 -->
+    <select id="selectBySalesmanId" resultMap="agentCommissionStatsMap">
+        SELECT * FROM tb_agent_commission_stats 
+        WHERE salesman_id = #{salesmanId}
+        <if test="startDate != null">
+            AND statistics_date >= #{startDate}
+        </if>
+        <if test="endDate != null">
+            AND statistics_date &lt;= #{endDate}
+        </if>
+        ORDER BY statistics_date DESC
+    </select>
+
+    <!-- 查询日期范围内的统计数据 -->
+    <select id="selectByDateRange" resultMap="agentCommissionStatsMap">
+        SELECT * FROM tb_agent_commission_stats 
+        WHERE statistics_date BETWEEN #{startDate} AND #{endDate}
+        ORDER BY statistics_date DESC, agent_id, salesman_id
+    </select>
+
+    <!-- 统计指定日期的兑付总额 -->
+    <select id="selectTotalCommissionAmountByDate" resultType="long">
+        SELECT COALESCE(SUM(commission_amount), 0) 
+        FROM tb_agent_commission_stats 
+        WHERE statistics_date = #{statisticsDate}
+    </select>
+
+    <!-- 统计指定日期范围的兑付总额 -->
+    <select id="selectTotalCommissionAmountByDateRange" resultType="long">
+        SELECT COALESCE(SUM(commission_amount), 0) 
+        FROM tb_agent_commission_stats 
+        WHERE statistics_date BETWEEN #{startDate} AND #{endDate}
+    </select>
+
+    <!-- 根据代理ID、业务员ID和统计日期查询是否存在记录 -->
+    <select id="selectCountByAgentAndSalesmanAndDate" resultType="int">
+        SELECT COUNT(*) 
+        FROM tb_agent_commission_stats 
+        WHERE agent_id = #{agentId} 
+        AND salesman_id = #{salesmanId} 
+        AND statistics_date = #{statisticsDate}
+    </select>
+
+    <!-- 获取统计汇总数据 -->
+    <select id="selectSummaryStats" resultType="map">
+        SELECT 
+            COUNT(DISTINCT agent_id) as total_agents,
+            COUNT(DISTINCT salesman_id) as total_salesmen,
+            COALESCE(SUM(total_charge_amount), 0) as total_charge_amount,
+            COALESCE(SUM(total_withdraw_amount), 0) as total_withdraw_amount,
+            COALESCE(SUM(net_amount), 0) as total_net_amount,
+            COALESCE(SUM(commission_amount), 0) as total_commission_amount,
+            COALESCE(SUM(user_count), 0) as total_users
+        FROM tb_agent_commission_stats 
+        WHERE statistics_date BETWEEN #{startDate} AND #{endDate}
+    </select>
+
+    <!-- 批量插入统计数据 -->
+    <insert id="batchInsert" parameterType="list">
+        INSERT INTO tb_agent_commission_stats (
+            agent_id, agent_name, salesman_id, salesman_name, statistics_date,
+            total_charge_amount, total_withdraw_amount, net_amount, commission_amount,
+            commission_rate, user_count, status, remark, create_time, update_time
+        ) VALUES
+        <foreach collection="statsList" item="item" separator=",">
+            (
+                #{item.agentId}, #{item.agentName}, #{item.salesmanId}, #{item.salesmanName}, #{item.statisticsDate},
+                #{item.totalChargeAmount}, #{item.totalWithdrawAmount}, #{item.netAmount}, #{item.commissionAmount},
+                #{item.commissionRate}, #{item.userCount}, #{item.status}, #{item.remark}, #{item.createTime}, #{item.updateTime}
+            )
+        </foreach>
+    </insert>
+
+</mapper>

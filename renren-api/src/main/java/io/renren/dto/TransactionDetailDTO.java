@@ -59,7 +59,7 @@ public class TransactionDetailDTO implements Serializable {
     private String remarks;
 
     @ApiModelProperty(value = "渠道")
-    private String channel;
+    private Long channel;
 
     @ApiModelProperty(value = "来源用户ID")
     private String formuserid;
@@ -68,16 +68,16 @@ public class TransactionDetailDTO implements Serializable {
     private String mobile;
 
     @ApiModelProperty(value = "代理ID")
-    private String agent;
+    private Long agent;
 
     @ApiModelProperty(value = "业务员ID")
-    private String salesmanid;
+    private Long salesmanid;
 
     @ApiModelProperty(value = "代理姓名")
-    private String agentName;
+    private Long agentName;
 
     @ApiModelProperty(value = "业务员姓名")
-    private String salesmanName;
+    private Long salesmanName;
 
     @ApiModelProperty(value = "标签")
     private String biaoqian;

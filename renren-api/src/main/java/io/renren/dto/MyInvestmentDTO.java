@@ -14,7 +14,7 @@ import lombok.Data;
 public class MyInvestmentDTO {
     
     @ApiModelProperty(value = "代理")
-    private String agent;
+    private Long agent;
     
     @ApiModelProperty(value = "项目周期")
     private Integer cycle;
@@ -71,7 +71,7 @@ public class MyInvestmentDTO {
     private Integer rushMinute;
     
     @ApiModelProperty(value = "销售员ID")
-    private String salesmanid;
+    private Long salesmanid;
     
     @ApiModelProperty(value = "状态 0：未收益 1：已收益")
     private Integer status;

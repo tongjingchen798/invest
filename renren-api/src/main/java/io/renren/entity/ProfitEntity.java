@@ -117,12 +117,12 @@
      /**
       * 代理ID
       */
-     private String agent;
+     private Long agent;
  
      /**
       * 业务员ID
       */
-     private String salesmanid;
+     private Long salesmanid;
  
      /**
       * 手机号

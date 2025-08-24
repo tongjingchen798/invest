@@ -74,7 +74,7 @@ public class ManualTransferDTO implements Serializable {
     private String agent;
 
     @ApiModelProperty(value = "业务员ID")
-    private String salesmanid;
+    private Long salesmanid;
 
     @ApiModelProperty(value = "业务员姓名")
     private String salesmanName;

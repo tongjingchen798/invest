@@ -20,7 +20,7 @@ public class UserChargeInfoDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "代理编号")
-    private String agent;
+    private Long agent;
 
     @ApiModelProperty(value = "代理名称")
     private String agentName;
@@ -32,7 +32,7 @@ public class UserChargeInfoDTO implements Serializable {
     private String biaoqian;
 
     @ApiModelProperty(value = "渠道")
-    private String channel;
+    private Long channel;
 
     @ApiModelProperty(value = "通道类型")
     private String channelType;
@@ -86,7 +86,7 @@ public class UserChargeInfoDTO implements Serializable {
     private String salesmanName;
 
     @ApiModelProperty(value = "业务员编号")
-    private String salesmanid;
+    private Long salesmanid;
 
     @ApiModelProperty(value = "充值渠道名称")
     private String sourcetypeName;

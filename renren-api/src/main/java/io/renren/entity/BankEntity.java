@@ -42,7 +42,7 @@ public class BankEntity implements Serializable {
     /**
      * 渠道
      */
-    private String channel;
+    private Long channel;
 
     /**
      * 货币
