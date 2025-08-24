@@ -4,6 +4,8 @@ import io.renren.common.page.PageData;
 import io.renren.common.utils.Result;
 import io.renren.modules.qd.dto.QdRecordDTO;
 import io.renren.modules.qd.service.QdService;
+import io.renren.modules.signconfig.dto.SignRewardConfigDTO;
+import io.renren.modules.signconfig.service.SignRewardConfigService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -26,6 +28,25 @@ import java.util.Map;
 public class QdController {
     @Autowired
     private QdService qdService;
+
+
+    @Autowired
+    private SignRewardConfigService signRewardConfigService;
+
+    @GetMapping("")
+    @ApiOperation("获取签到配置")
+    public Result<SignRewardConfigDTO> getQdConfig() {
+        try {
+            SignRewardConfigDTO config = signRewardConfigService.get(1L);
+            if (config != null) {
+                return new Result<SignRewardConfigDTO>().ok(config);
+            } else {
+                return new Result<SignRewardConfigDTO>().error("签到配置不存在");
+            }
+        } catch (Exception e) {
+            return new Result<SignRewardConfigDTO>().error("获取签到配置失败: " + e.getMessage());
+        }
+    }
 
     @GetMapping("list")
     @ApiOperation("查询用户签到记录")
