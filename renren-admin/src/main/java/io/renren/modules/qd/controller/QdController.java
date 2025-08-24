@@ -48,6 +48,29 @@ public class QdController {
         }
     }
 
+    @PostMapping("update")
+    @ApiOperation("修改签到配置")
+    public Result updateQdConfig(@RequestBody SignRewardConfigDTO dto) {
+        try {
+            // 参数验证
+            if (dto == null) {
+                return new Result().error("请求参数不能为空");
+            }
+            
+            if (dto.getId() == null) {
+                return new Result().error("配置ID不能为空");
+            }
+            
+            // 更新签到配置
+            signRewardConfigService.update(dto);
+            
+            return new Result().ok("签到配置更新成功");
+        } catch (Exception e) {
+            return new Result().error("更新签到配置失败: " + e.getMessage());
+        }
+    }
+
+
     @GetMapping("list")
     @ApiOperation("查询用户签到记录")
     @ApiImplicitParams({
