@@ -80,7 +80,7 @@ public class ManualTransferDTO implements Serializable {
     private String salesmanName;
 
     @ApiModelProperty(value = "渠道ID")
-    private String channelid;
+    private Long channelid;
 
     @ApiModelProperty(value = "商户ID")
     private String merchantid;
