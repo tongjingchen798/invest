@@ -5,6 +5,7 @@ import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.Map;
+import io.renren.modules.home.dto.QuantityAnalysisDTO;
 
 /**
  * 首页统计数据DAO接口
@@ -72,5 +73,5 @@ public interface HomeStatsDao {
      * @param type 统计类型 (d: 日, w: 周, m: 月)
      * @return 数量统计分析数据列表
      */
-    List<Map<String, Object>> getQuantityAnalysisData(@Param("startTime") Long startTime, @Param("endTime") Long endTime, @Param("type") String type);
+    List<QuantityAnalysisDTO> getQuantityAnalysisData(@Param("startTime") Long startTime, @Param("endTime") Long endTime, @Param("type") String type);
 }

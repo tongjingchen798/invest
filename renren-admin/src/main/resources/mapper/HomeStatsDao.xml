@@ -142,16 +142,16 @@
     </select>
 
     <!-- 获取数量统计分析图数据 -->
-    <select id="getQuantityAnalysisData" resultType="map">
+    <select id="getQuantityAnalysisData" resultType="io.renren.modules.home.dto.QuantityAnalysisDTO">
         <choose>
-            <when test="type == 'd'">
+            <when test="type != null and type.toString() == 'd'">
                 <!-- 日统计：按天分组 -->
                 SELECT 
                     DATE_FORMAT(date_column, '%Y-%m-%d') as date,
-                    COALESCE(SUM(CASE WHEN source = 'register' THEN cnt ELSE 0 END), 0) as newRegisteredMembers,
-                    COALESCE(SUM(CASE WHEN source = 'recharge' THEN cnt ELSE 0 END), 0) as newRechargeMembers,
-                    COALESCE(SUM(CASE WHEN source = 'order' THEN cnt ELSE 0 END), 0) as rechargeOrderCount,
-                    COALESCE(SUM(CASE WHEN source = 'signin' THEN cnt ELSE 0 END), 0) as signInCount
+                    CAST(COALESCE(SUM(CASE WHEN source = 'register' THEN cnt ELSE 0 END), 0) AS SIGNED) as newRegisteredMembers,
+                    CAST(COALESCE(SUM(CASE WHEN source = 'recharge' THEN cnt ELSE 0 END), 0) AS SIGNED) as newRechargeMembers,
+                    CAST(COALESCE(SUM(CASE WHEN source = 'order' THEN cnt ELSE 0 END), 0) AS SIGNED) as rechargeOrderCount,
+                    CAST(COALESCE(SUM(CASE WHEN source = 'signin' THEN cnt ELSE 0 END), 0) AS SIGNED) as signInCount
                 FROM (
                     <!-- 新增注册会员 -->
                     SELECT 
@@ -227,14 +227,14 @@
                 ORDER BY date
             </when>
             
-            <when test="type == 'w'">
+            <when test="type != null and type.toString() == 'w'">
                 <!-- 周统计：按周分组 -->
                 SELECT 
                     CONCAT(YEAR(date_column), '-W', WEEK(date_column)) as date,
-                    COALESCE(SUM(CASE WHEN source = 'register' THEN cnt ELSE 0 END), 0) as newRegisteredMembers,
-                    COALESCE(SUM(CASE WHEN source = 'recharge' THEN cnt ELSE 0 END), 0) as newRechargeMembers,
-                    COALESCE(SUM(CASE WHEN source = 'order' THEN cnt ELSE 0 END), 0) as rechargeOrderCount,
-                    COALESCE(SUM(CASE WHEN source = 'signin' THEN cnt ELSE 0 END), 0) as signInCount
+                    CAST(COALESCE(SUM(CASE WHEN source = 'register' THEN cnt ELSE 0 END), 0) AS SIGNED) as newRegisteredMembers,
+                    CAST(COALESCE(SUM(CASE WHEN source = 'recharge' THEN cnt ELSE 0 END), 0) AS SIGNED) as newRechargeMembers,
+                    CAST(COALESCE(SUM(CASE WHEN source = 'order' THEN cnt ELSE 0 END), 0) AS SIGNED) as rechargeOrderCount,
+                    CAST(COALESCE(SUM(CASE WHEN source = 'signin' THEN cnt ELSE 0 END), 0) AS SIGNED) as signInCount
                 FROM (
                     <!-- 新增注册会员 -->
                     SELECT 
@@ -314,10 +314,10 @@
                 <!-- 月统计：按月分组 -->
                 SELECT 
                     DATE_FORMAT(date_column, '%Y-%m') as date,
-                    COALESCE(SUM(CASE WHEN source = 'register' THEN cnt ELSE 0 END), 0) as newRegisteredMembers,
-                    COALESCE(SUM(CASE WHEN source = 'recharge' THEN cnt ELSE 0 END), 0) as newRechargeMembers,
-                    COALESCE(SUM(CASE WHEN source = 'order' THEN cnt ELSE 0 END), 0) as rechargeOrderCount,
-                    COALESCE(SUM(CASE WHEN source = 'signin' THEN cnt ELSE 0 END), 0) as signInCount
+                    CAST(COALESCE(SUM(CASE WHEN source = 'register' THEN cnt ELSE 0 END), 0) AS SIGNED) as newRegisteredMembers,
+                    CAST(COALESCE(SUM(CASE WHEN source = 'recharge' THEN cnt ELSE 0 END), 0) AS SIGNED) as newRechargeMembers,
+                    CAST(COALESCE(SUM(CASE WHEN source = 'order' THEN cnt ELSE 0 END), 0) AS SIGNED) as rechargeOrderCount,
+                    CAST(COALESCE(SUM(CASE WHEN source = 'signin' THEN cnt ELSE 0 END), 0) AS SIGNED) as signInCount
                 FROM (
                     <!-- 新增注册会员 -->
                     SELECT 

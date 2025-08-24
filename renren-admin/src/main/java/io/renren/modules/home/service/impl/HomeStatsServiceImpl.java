@@ -10,9 +10,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * 首页统计服务实现类
@@ -129,26 +132,34 @@ public class HomeStatsServiceImpl implements HomeStatsService {
         List<QuantityAnalysisDTO> analysisList = new ArrayList<>();
         
         try {
-            List<Map<String, Object>> rawData = homeStatsDao.getQuantityAnalysisData(startTime, endTime, type);
+            // 参数验证
+            if (startTime == null || endTime == null) {
+                logger.warn("时间参数为空，使用默认时间范围");
+                startTime = LocalDate.now().atStartOfDay(ZoneOffset.of("+8")).toInstant().toEpochMilli();
+                endTime = LocalDate.now().atTime(23, 59, 59).atZone(ZoneOffset.of("+8")).toInstant().toEpochMilli();
+            }
             
-            if (rawData != null && !rawData.isEmpty()) {
-                for (Map<String, Object> data : rawData) {
-                    QuantityAnalysisDTO analysisDTO = new QuantityAnalysisDTO();
-                    analysisDTO.setDate(getStringValue(data.get("date")));
-                    analysisDTO.setNewRegisteredMembers(getLongValue(data.get("newRegisteredMembers")));
-                    analysisDTO.setNewRechargeMembers(getLongValue(data.get("newRechargeMembers")));
-                    analysisDTO.setRechargeOrderCount(getLongValue(data.get("rechargeOrderCount")));
-                    analysisDTO.setSignInCount(getLongValue(data.get("signInCount")));
-                    analysisDTO.setType(type);
-                    analysisList.add(analysisDTO);
-                }
-                logger.debug("成功转换数量统计分析数据，共 {} 条记录", analysisList.size());
+            if (startTime > endTime) {
+                logger.warn("开始时间大于结束时间，交换时间范围");
+                Long temp = startTime;
+                startTime = endTime;
+                endTime = temp;
+            }
+            
+            // 直接获取DTO对象列表
+            analysisList = homeStatsDao.getQuantityAnalysisData(startTime, endTime, type);
+            
+            if (analysisList != null && !analysisList.isEmpty()) {
+                // 设置type字段
+                analysisList.forEach(dto -> dto.setType(type));
+                logger.debug("成功获取数量统计分析数据，共 {} 条记录", analysisList.size());
             } else {
                 logger.warn("未查询到数量统计分析数据");
             }
             
         } catch (Exception e) {
             logger.error("获取数量统计分析图数据时发生异常", e);
+            throw new RuntimeException("获取统计数据失败", e);
         }
         
         logger.info("数量统计分析完成，返回 {} 条记录", analysisList.size());
@@ -162,13 +173,17 @@ public class HomeStatsServiceImpl implements HomeStatsService {
         if (value == null) {
             return 0L;
         }
-        if (value instanceof Number) {
-            return ((Number) value).longValue();
-        }
+        
         try {
-            return Long.parseLong(value.toString());
+            if (value instanceof Number) {
+                return ((Number) value).longValue();
+            } else if (value instanceof String) {
+                String strValue = ((String) value).trim();
+                return strValue.isEmpty() ? 0L : Long.parseLong(strValue);
+            }
+            return 0L;
         } catch (NumberFormatException e) {
-            logger.warn("无法解析数值: {}", value, e);
+            logger.warn("无法将值转换为Long类型: {}", value);
             return 0L;
         }
     }
@@ -178,9 +193,9 @@ public class HomeStatsServiceImpl implements HomeStatsService {
      */
     private String getStringValue(Object value) {
         if (value == null) {
-            return null;
+            return "";
         }
-        return value.toString();
+        return value.toString().trim();
     }
 
     /**
