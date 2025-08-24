@@ -146,8 +146,11 @@ public class HomeStatsServiceImpl implements HomeStatsService {
                 endTime = temp;
             }
             
+            // 将字符串type转换为数值，避免SQL中的字符串比较问题
+            Integer typeNum = convertTypeToNumber(type);
+            
             // 直接获取DTO对象列表
-            analysisList = homeStatsDao.getQuantityAnalysisData(startTime, endTime, type);
+            analysisList = homeStatsDao.getQuantityAnalysisData(startTime, endTime, typeNum);
             
             if (analysisList != null && !analysisList.isEmpty()) {
                 // 设置type字段
@@ -164,6 +167,28 @@ public class HomeStatsServiceImpl implements HomeStatsService {
         
         logger.info("数量统计分析完成，返回 {} 条记录", analysisList.size());
         return analysisList;
+    }
+
+    /**
+     * 将字符串类型的统计类型转换为数值
+     * @param type 字符串类型 (d: 日, w: 周, m: 月)
+     * @return 数值类型 (1: 日, 2: 周, 3: 月)
+     */
+    private Integer convertTypeToNumber(String type) {
+        if (type == null) {
+            return 1; // 默认日统计
+        }
+        
+        switch (type.toLowerCase()) {
+            case "d":
+                return 1;
+            case "w":
+                return 2;
+            case "m":
+                return 3;
+            default:
+                return 1; // 默认日统计
+        }
     }
 
     /**

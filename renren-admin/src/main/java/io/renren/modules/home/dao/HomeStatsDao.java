@@ -70,8 +70,8 @@ public interface HomeStatsDao {
      * 获取数量统计分析图数据
      * @param startTime 开始时间戳
      * @param endTime 结束时间戳
-     * @param type 统计类型 (d: 日, w: 周, m: 月)
+     * @param type 统计类型 (1: 日, 2: 周, 3: 月)
      * @return 数量统计分析数据列表
      */
-    List<QuantityAnalysisDTO> getQuantityAnalysisData(@Param("startTime") Long startTime, @Param("endTime") Long endTime, @Param("type") String type);
+    List<QuantityAnalysisDTO> getQuantityAnalysisData(@Param("startTime") Long startTime, @Param("endTime") Long endTime, @Param("type") Integer type);
 }
