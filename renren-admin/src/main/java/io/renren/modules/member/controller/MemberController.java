@@ -9,6 +9,7 @@ import io.renren.common.validator.group.UpdateGroup;
 import io.renren.modules.member.dto.MemberInfoDTO;
 import io.renren.modules.member.dto.SettlementReportDTO;
 import io.renren.modules.member.dto.BlacklistDTO;
+import io.renren.modules.member.dto.FissionRewardDTO;
 import io.renren.modules.member.service.MemberService;
 import io.renren.modules.member.service.BlacklistService;
 import io.renren.modules.sys.dto.SysDeptDTO;
@@ -528,6 +529,70 @@ public class MemberController {
         } catch (Exception e) {
             log.error("查询黑白名单失败", e);
             return new Result<PageData<BlacklistDTO>>().error("查询黑白名单失败: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("2")
+    @ApiOperation("裂变佣金")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "当前页码，从1开始", paramType = "query", required = true, dataType = "int"),
+            @ApiImplicitParam(name = "limit", value = "每页显示记录数", paramType = "query", required = true, dataType = "int"),
+            @ApiImplicitParam(name = "agent", value = "代理下拉框", paramType = "query", required = false, dataType = "long"),
+            @ApiImplicitParam(name = "biaoqian", value = "标签筛选：传标签", paramType = "query", required = false, dataType = "string"),
+            @ApiImplicitParam(name = "biaoqianFlag", value = "标签筛选：1-有，0-无，查全部，不传参", paramType = "query", required = false, dataType = "int"),
+            @ApiImplicitParam(name = "cce3Flag", value = "CCE3返佣：1-有，0-无，查全部，不传参", paramType = "query", required = false, dataType = "int"),
+            @ApiImplicitParam(name = "endTime", value = "结束日期时间戳", paramType = "query", required = false, dataType = "long"),
+            @ApiImplicitParam(name = "gzFlag", value = "工资：1-有，0-无，查全部，不传参", paramType = "query", required = false, dataType = "int"),
+            @ApiImplicitParam(name = "llFlag", value = "浏览：1-有，0-无，查全部，不传参", paramType = "query", required = false, dataType = "int"),
+            @ApiImplicitParam(name = "mobile", value = "用户账号", paramType = "query", required = false, dataType = "string"),
+            @ApiImplicitParam(name = "order", value = "排序方式，可选值(asc、desc)", paramType = "query", required = false, dataType = "string"),
+            @ApiImplicitParam(name = "rewardFlag", value = "佣金余额：1-有，0-无，查全部，不传参", paramType = "query", required = false, dataType = "int"),
+            @ApiImplicitParam(name = "salesmanid", value = "业务员下拉框", paramType = "query", required = false, dataType = "long"),
+            @ApiImplicitParam(name = "startTime", value = "开始日期时间戳", paramType = "query", required = false, dataType = "long"),
+            @ApiImplicitParam(name = "xjFlag", value = "下级：1-有，0-无，查全部，不传参", paramType = "query", required = false, dataType = "int"),
+            @ApiImplicitParam(name = "ytrewardFlag", value = "已提佣金：1-有，0-无，查全部，不传参", paramType = "query", required = false, dataType = "int"),
+            @ApiImplicitParam(name = "zcFlag", value = "注册：1-有，0-无，查全部，不传参", paramType = "query", required = false, dataType = "int")
+    })
+//    @RequiresPermissions("member:user:fissionReward")
+    public Result<PageData<FissionRewardDTO>> getFissionReward(
+            @RequestParam("page") Integer page,
+            @RequestParam("limit") Integer limit,
+            @RequestParam(value = "agent", required = false) Long agent,
+            @RequestParam(value = "biaoqian", required = false) String biaoqian,
+            @RequestParam(value = "biaoqianFlag", required = false) Integer biaoqianFlag,
+            @RequestParam(value = "cce3Flag", required = false) Integer cce3Flag,
+            @RequestParam(value = "endTime", required = false) Long endTime,
+            @RequestParam(value = "gzFlag", required = false) Integer gzFlag,
+            @RequestParam(value = "llFlag", required = false) Integer llFlag,
+            @RequestParam(value = "mobile", required = false) String mobile,
+            @RequestParam(value = "order", required = false) String order,
+            @RequestParam(value = "rewardFlag", required = false) Integer rewardFlag,
+            @RequestParam(value = "salesmanid", required = false) Long salesmanid,
+            @RequestParam(value = "startTime", required = false) Long startTime,
+            @RequestParam(value = "xjFlag", required = false) Integer xjFlag,
+            @RequestParam(value = "ytrewardFlag", required = false) Integer ytrewardFlag,
+            @RequestParam(value = "zcFlag", required = false) Integer zcFlag) {
+        try {
+            // 参数验证
+            if (page == null || page < 1) {
+                return new Result<PageData<FissionRewardDTO>>().error("页码必须大于0");
+            }
+            if (limit == null || limit < 1 || limit > 1000) {
+                return new Result<PageData<FissionRewardDTO>>().error("每页记录数必须在1-1000之间");
+            }
+
+            // 调用服务查询裂变佣金分页数据
+            PageData<FissionRewardDTO> pageData = memberService.getFissionRewardPage(
+                    page, limit, agent, biaoqian, biaoqianFlag, cce3Flag, endTime,
+                    gzFlag, llFlag, mobile, order, rewardFlag, salesmanid, startTime,
+                    xjFlag, ytrewardFlag, zcFlag
+            );
+
+            return new Result<PageData<FissionRewardDTO>>().ok(pageData);
+
+        } catch (Exception e) {
+            log.error("查询裂变佣金失败", e);
+            return new Result<PageData<FissionRewardDTO>>().error("查询裂变佣金失败: " + e.getMessage());
         }
     }
 

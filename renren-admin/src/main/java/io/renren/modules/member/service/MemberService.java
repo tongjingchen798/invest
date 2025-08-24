@@ -2,6 +2,7 @@ package io.renren.modules.member.service;
 
 import io.renren.common.page.PageData;
 import io.renren.common.utils.Result;
+import io.renren.modules.member.dto.FissionRewardDTO;
 import io.renren.modules.member.dto.MemberInfoDTO;
 import io.renren.modules.member.dto.SettlementReportDTO;
 
@@ -171,5 +172,33 @@ public interface MemberService {
      * @return 操作结果
      */
     Result updatetzWithdrawStatus(Long userId, Integer status);
+
+    /**
+     * 查询裂变佣金分页数据
+     *
+     * @param page 当前页码
+     * @param limit 每页记录数
+     * @param agent 代理ID
+     * @param biaoqian 标签筛选
+     * @param biaoqianFlag 标签筛选：1-有，0-无，不传查全部
+     * @param cce3Flag CCE3返佣：1-有，0-无，不传查全部
+     * @param endTime 结束日期时间戳
+     * @param gzFlag 工资：1-有，0-无，不传查全部
+     * @param llFlag 浏览：1-有，0-无，不传查全部
+     * @param mobile 用户账号
+     * @param order 排序方式
+     * @param rewardFlag 佣金余额：1-有，0-无，不传查全部
+     * @param salesmanid 业务员ID
+     * @param startTime 开始日期时间戳
+     * @param xjFlag 下级：1-有，0-无，不传查全部
+     * @param ytrewardFlag 已提佣金：1-有，0-无，不传查全部
+     * @param zcFlag 注册：1-有，0-无，不传查全部
+     * @return 裂变佣金分页数据
+     */
+    PageData<FissionRewardDTO> getFissionRewardPage(Integer page, Integer limit, Long agent, String biaoqian,
+                                                    Integer biaoqianFlag, Integer cce3Flag, Long endTime,
+                                                    Integer gzFlag, Integer llFlag, String mobile, String order,
+                                                    Integer rewardFlag, Long salesmanid, Long startTime,
+                                                    Integer xjFlag, Integer ytrewardFlag, Integer zcFlag);
 
 }

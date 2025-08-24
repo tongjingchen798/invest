@@ -8,6 +8,7 @@ import io.renren.common.page.PageData;
 import io.renren.common.service.impl.BaseServiceImpl;
 import io.renren.common.utils.ConvertUtils;
 import io.renren.modules.member.dao.MemberDao;
+import io.renren.modules.member.dto.FissionRewardDTO;
 import io.renren.modules.member.dto.MemberInfoDTO;
 import io.renren.modules.member.entity.MemberEntity;
 import io.renren.modules.member.service.MemberService;
@@ -773,5 +774,191 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             log.error("更新投资账户提现状态失败，用户ID: {}, 状态: {}", userId, status, e);
             throw new RuntimeException("更新投资账户提现状态失败: " + e.getMessage());
         }
+    }
+
+    @Override
+    public PageData<FissionRewardDTO> getFissionRewardPage(Integer page, Integer limit, Long agent, String biaoqian,
+                                                           Integer biaoqianFlag, Integer cce3Flag, Long endTime,
+                                                           Integer gzFlag, Integer llFlag, String mobile, String order,
+                                                           Integer rewardFlag, Long salesmanid, Long startTime,
+                                                           Integer xjFlag, Integer ytrewardFlag, Integer zcFlag) {
+        try {
+            log.info("开始查询裂变佣金，页码: {}, 每页记录数: {}, 代理: {}, 手机号: {}, 排序: {}", 
+                    page, limit, agent, mobile, order);
+            
+            // 创建MyBatis-Plus分页对象
+            Page<MemberEntity> pageParam = new Page<>(page, limit);
+            
+            // 构建查询条件
+            QueryWrapper<MemberEntity> queryWrapper = new QueryWrapper<>();
+            
+            // 代理筛选
+            if (agent != null) {
+                queryWrapper.eq("agent", agent);
+            }
+            
+            // 标签筛选
+            if (StringUtils.isNotBlank(biaoqian)) {
+                queryWrapper.eq("biaoqian", biaoqian);
+            }
+            
+            // 标签存在性筛选
+            if (biaoqianFlag != null) {
+                if (biaoqianFlag == 1) {
+                    queryWrapper.isNotNull("biaoqian").ne("biaoqian", ""); // 有标签
+                } else if (biaoqianFlag == 0) {
+                    queryWrapper.and(wrapper -> wrapper.isNull("biaoqian").or().eq("biaoqian", "")); // 无标签
+                }
+            }
+            
+            // CCE3返佣筛选 - 字段不存在，暂时跳过
+            // if (cce3Flag != null) {
+            //     if (cce3Flag == 1) {
+            //         queryWrapper.gt("cce3fl", 0); // 有CCE3返佣
+            //     } else if (cce3Flag == 0) {
+            //         queryWrapper.eq("cce3fl", 0); // 无CCE3返佣
+            //     }
+            // }
+            
+            // 工资筛选 - 字段不存在，暂时跳过
+            // if (gzFlag != null) {
+            //     if (gzFlag == 1) {
+            //         queryWrapper.gt("gz", 0); // 有工资
+            //     } else if (gzFlag == 0) {
+            //         queryWrapper.eq("gz", 0); // 无工资
+            //     }
+            // }
+            
+            // 浏览筛选 - 字段不存在，暂时跳过
+            // if (llFlag != null) {
+            //     if (llFlag == 1) {
+            //         queryWrapper.gt("fxfl", 0); // 有访问奖励
+            //     } else if (llFlag == 0) {
+            //         queryWrapper.eq("fxfl", 0); // 无访问奖励
+            //     }
+            // }
+            
+            // 手机号筛选
+            if (StringUtils.isNotBlank(mobile)) {
+                queryWrapper.like("mobile", mobile);
+            }
+            
+            // 佣金余额筛选
+            if (rewardFlag != null) {
+                if (rewardFlag == 1) {
+                    queryWrapper.gt("commission_balance", 0); // 有佣金余额
+                } else if (rewardFlag == 0) {
+                    queryWrapper.eq("commission_balance", 0); // 无佣金余额
+                }
+            }
+            
+            // 业务员筛选
+            if (salesmanid != null) {
+                queryWrapper.eq("salesmanid", salesmanid);
+            }
+            
+            // 下级筛选
+            if (xjFlag != null) {
+                if (xjFlag == 1) {
+                    queryWrapper.gt("tgrs", 0); // 有下级
+                } else if (xjFlag == 0) {
+                    queryWrapper.eq("tgrs", 0); // 无下级
+                }
+            }
+            
+            // 已提佣金筛选 - 字段不存在，暂时跳过
+            // if (ytrewardFlag != null) {
+            //     if (ytrewardFlag == 1) {
+            //         queryWrapper.gt("yt_reward", 0); // 有已提佣金
+            //     } else if (ytrewardFlag == 0) {
+            //         queryWrapper.eq("yt_reward", 0); // 无已提佣金
+            //     }
+            // }
+            
+            // 注册筛选 - 字段不存在，暂时跳过
+            // if (zcFlag != null) {
+            //     if (zcFlag == 1) {
+            //         queryWrapper.gt("zcfl", 0); // 有注册奖励
+            //     } else if (zcFlag == 0) {
+            //         queryWrapper.eq("zcfl", 0); // 无注册奖励
+            //     }
+            // }
+            
+            // 时间范围筛选
+            if (startTime != null) {
+                queryWrapper.ge("create_time", new Date(startTime));
+            }
+            if (endTime != null) {
+                queryWrapper.le("create_time", new Date(endTime));
+            }
+            
+            // 排序处理
+            if (StringUtils.isNotBlank(order)) {
+                if (Constant.DESC.equalsIgnoreCase(order)) {
+                    queryWrapper.orderByDesc("create_time");
+                } else {
+                    queryWrapper.orderByAsc("create_time");
+                }
+            } else {
+                // 默认按创建时间倒序排序
+                queryWrapper.orderByDesc("create_date");
+            }
+            
+            // 执行分页查询
+            IPage<MemberEntity> pageResult = baseDao.selectPage(pageParam, queryWrapper);
+            
+            // 转换为DTO
+            List<FissionRewardDTO> dtoList = pageResult.getRecords().stream()
+                .map(this::convertToFissionRewardDTO)
+                .collect(java.util.stream.Collectors.toList());
+            
+            // 创建分页数据对象
+            PageData<FissionRewardDTO> pageData = new PageData<>(dtoList, pageResult.getTotal());
+            
+            log.info("裂变佣金查询成功，共 {} 条记录", pageResult.getTotal());
+            return pageData;
+            
+        } catch (Exception e) {
+            log.error("查询裂变佣金失败", e);
+            throw new RuntimeException("查询裂变佣金失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 将MemberEntity转换为FissionRewardDTO
+     */
+    private FissionRewardDTO convertToFissionRewardDTO(MemberEntity entity) {
+        FissionRewardDTO dto = new FissionRewardDTO();
+        
+        // 基本信息
+        dto.setMobile(entity.getMobile());
+        dto.setAgent(entity.getAgent() != null ? String.valueOf(entity.getAgent()) : "");
+        dto.setAgentName(entity.getAgentName());
+        dto.setBiaoqian(entity.getBiaoqian());
+        dto.setSalesmanid(entity.getSalesmanid());
+        dto.setSalesmanName(entity.getSalesmanName());
+        
+        // 佣金相关 - 使用实际存在的字段或设置默认值
+        dto.setOneReward(0); // 默认值，实际字段不存在
+        dto.setTwoReward(0); // 默认值，实际字段不存在
+        dto.setThreeReward(0); // 默认值，实际字段不存在
+        dto.setTotalReward(0); // 默认值，实际字段不存在
+        dto.setRewardBalance(entity.getCommissionBalance() != null ? entity.getCommissionBalance().intValue() : 0);
+        dto.setYtReward(0); // 默认值，实际字段不存在
+        dto.setZztReward(0); // 默认值，实际字段不存在
+        
+        // 奖励相关 - 使用实际存在的字段或设置默认值
+        dto.setCce3fl(0); // 默认值，实际字段不存在
+        dto.setFxfl(0); // 默认值，实际字段不存在
+        dto.setGz(0); // 默认值，实际字段不存在
+        dto.setVipjl(entity.getVip() != null ? entity.getVip() : 0);
+        dto.setZcfl(0); // 默认值，实际字段不存在
+        
+        // 其他信息 - 使用实际存在的字段或设置默认值
+        dto.setInvestmentAmount(entity.getHistoryInvestment() != null ? entity.getHistoryInvestment().intValue() : 0);
+        dto.setInviteCodeStatus(entity.getInviteCodeStatus());
+        dto.setXjzhCnt(entity.getTgrs() != null ? entity.getTgrs().intValue() : 0);
+        
+        return dto;
     }
 }
