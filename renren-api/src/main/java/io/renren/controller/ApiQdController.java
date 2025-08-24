@@ -153,7 +153,7 @@ public class ApiQdController {
             // 设置业务类型：13签到奖励
             userBalanceDetail.setBusiType(BusinessTypeEnum.SIGN_IN_REWARD.getCode());
             
-            // 设置渠道
+            // 设置渠道TODO 默认值
             userBalanceDetail.setChannel("1");
             
             // 设置交易流水ID（使用签到记录ID）
@@ -336,9 +336,9 @@ public class ApiQdController {
         dto.setCreator(entity.getUserId());
         
         // 设置默认值
-        dto.setMobile("");
-        dto.setAgent("");
-        dto.setSalesmanid("");
+//        dto.setMobile("");
+//        dto.setAgent("");
+//        dto.setSalesmanid("");
         dto.setPartDay(0);
         dto.setSumday(0);
         dto.setCouponid(0L);

@@ -231,13 +231,13 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
         dto.setChargeTime(formatDate(entity.getChargeTime()));
         dto.setUsercreateTime(formatDate(entity.getCreateTime()));
         
-        // 设置默认值
+        // 设置默认值 TODO
         dto.setAgentName(""); // 需要关联查询
         dto.setBiaoqian(""); // 需要关联查询
         dto.setInviteCodeStatus(0); // 需要关联查询
         dto.setLiebian(0); // 需要关联查询
         dto.setSalesmanName(""); // 需要关联查询
-        dto.setSalesmanid(""); // 需要关联查询
+        dto.setSalesmanid(0L); // 需要关联查询
         dto.setSuccesscnt(0); // 需要关联查询
         dto.setSuccesscz(0); // 需要关联查询
         

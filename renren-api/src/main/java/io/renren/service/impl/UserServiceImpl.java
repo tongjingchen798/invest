@@ -52,6 +52,9 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, UserEntity> implem
 		map.put("token", tokenEntity.getToken());
 		map.put("expire", tokenEntity.getExpireDate().getTime() - System.currentTimeMillis());
 
+		//TODO 记录登录日志
+
+
 		return map;
 	}
 
@@ -76,7 +79,7 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, UserEntity> implem
 				superiorInfo.setSuperiorId(superiorUser.getId());
 				superiorInfo.setSuperiorUsername(superiorUser.getUsername());
 				superiorInfo.setSuperiorInviteCode(superiorUser.getInviteCode());
-				superiorInfo.setSuperiorAgent(superiorUser.getAgent());
+				superiorInfo.setSuperiorAgent(String.valueOf(superiorUser.getAgent()));
 				superiorInfo.setSuperiorAgentName(superiorUser.getAgentName());
 				
 				// 设置上级用户的U级账户余额

@@ -118,8 +118,8 @@ public class OrderServiceImpl implements OrderService {
 			investmentRecord.setDdsy(ddsy.longValue()); // 等待每日收益金额
 			investmentRecord.setInvestCount(dto.getCount());
 			investmentRecord.setRushMinute(project.getRushMinute());
-			investmentRecord.setAgent("1748403717627"); // 代理信息
-			investmentRecord.setSalesmanid("1748403763980"); // 销售员ID
+//			investmentRecord.setAgent("1748403717627"); // 代理信息
+//			investmentRecord.setSalesmanid("1748403763980"); // 销售员ID
 			investmentRecord.setCreateDate(new Date());
 			investmentRecord.setUpdateDate(new Date());
 			
@@ -254,7 +254,7 @@ public class OrderServiceImpl implements OrderService {
 			Date now = new Date();
 			balanceDetail.setTransactionDate(now);
 			balanceDetail.setBusiType(BusinessTypeEnum.PURCHASE_FLOW.getCode()); // 1:购买流水
-			balanceDetail.setChannel("1");
+			balanceDetail.setChannel("1"); //TODO 要改
 			balanceDetail.setStreamId(orderNumber);
 			balanceDetail.setUseAmount(amount);
 			balanceDetail.setOriginalAmount(Long.parseLong(originalBalance));

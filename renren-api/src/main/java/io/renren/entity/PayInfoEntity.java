@@ -88,18 +88,18 @@
       */
      private Date stateTime;
  
-     /**
-      * 渠道
-      */
-     private Long channel;
- 
-     /**
-      * 代理
-      */
-     private Long agent;
- 
-     /**
-      * 业务员ID
-      */
-     private Long salesmanid;
+//     /**
+//      * 渠道
+//      */
+//     private Long channel;
+//
+//     /**
+//      * 代理
+//      */
+//     private Long agent;
+//
+//     /**
+//      * 业务员ID
+//      */
+//     private Long salesmanid;
  }

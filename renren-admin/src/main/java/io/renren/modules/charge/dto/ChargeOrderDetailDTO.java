@@ -32,7 +32,7 @@ public class ChargeOrderDetailDTO implements Serializable {
     private String biaoqian;
 
     @ApiModelProperty(value = "渠道")
-    private Long channel;
+    private String channel;
 
     @ApiModelProperty(value = "通道类型")
     private String channelType;

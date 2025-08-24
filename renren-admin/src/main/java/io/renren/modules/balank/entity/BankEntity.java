@@ -30,7 +30,7 @@ public class BankEntity {
     /**
      * 渠道
      */
-	private Long channel;
+	private String channel;
     /**
      * 货币
      */

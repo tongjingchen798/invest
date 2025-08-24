@@ -65,7 +65,7 @@ public class UserBalanceDetailEntity implements Serializable {
     /**
      * 渠道
      */
-    private Long channel;
+    private String channel;
 
     /**
      * 返佣来源,谁返给userid的

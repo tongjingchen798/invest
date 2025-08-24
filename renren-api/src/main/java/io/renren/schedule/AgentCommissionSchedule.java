@@ -283,15 +283,15 @@ public class AgentCommissionSchedule {
             // 获取充值统计数据
             @SuppressWarnings("unchecked")
             Map<String, Long> salesmanChargeMap = (Map<String, Long>) chargeStats.get("salesmanChargeMap");
-            @SuppressWarnings("unchecked")
-            Map<String, Long> agentChargeMap = (Map<String, Long>) chargeStats.get("agentChargeMap");
+//            @SuppressWarnings("unchecked")
+//            Map<String, Long> agentChargeMap = (Map<String, Long>) chargeStats.get("agentChargeMap");
             
             // 获取提现统计数据
             @SuppressWarnings("unchecked")
             Map<String, Long> salesmanWithdrawMap = (Map<String, Long>) withdrawStats.get("salesmanWithdrawMap");
-            @SuppressWarnings("unchecked")
-            Map<String, Long> agentWithdrawMap = (Map<String, Long>) withdrawStats.get("agentWithdrawMap");
-            
+//            @SuppressWarnings("unchecked")
+//            Map<String, Long> agentWithdrawMap = (Map<String, Long>) withdrawStats.get("agentWithdrawMap");
+//
             // 遍历每个代理和其下的业务员
             for (Map.Entry<Long, List<Long>> entry : agentSalesmanMap.entrySet()) {
                 Long agentId = entry.getKey();

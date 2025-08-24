@@ -282,7 +282,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             balanceDetail.setAgentId(member.getAgent());
             balanceDetail.setAgentName(member.getAgentName());
             balanceDetail.setBusiType(12); // 12表示工资
-            balanceDetail.setChannel("后台发放");
+            balanceDetail.setChannel("1");
             balanceDetail.setOriginalAmount(amount);
             balanceDetail.setRemarks("工资发放");
             balanceDetail.setSalesmanName(member.getSalesmanName());
@@ -367,7 +367,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             }
             
             // 更新用户业务员信息
-            member.setSalesmanid(String.valueOf(salesmanid));
+            member.setSalesmanid(salesmanid);
             // 更新用户信息
             this.updateById(member);
             
@@ -1006,7 +1006,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
 
             // 执行分页查询
             IPage<MemberEntity> pageResult = baseDao.selectPage(pageParam, queryWrapper);
-            
+
             // 转换为DTO
             List<AmountToBeCashedDTO> dtoList = pageResult.getRecords().stream()
                 .map(this::convertToAmountToBeCashedDTO)

@@ -83,12 +83,12 @@ public class ApiRegisterController {
         String newInviteCode = InviteCodeGenerator.generateInviteCode();
         user.setInviteCode(newInviteCode);
         //根据渠道查询对应代理
-        if(StringUtils.isNotBlank(dto.getChannel())){
+        if(Objects.nonNull(dto.getChannel())){
+            //TODO 根据渠道查询
 
-
-            user.setAgent(0L);
-            user.setSalesmanid("1748403763980");
-            user.setSalesmanName("Doris");
+//            user.setAgent(0L);
+//            user.setSalesmanid("1748403763980");
+//            user.setSalesmanName("Doris");
         }
 
 

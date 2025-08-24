@@ -181,8 +181,7 @@ public class ApiPersonalCenterController {
             @ApiParam(value = "每页显示记录数", required = true) @RequestParam(Constant.LIMIT) Integer limit,
             @ApiParam(value = "当前页码，从1开始", required = true) @RequestParam(Constant.PAGE) Integer page,
             @LoginUser UserEntity user) {
-        
-        // 直接使用MyBatis-Plus分页，无需构建Map
+        //TODO 这个接口有问题
         ProfitPageData<ProfitDTO> pageData = profitService.queryPageData(user.getId(), page, limit);
         
         return new Result<ProfitPageData<ProfitDTO>>().ok(pageData);

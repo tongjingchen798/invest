@@ -46,9 +46,9 @@ public class ChargeOrderEntity implements Serializable {
     private Long salesmanid;
 
     /**
-     * 渠道
+     * 充值
      */
-    private Long channel;
+    private String channel;
 
     /**
      * 通道类型

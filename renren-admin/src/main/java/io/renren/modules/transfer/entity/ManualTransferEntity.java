@@ -123,7 +123,7 @@ public class ManualTransferEntity implements Serializable {
     /**
      * 渠道ID
      */
-    private String channelid;
+    private Long channelid;
 
     /**
      * 商户ID

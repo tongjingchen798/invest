@@ -91,9 +91,9 @@ public class InvestmentRecordEntity implements Serializable {
 	 */
 	private Integer rushMinute;
 	/**
-	 * 代理
+	 * 代理ID
 	 */
-	private String agent;
+	private Long agent;
 	/**
 	 * 销售员ID
 	 */

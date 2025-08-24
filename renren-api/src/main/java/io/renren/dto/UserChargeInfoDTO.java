@@ -31,8 +31,8 @@ public class UserChargeInfoDTO implements Serializable {
     @ApiModelProperty(value = "标签")
     private String biaoqian;
 
-    @ApiModelProperty(value = "渠道")
-    private Long channel;
+    @ApiModelProperty(value = "充值渠道")
+    private String channel;
 
     @ApiModelProperty(value = "通道类型")
     private String channelType;

@@ -29,7 +29,7 @@ public class BankDTO implements Serializable {
 	private String blankName;
 
 	@ApiModelProperty(value = "渠道")
-	private Long channel;
+	private String channel;
 
 	@ApiModelProperty(value = "货币")
 	private String currency;
