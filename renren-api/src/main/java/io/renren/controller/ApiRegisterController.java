@@ -14,6 +14,8 @@ import io.renren.enums.BusinessTypeEnum;
 import io.renren.service.TokenService;
 import io.renren.service.UserService;
 import io.renren.service.ReferralRewardService;
+import io.renren.service.SysUserService;
+import io.renren.dto.ChannelAllocationResult;
 import io.renren.utils.InviteCodeGenerator;
 import io.renren.utils.IpAddressUtil;
 import io.swagger.annotations.Api;
@@ -58,6 +60,9 @@ public class ApiRegisterController {
     @Autowired
     private UserBalanceDetailDao userBalanceDetailDao;
 
+    @Autowired
+    private SysUserService sysUserService;
+
     @PostMapping("register")
     @ApiOperation("注册")
     public Result<Map<String, Object>> register(@RequestBody RegisterDTO dto){
@@ -84,13 +89,37 @@ public class ApiRegisterController {
         user.setInviteCode(newInviteCode);
         //根据渠道查询对应代理
         if(Objects.nonNull(dto.getChannel())){
-            //TODO 根据渠道查询
-
-//            user.setAgent(0L);
-//            user.setSalesmanid("1748403763980");
-//            user.setSalesmanName("Doris");
+            try {
+                // 根据渠道获取业务员和代理信息
+                ChannelAllocationResult allocationResult = sysUserService.getChannelResources(dto.getChannel());
+                
+                if (allocationResult.isSuccess()) {
+                    // 设置业务员信息
+                    user.setSalesmanid(allocationResult.getSalesmanId());
+                    user.setSalesmanName(allocationResult.getSalesmanName());
+                    
+                    // 设置代理信息
+                    user.setAgent(allocationResult.getAgentId());
+                    user.setAgentName(allocationResult.getAgentName());
+                    
+                    log.info("用户注册成功，渠道: {}, 分配业务员: {} (ID: {}), 代理: {} (ID: {})", 
+                            dto.getChannel(), allocationResult.getSalesmanName(), allocationResult.getSalesmanId(),
+                            allocationResult.getAgentName(), allocationResult.getAgentId());
+                } else {
+                    log.warn("渠道 {} 获取业务员和代理失败: {}", dto.getChannel(), allocationResult.getErrorMessage());
+                    // 获取失败时使用默认值或记录错误
+                    user.setAgent(0L);
+                    user.setSalesmanid(0L);
+                    user.setSalesmanName("系统分配");
+                }
+            } catch (Exception e) {
+                log.error("根据渠道获取业务员和代理时发生异常，渠道: {}", dto.getChannel(), e);
+                // 异常时使用默认值
+                user.setAgent(0L);
+                user.setSalesmanid(0L);
+                user.setSalesmanName("系统分配");
+            }
         }
-
 
 
         user.setChannel(dto.getChannel());

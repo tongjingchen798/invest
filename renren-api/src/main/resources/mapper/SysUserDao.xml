@@ -11,6 +11,47 @@
         <result property="type" column="type"/>
         <result property="createDate" column="create_date"/>
         <result property="updateDate" column="update_date"/>
+        <result property="channel" column="channel"/>
+        <result property="agent" column="agent"/>
+        <result property="tgnumber" column="tgnumber"/>
+        <result property="wsnumber" column="wsnumber"/>
+        <result property="wsimage" column="wsimage"/>
     </resultMap>
+
+    <!-- 根据渠道查询业务员信息（一个渠道对应一个业务员） -->
+    <select id="selectByChannel" resultMap="sysUserMap">
+        SELECT * FROM sys_user 
+        WHERE channel = #{channel} 
+        AND type = 2 
+        AND status = 1
+        LIMIT 1
+    </select>
+
+    <!-- 根据渠道查询代理信息（一个渠道对应一个代理） -->
+    <select id="selectAgentsByChannel" resultMap="sysUserMap">
+        SELECT * FROM sys_user 
+        WHERE channel = #{channel} 
+        AND type = 1 
+        AND status = 1
+        LIMIT 1
+    </select>
+
+    <!-- 根据渠道查询单个业务员信息（用于注册时分配） -->
+    <select id="selectSalesmanByChannel" resultMap="sysUserMap">
+        SELECT * FROM sys_user 
+        WHERE channel = #{channel} 
+        AND type = 2 
+        AND status = 1
+        LIMIT 1
+    </select>
+
+    <!-- 根据渠道查询单个代理信息（用于注册时分配） -->
+    <select id="selectAgentByChannel" resultMap="sysUserMap">
+        SELECT * FROM sys_user 
+        WHERE channel = #{channel} 
+        AND type = 1 
+        AND status = 1
+        LIMIT 1
+    </select>
 
 </mapper>
