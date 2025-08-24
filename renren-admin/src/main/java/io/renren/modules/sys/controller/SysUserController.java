@@ -149,15 +149,15 @@ public class SysUserController {
 
 		return new Result();
 	}
-
-	@GetMapping("export")
-	@ApiOperation("导出")
-	@LogOperation("导出")
-	@RequiresPermissions("sys:user:export")
-	@ApiImplicitParam(name = "username", value = "用户名", paramType = "query", dataType="String")
-	public void export(@ApiIgnore @RequestParam Map<String, Object> params, HttpServletResponse response) throws Exception {
-		List<SysUserDTO> list = sysUserService.list(params);
-
-		ExcelUtils.exportExcelToTarget(response, null, list, SysUserExcel.class);
-	}
+//
+//	@GetMapping("export")
+//	@ApiOperation("导出")
+//	@LogOperation("导出")
+//	@RequiresPermissions("sys:user:export")
+//	@ApiImplicitParam(name = "username", value = "用户名", paramType = "query", dataType="String")
+//	public void export(@ApiIgnore @RequestParam Map<String, Object> params, HttpServletResponse response) throws Exception {
+//		List<SysUserDTO> list = sysUserService.list(params);
+//
+//		ExcelUtils.exportExcelToTarget(response, null, list, SysUserExcel.class);
+//	}
 }

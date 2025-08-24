@@ -9,6 +9,7 @@ import io.renren.common.validator.group.UpdateGroup;
 import io.renren.modules.member.dto.MemberInfoDTO;
 import io.renren.modules.member.dto.SettlementReportDTO;
 import io.renren.modules.member.dto.BlacklistDTO;
+import io.renren.modules.member.dto.AmountToBeCashedDTO;
 import io.renren.modules.member.dto.FissionRewardDTO;
 import io.renren.modules.member.service.MemberService;
 import io.renren.modules.member.service.BlacklistService;
@@ -646,8 +647,47 @@ public class MemberController {
         }
     }
 
+    @GetMapping("amounttobecashed")
+    @ApiOperation("即将兑付金额")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "当前页码，从1开始", paramType = "query", required = true, dataType = "int"),
+            @ApiImplicitParam(name = "limit", value = "每页显示记录数", paramType = "query", required = true, dataType = "int"),
+            @ApiImplicitParam(name = "agent", value = "代理下拉框", paramType = "query", required = false, dataType = "long"),
+            @ApiImplicitParam(name = "salesmanid", value = "业务员下拉框", paramType = "query", required = false, dataType = "long"),
+            @ApiImplicitParam(name = "startTime", value = "开始日期时间戳", paramType = "query", required = false, dataType = "long"),
+            @ApiImplicitParam(name = "endTime", value = "结束日期时间戳", paramType = "query", required = false, dataType = "long"),
+            @ApiImplicitParam(name = "order", value = "排序方式，可选值(asc、desc)", paramType = "query", required = false, dataType = "string"),
+            @ApiImplicitParam(name = "orderField", value = "排序字段", paramType = "query", required = false, dataType = "string")
+    })
+//    @RequiresPermissions("member:user:amounttobecashed")
+    public Result<PageData<AmountToBeCashedDTO>> getAmountToBeCashed(
+            @RequestParam("page") Integer page,
+            @RequestParam("limit") Integer limit,
+            @RequestParam(value = "agent", required = false) Long agent,
+            @RequestParam(value = "salesmanid", required = false) Long salesmanid,
+            @RequestParam(value = "startTime", required = false) Long startTime,
+            @RequestParam(value = "endTime", required = false) Long endTime,
+            @RequestParam(value = "order", required = false) String order,
+            @RequestParam(value = "orderField", required = false) String orderField) {
+        try {
+            // 参数验证
+            if (page == null || page < 1) {
+                return new Result<PageData<AmountToBeCashedDTO>>().error("页码必须大于0");
+            }
+            if (limit == null || limit < 1 || limit > 1000) {
+                return new Result<PageData<AmountToBeCashedDTO>>().error("每页记录数必须在1-1000之间");
+            }
 
+            // 调用服务查询即将兑付金额分页数据
+            PageData<AmountToBeCashedDTO> pageData = memberService.getAmountToBeCashedPage(
+                    page, limit, agent, salesmanid, startTime, endTime, order, orderField
+            );
 
+            return new Result<PageData<AmountToBeCashedDTO>>().ok(pageData);
 
-    
+        } catch (Exception e) {
+            log.error("查询即将兑付金额失败", e);
+            return new Result<PageData<AmountToBeCashedDTO>>().error("查询即将兑付金额失败: " + e.getMessage());
+        }
+    }
 }

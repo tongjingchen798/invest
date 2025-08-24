@@ -2,6 +2,7 @@ package io.renren.modules.member.service;
 
 import io.renren.common.page.PageData;
 import io.renren.common.utils.Result;
+import io.renren.modules.member.dto.AmountToBeCashedDTO;
 import io.renren.modules.member.dto.FissionRewardDTO;
 import io.renren.modules.member.dto.MemberInfoDTO;
 import io.renren.modules.member.dto.SettlementReportDTO;
@@ -195,10 +196,16 @@ public interface MemberService {
      * @param zcFlag 注册：1-有，0-无，不传查全部
      * @return 裂变佣金分页数据
      */
-    PageData<FissionRewardDTO> getFissionRewardPage(Integer page, Integer limit, Long agent, String biaoqian,
-                                                    Integer biaoqianFlag, Integer cce3Flag, Long endTime,
-                                                    Integer gzFlag, Integer llFlag, String mobile, String order,
-                                                    Integer rewardFlag, Long salesmanid, Long startTime,
-                                                    Integer xjFlag, Integer ytrewardFlag, Integer zcFlag);
+        PageData<FissionRewardDTO> getFissionRewardPage(Integer page, Integer limit, Long agent, String biaoqian,
+                                                     Integer biaoqianFlag, Integer cce3Flag, Long endTime,
+                                                     Integer gzFlag, Integer llFlag, String mobile, String order,
+                                                     Integer rewardFlag, Long salesmanid, Long startTime,
+                                                     Integer xjFlag, Integer ytrewardFlag, Integer zcFlag);
+
+    /**
+     * 查询即将兑付金额分页数据
+     */
+    PageData<AmountToBeCashedDTO> getAmountToBeCashedPage(Integer page, Integer limit, Long agent, Long salesmanid,
+                                                           Long startTime, Long endTime, String order, String orderField);
 
 }

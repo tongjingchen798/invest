@@ -8,6 +8,7 @@ import io.renren.common.page.PageData;
 import io.renren.common.service.impl.BaseServiceImpl;
 import io.renren.common.utils.ConvertUtils;
 import io.renren.modules.member.dao.MemberDao;
+import io.renren.modules.member.dto.AmountToBeCashedDTO;
 import io.renren.modules.member.dto.FissionRewardDTO;
 import io.renren.modules.member.dto.MemberInfoDTO;
 import io.renren.modules.member.entity.MemberEntity;
@@ -958,6 +959,82 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
         dto.setInvestmentAmount(entity.getHistoryInvestment() != null ? entity.getHistoryInvestment().intValue() : 0);
         dto.setInviteCodeStatus(entity.getInviteCodeStatus());
         dto.setXjzhCnt(entity.getTgrs() != null ? entity.getTgrs().intValue() : 0);
+        
+        return dto;
+    }
+
+    @Override
+    public PageData<AmountToBeCashedDTO> getAmountToBeCashedPage(Integer page, Integer limit, Long agent, Long salesmanid,
+                                                                 Long startTime, Long endTime, String order, String orderField) {
+        try {
+            log.info("开始查询即将兑付金额，页码: {}, 每页记录数: {}, 代理: {}, 业务员: {}, 开始时间: {}, 结束时间: {}, 排序: {}, 排序字段: {}", 
+                    page, limit, agent, salesmanid, startTime, endTime, order, orderField);
+
+            // 创建分页参数
+            Page<MemberEntity> pageParam = new Page<>(page, limit);
+            QueryWrapper<MemberEntity> queryWrapper = new QueryWrapper<>();
+
+            // 代理筛选
+            if (agent != null) {
+                queryWrapper.eq("agent", agent);
+            }
+
+            // 业务员筛选
+            if (salesmanid != null) {
+                queryWrapper.eq("salesmanid", salesmanid);
+            }
+
+            // 时间范围筛选
+            if (startTime != null) {
+                queryWrapper.ge("create_date", new Date(startTime));
+            }
+            if (endTime != null) {
+                queryWrapper.le("create_date", new Date(endTime));
+            }
+
+            // 排序处理
+            if (StringUtils.isNotBlank(orderField)) {
+                if (Constant.DESC.equalsIgnoreCase(order)) {
+                    queryWrapper.orderByDesc(orderField);
+                } else {
+                    queryWrapper.orderByAsc(orderField);
+                }
+            } else {
+                // 默认按创建时间倒序排序
+                queryWrapper.orderByDesc("create_date");
+            }
+
+            // 执行分页查询
+            IPage<MemberEntity> pageResult = baseDao.selectPage(pageParam, queryWrapper);
+            
+            // 转换为DTO
+            List<AmountToBeCashedDTO> dtoList = pageResult.getRecords().stream()
+                .map(this::convertToAmountToBeCashedDTO)
+                .collect(java.util.stream.Collectors.toList());
+
+            // 创建分页数据对象
+            PageData<AmountToBeCashedDTO> pageData = new PageData<>(dtoList, pageResult.getTotal());
+            
+            log.info("即将兑付金额查询成功，共 {} 条记录", pageResult.getTotal());
+            return pageData;
+            
+        } catch (Exception e) {
+            log.error("查询即将兑付金额失败", e);
+            throw new RuntimeException("查询即将兑付金额失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 将MemberEntity转换为AmountToBeCashedDTO
+     */
+    private AmountToBeCashedDTO convertToAmountToBeCashedDTO(MemberEntity entity) {
+        AmountToBeCashedDTO dto = new AmountToBeCashedDTO();
+        
+        // 设置兑付金额（这里使用历史收益作为示例，实际业务逻辑可能需要调整）
+        dto.setProfitAmount(entity.getHistoryProfit() != null ? entity.getHistoryProfit().intValue() : 0);
+        
+        // 设置兑付日期（这里使用创建日期作为示例，实际业务逻辑可能需要调整）
+        dto.setProfitDate(entity.getCreateDate() != null ? entity.getCreateDate().toString() : "");
         
         return dto;
     }
