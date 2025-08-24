@@ -54,4 +54,11 @@
         LIMIT 1
     </select>
 
+    <!-- 根据用户ID查询用户信息 -->
+    <select id="selectById" resultMap="sysUserMap">
+        SELECT * FROM sys_user 
+        WHERE id = #{userId} 
+        AND status = 1
+    </select>
+
 </mapper>

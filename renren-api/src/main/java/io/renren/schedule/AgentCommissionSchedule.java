@@ -2,6 +2,7 @@ package io.renren.schedule;
 
 import io.renren.dao.*;
 import io.renren.entity.*;
+import io.renren.service.SysUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -36,7 +37,7 @@ public class AgentCommissionSchedule {
     @Autowired
     private AgentCommissionStatsDao agentCommissionStatsDao;
     @Autowired
-    private SysUserDao sysUserDao;
+    private SysUserService sysUserService;
 
     /**
      * 每天0点执行代理兑付收益统计
@@ -320,7 +321,7 @@ public class AgentCommissionSchedule {
                     statsEntity.setCreateTime(new Date());
                     statsEntity.setUpdateTime(new Date());
                     statsEntity.setStatus(1);
-                    statsEntity.setCommissionRate(new BigDecimal("0.05")); // 5%
+                    statsEntity.setCommissionRate(new BigDecimal("1"));
                     
                     // 计算业务员的充值总额
                     long salesmanChargeAmount = salesmanChargeMap.getOrDefault(salesmanId, 0L);
@@ -374,16 +375,14 @@ public class AgentCommissionSchedule {
      * 获取代理名称
      */
     private String getAgentName(Long agentId) {
-        SysUserEntity sysUserEntity=sysUserDao.selectById(agentId);
-        return sysUserEntity.getUsername();
+        return sysUserService.getAgentNameById(agentId);
     }
     
     /**
      * 获取业务员名称
      */
     private String getSalesmanName(Long salesmanId) {
-        SysUserEntity sysUserEntity=sysUserDao.selectById(salesmanId);
-        return sysUserEntity.getUsername();
+        return sysUserService.getSalesmanNameById(salesmanId);
     }
     
     /**

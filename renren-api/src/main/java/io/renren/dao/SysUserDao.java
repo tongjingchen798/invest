@@ -17,14 +17,14 @@ import java.util.List;
 public interface SysUserDao extends BaseMapper<SysUserEntity> {
 
     /**
-     * 根据渠道查询业务员信息
+     * 根据渠道查询业务员信息（一个渠道对应一个业务员）
      * @param channel 渠道ID
      * @return 业务员信息列表
      */
     List<SysUserEntity> selectByChannel(@Param("channel") Long channel);
 
     /**
-     * 根据渠道查询代理信息
+     * 根据渠道查询代理信息（一个渠道对应一个代理）
      * @param channel 渠道ID
      * @return 代理信息列表
      */
@@ -43,4 +43,11 @@ public interface SysUserDao extends BaseMapper<SysUserEntity> {
      * @return 代理信息
      */
     SysUserEntity selectAgentByChannel(@Param("channel") Long channel);
+
+    /**
+     * 根据用户ID查询用户信息
+     * @param userId 用户ID
+     * @return 用户信息
+     */
+    SysUserEntity selectById(@Param("userId") Long userId);
 }

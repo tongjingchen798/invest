@@ -31,4 +31,37 @@ public interface SysUserService {
      * @return 分配结果，包含业务员ID和代理ID
      */
     ChannelAllocationResult getChannelResources(Long channel);
+
+    /**
+     * 根据用户ID获取用户信息（优先从Redis缓存获取）
+     * @param userId 用户ID
+     * @return 用户信息
+     */
+    SysUserEntity getUserById(Long userId);
+
+    /**
+     * 根据业务员ID获取业务员名称（优先从Redis缓存获取）
+     * @param salesmanId 业务员ID
+     * @return 业务员名称
+     */
+    String getSalesmanNameById(Long salesmanId);
+
+    /**
+     * 根据代理ID获取代理名称（优先从Redis缓存获取）
+     * @param agentId 代理ID
+     * @return 代理名称
+     */
+    String getAgentNameById(Long agentId);
+
+    /**
+     * 刷新用户缓存
+     * @param userId 用户ID
+     */
+    void refreshUserCache(Long userId);
+
+    /**
+     * 清除用户缓存
+     * @param userId 用户ID
+     */
+    void clearUserCache(Long userId);
 }
