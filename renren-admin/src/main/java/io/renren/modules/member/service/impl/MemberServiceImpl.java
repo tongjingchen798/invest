@@ -21,6 +21,8 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import io.renren.modules.member.dto.SettlementReportDTO;
@@ -1036,11 +1038,22 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
     private AmountToBeCashedDTO convertToAmountToBeCashedDTO(MemberEntity entity) {
         AmountToBeCashedDTO dto = new AmountToBeCashedDTO();
         
-        // 设置兑付金额（这里使用历史收益作为示例，实际业务逻辑可能需要调整）
-        dto.setProfitAmount(entity.getHistoryProfit() != null ? entity.getHistoryProfit().intValue() : 0);
+        // 设置兑付金额：从分转换为元，保留2位小数
+        if (entity.getHistoryProfit() != null) {
+            BigDecimal amountInYuan = new BigDecimal(entity.getHistoryProfit())
+                .divide(new BigDecimal(100), 2, BigDecimal.ROUND_HALF_UP);
+            dto.setProfitAmount(amountInYuan);
+        } else {
+            dto.setProfitAmount(BigDecimal.ZERO);
+        }
         
-        // 设置兑付日期（这里使用创建日期作为示例，实际业务逻辑可能需要调整）
-        dto.setProfitDate(entity.getCreateDate() != null ? entity.getCreateDate().toString() : "");
+        // 设置兑付日期：格式化为 yyyy-MM-dd 格式
+        if (entity.getCreateDate() != null) {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            dto.setProfitDate(sdf.format(entity.getCreateDate()));
+        } else {
+            dto.setProfitDate("");
+        }
         
         return dto;
     }

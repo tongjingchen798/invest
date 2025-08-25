@@ -3,6 +3,7 @@ package io.renren.modules.member.dto;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * 即将兑付金额DTO
@@ -17,7 +18,7 @@ public class AmountToBeCashedDTO implements Serializable {
     /**
      * 兑付金额
      */
-    private Integer profitAmount;
+    private BigDecimal profitAmount;
 
     /**
      * 兑付日期
