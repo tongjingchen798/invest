@@ -20,11 +20,8 @@ import java.math.BigDecimal;
 public class PayMerchantDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
-	@ApiModelProperty(value = "主键ID")
-	private Long id;
-
 	@ApiModelProperty(value = "商户ID")
-	private String merchantid;
+	private Long merchantid;
 
 	@ApiModelProperty(value = "商户号")
 	private String merchantno;

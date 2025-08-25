@@ -34,7 +34,7 @@ public class PayMerchantServiceImpl extends CrudServiceImpl<PayMerchantDao, PayM
     @Override
     public boolean updateDegreeHeat(PayMerchantDTO dto) {
         // 参数验证
-        if (dto == null || dto.getId() == null) {
+        if (dto == null || dto.getMerchantid() == null) {
             return false;
         }
         

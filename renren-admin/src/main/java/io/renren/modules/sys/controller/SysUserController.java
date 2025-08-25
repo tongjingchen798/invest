@@ -18,6 +18,7 @@ import io.renren.modules.security.user.SecurityUser;
 import io.renren.modules.security.user.UserDetail;
 import io.renren.modules.sys.dto.PasswordDTO;
 import io.renren.modules.sys.dto.SysUserDTO;
+import io.renren.modules.sys.dto.CustomerServiceSettingDTO;
 import io.renren.modules.sys.excel.SysUserExcel;
 import io.renren.modules.security.password.PasswordUtils;
 import io.renren.modules.sys.service.SysRoleUserService;
@@ -146,6 +147,27 @@ public class SysUserController {
 		AssertUtils.isArrayEmpty(ids, "id");
 
 		sysUserService.deleteBatchIds(Arrays.asList(ids));
+
+		return new Result();
+	}
+
+	@PutMapping("editws")
+	@ApiOperation("设置客服")
+	@LogOperation("设置客服")
+	@RequiresPermissions("sys:user:update")
+	public Result editws(@RequestBody CustomerServiceSettingDTO dto){
+		//效验数据
+		ValidatorUtils.validateEntity(dto);
+		
+		// 只更新客服相关字段
+		SysUserDTO updateDto = new SysUserDTO();
+		updateDto.setId(dto.getId());
+		updateDto.setWsimage(dto.getWsimage());
+		updateDto.setWsnumber(dto.getWsnumber());
+		updateDto.setWsname(dto.getWsname());
+		updateDto.setTgnumber(dto.getTgnumber());
+
+		sysUserService.update(updateDto);
 
 		return new Result();
 	}

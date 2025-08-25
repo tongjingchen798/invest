@@ -96,7 +96,7 @@ public class PayMerchantController {
 //    @RequiresPermissions("sys:paymerchant:delete")
     public Result delete(@RequestBody Long[] ids){
         //效验数据
-        AssertUtils.isArrayEmpty(ids, "id");
+//        AssertUtils.isArrayEmpty(ids, "id");
 
         payMerchantService.delete(ids);
 

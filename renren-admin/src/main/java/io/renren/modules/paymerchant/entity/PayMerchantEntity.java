@@ -21,11 +21,8 @@ public class PayMerchantEntity {
      * 主键ID
      */
     @TableId
-	private Long id;
-    /**
-     * 商户ID
-     */
-	private String merchantid;
+	private Long merchantid;
+
     /**
      * 商户号
      */
