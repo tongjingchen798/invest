@@ -282,6 +282,9 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
             chargeOrder.setUpdateTime(new Date());
             chargeOrder.setChargeTime(new Date());
             chargeOrder.setChannelid(channelid);
+            PayChannelEntity channelEntity=payChannelDao.selectById(channelid);
+            chargeOrder.setMerchantid(channelEntity.getMerchantid());
+            chargeOrder.setChannelType(channelEntity.getChannelType());
             UserEntity user=userDao.selectById(userId);
             chargeOrder.setMobile(user.getMobile());
             chargeOrder.setAgent(user.getAgent());

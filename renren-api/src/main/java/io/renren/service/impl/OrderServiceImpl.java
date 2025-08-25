@@ -179,11 +179,12 @@ public class OrderServiceImpl implements OrderService {
 						//记录2级佣金流水
 						UserBalanceDetailEntity detail1 = new UserBalanceDetailEntity();
 						detail1.setBusiType(BusinessTypeEnum.COMMISSION_B.getCode());
-						detail1.setUserId(userId);
+						detail1.setUserId(twoLevelReferrer.getId());
 						detail1.setOriginalAmount(twoLevelReferrer.getAssets());
 						detail1.setUseAmount(twoLevelCommission);
 						detail1.setTransactionAmount(twoLevelReferrer.getAssets()+twoLevelCommission);
 						detail1.setStatus(1);
+						detail1.setFormUserId(userId);
 						detail1.setTransactionDate(transactionDate);
 						detail1.setCreateDate(transactionDate);
 						detail1.setUpdateDate(transactionDate);
