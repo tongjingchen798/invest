@@ -8,11 +8,14 @@ import io.renren.common.page.PageData;
 import io.renren.common.service.impl.BaseServiceImpl;
 import io.renren.common.utils.ConvertUtils;
 import io.renren.modules.member.dao.MemberDao;
+import io.renren.modules.member.dto.AgentDTO;
 import io.renren.modules.member.dto.AmountToBeCashedDTO;
 import io.renren.modules.member.dto.FissionRewardDTO;
 import io.renren.modules.member.dto.MemberInfoDTO;
 import io.renren.modules.member.entity.MemberEntity;
 import io.renren.modules.member.service.MemberService;
+import io.renren.modules.sys.dao.SysUserDao;
+import io.renren.modules.sys.entity.SysUserEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -43,6 +46,9 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
 
     @Autowired
     private UserBalanceDetailService userBalanceDetailService;
+    
+    @Autowired
+    private SysUserDao sysUserDao;
 
     @Override
     public PageData<MemberInfoDTO> getMemberPage(Integer page, Integer limit, Long agent, Integer balanceFlag,
@@ -1035,6 +1041,65 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
         
         // 设置兑付日期（这里使用创建日期作为示例，实际业务逻辑可能需要调整）
         dto.setProfitDate(entity.getCreateDate() != null ? entity.getCreateDate().toString() : "");
+        
+        return dto;
+    }
+
+    @Override
+    public List<AgentDTO> getAgentList(String agent, Integer type) {
+        try {
+            log.info("开始获取代理列表，代理ID: {}, 类型: {}", agent, type);
+            
+            // 从sys_user表查询
+            QueryWrapper<SysUserEntity> queryWrapper = new QueryWrapper<>();
+            
+            // 根据类型筛选
+            if (type != null) {
+                queryWrapper.eq("type", type);
+            }
+
+            if (StringUtils.isNotBlank(agent)) {
+                queryWrapper.eq("id", Long.parseLong(agent));
+            }
+            
+            // 只查询状态正常的用户
+            queryWrapper.eq("status", 1);
+
+            // 按创建时间倒序排序
+            queryWrapper.orderByDesc("create_date");
+            
+            // 执行查询
+            List<SysUserEntity> sysUserList = sysUserDao.selectList(queryWrapper);
+            
+            // 转换为DTO
+            List<AgentDTO> agentList = sysUserList.stream()
+                .map(this::convertSysUserToAgentDTO)
+                .collect(java.util.stream.Collectors.toList());
+            
+            log.info("代理列表获取成功，共 {} 条记录", agentList.size());
+            return agentList;
+            
+        } catch (Exception e) {
+            log.error("获取代理列表失败，代理ID: {}, 类型: {}", agent, type, e);
+            throw new RuntimeException("获取代理列表失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 将SysUserEntity转换为AgentDTO
+     */
+    private AgentDTO convertSysUserToAgentDTO(SysUserEntity entity) {
+        AgentDTO dto = new AgentDTO();
+        dto.setId(entity.getId());
+        dto.setMobile(entity.getMobile());
+        dto.setUsername(entity.getRealName()); // SysUser使用realName字段
+        
+        // 根据用户类型设置type字段
+        if (entity.getType() != null) {
+            dto.setType(entity.getType()); // 直接使用sys_user表中的type字段
+        } else {
+            dto.setType(0); // 默认值
+        }
         
         return dto;
     }

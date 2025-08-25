@@ -6,11 +6,7 @@ import io.renren.common.utils.Result;
 import io.renren.common.validator.ValidatorUtils;
 import io.renren.common.validator.group.DefaultGroup;
 import io.renren.common.validator.group.UpdateGroup;
-import io.renren.modules.member.dto.MemberInfoDTO;
-import io.renren.modules.member.dto.SettlementReportDTO;
-import io.renren.modules.member.dto.BlacklistDTO;
-import io.renren.modules.member.dto.AmountToBeCashedDTO;
-import io.renren.modules.member.dto.FissionRewardDTO;
+import io.renren.modules.member.dto.*;
 import io.renren.modules.member.service.MemberService;
 import io.renren.modules.member.service.BlacklistService;
 import io.renren.modules.sys.dto.SysDeptDTO;
@@ -170,6 +166,26 @@ public class MemberController {
             return new Result<java.util.List<String>>().ok(tagList);
         } catch (Exception e) {
             return new Result<java.util.List<String>>().error("获取标签列表失败: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("getAgentList")
+    @ApiOperation("获取代理下拉列表")
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "agent", value = "代理ID", paramType = "query", dataType = "string",required = false),
+        @ApiImplicitParam(name = "type", value = "0 总代 1 代理 2业务员", paramType = "query", required = true, dataType = "integer")
+    })
+    public Result<List<AgentDTO>> getAgentList(
+            @RequestParam(value = "agent", required = false) String agent,
+            @RequestParam("type") Integer type) {
+        try {
+            // 调用服务获取代理列表
+            List<AgentDTO> agentList = memberService.getAgentList(agent, type);
+            return new Result<List<AgentDTO>>().ok(agentList);
+
+        } catch (Exception e) {
+            log.error("获取代理列表失败，代理ID: {}, 类型: {}", agent, type, e);
+            return new Result<List<AgentDTO>>().error("获取代理列表失败: " + e.getMessage());
         }
     }
 

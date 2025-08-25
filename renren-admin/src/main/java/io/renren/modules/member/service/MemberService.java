@@ -2,10 +2,9 @@ package io.renren.modules.member.service;
 
 import io.renren.common.page.PageData;
 import io.renren.common.utils.Result;
-import io.renren.modules.member.dto.AmountToBeCashedDTO;
-import io.renren.modules.member.dto.FissionRewardDTO;
-import io.renren.modules.member.dto.MemberInfoDTO;
-import io.renren.modules.member.dto.SettlementReportDTO;
+import io.renren.modules.member.dto.*;
+
+import java.util.List;
 
 /**
  * 会员查询管理
@@ -207,5 +206,13 @@ public interface MemberService {
      */
     PageData<AmountToBeCashedDTO> getAmountToBeCashedPage(Integer page, Integer limit, Long agent, Long salesmanid,
                                                            Long startTime, Long endTime, String order, String orderField);
+
+    /**
+     * 获取代理下拉列表
+     * @param agent 代理ID
+     * @param type 类型：0-总代，1-代理，2-业务员
+     * @return 代理列表
+     */
+    List<AgentDTO> getAgentList(String agent, Integer type);
 
 }
