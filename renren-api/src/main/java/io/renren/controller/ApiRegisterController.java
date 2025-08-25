@@ -1,5 +1,3 @@
-
-
 package io.renren.controller;
 
 import io.renren.common.utils.Result;
@@ -22,7 +20,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -110,7 +107,7 @@ public class ApiRegisterController {
                     // 获取失败时使用默认值或记录错误
                     user.setAgent(0L);
                     user.setSalesmanid(0L);
-                    user.setSalesmanName("系统分配");
+                    user.setSalesmanName("总代");
                 }
             } catch (Exception e) {
                 log.error("根据渠道获取业务员和代理时发生异常，渠道: {}", dto.getChannel(), e);
@@ -121,12 +118,14 @@ public class ApiRegisterController {
             }
         }
 
-
         user.setChannel(dto.getChannel());
         user.setEquipment(dto.getEquipment());
         // 获取用户注册IP地址
         String registerIp = IpAddressUtil.getClientIpAddress();
         user.setRegisterIp(registerIp);
+        user.setLastIp(registerIp);
+        user.setLastDate(new Date());
+        user.setCreateDate(new Date());
 
         user.setCreateDate(new Date());
         userService.insert(user);

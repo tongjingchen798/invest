@@ -58,23 +58,12 @@ public class SysUserServiceImpl implements SysUserService {
                 log.warn("渠道 {} 下没有可用的业务员", channel);
                 return ChannelAllocationResult.failure("该渠道下没有可用的业务员");
             }
-
-            // 查询该渠道下的代理
-            SysUserEntity agent = getAgentByChannel(channel);
-            if (agent == null) {
-                log.warn("渠道 {} 下没有可用的代理", channel);
-                return ChannelAllocationResult.failure("该渠道下没有可用的代理");
-            }
-
-            log.info("渠道 {} 获取成功 - 业务员: {} (ID: {}), 代理: {} (ID: {})", 
-                    channel, salesman.getRealName(), salesman.getId(),
-                    agent.getRealName(), agent.getId());
-
+            SysUserEntity agentInfo = sysUserDao.selectById(salesman.getAgent());
             return ChannelAllocationResult.success(
                     salesman.getId(),
                     salesman.getRealName(),
-                    agent.getId(),
-                    agent.getRealName(),
+                    agentInfo.getId(),
+                    agentInfo.getRealName(),
                     channel
             );
 
