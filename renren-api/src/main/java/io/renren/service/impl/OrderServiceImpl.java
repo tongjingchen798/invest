@@ -118,8 +118,9 @@ public class OrderServiceImpl implements OrderService {
 			investmentRecord.setDdsy(ddsy.longValue()); // 等待每日收益金额
 			investmentRecord.setInvestCount(dto.getCount());
 			investmentRecord.setRushMinute(project.getRushMinute());
-//			investmentRecord.setAgent("1748403717627"); // 代理信息
-//			investmentRecord.setSalesmanid("1748403763980"); // 销售员ID
+			UserEntity userEntity=userDao.selectById(userId);
+			investmentRecord.setAgent(userEntity.getAgent()); // 代理信息
+			investmentRecord.setSalesmanid(userEntity.getSalesmanid()); // 销售员ID
 			investmentRecord.setCreateDate(new Date());
 			investmentRecord.setUpdateDate(new Date());
 			
