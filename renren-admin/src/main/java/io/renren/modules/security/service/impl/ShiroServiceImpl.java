@@ -36,7 +36,15 @@ public class ShiroServiceImpl implements ShiroService {
         if(user.getSuperAdmin() == SuperAdminEnum.YES.value()) {
             permissionsList = sysMenuDao.getPermissionsList();
         }else{
-            permissionsList = sysMenuDao.getUserPermissionsList(user.getId());
+            // 根据用户类型获取权限列表
+            Integer userType = user.getType();
+            if (userType != null && (userType == 1 || userType == 2)) {
+                // 代理用户或业务员用户：根据权限字段判断
+                permissionsList = sysMenuDao.getUserPermissionsListByType(user.getId(), userType);
+            } else {
+                // 其他用户：使用原有逻辑
+                permissionsList = sysMenuDao.getUserPermissionsList(user.getId());
+            }
         }
 
         //用户权限列表

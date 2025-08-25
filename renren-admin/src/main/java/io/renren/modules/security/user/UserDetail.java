@@ -31,5 +31,9 @@ public class UserDetail implements Serializable {
      * 部门数据权限
      */
     private List<Long> deptIdList;
-
+    
+    /**
+     * 用户类型 1:代理 2:业务员 0:管理员
+     */
+    private Integer type;
 }

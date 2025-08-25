@@ -42,7 +42,7 @@ public class SysMenuController {
 	@ApiOperation("导航")
 	public Result<List<SysMenuDTO>> nav(){
 		UserDetail user = SecurityUser.getUser();
-		List<SysMenuDTO> list = sysMenuService.getUserMenuList(user, MenuTypeEnum.MENU.value());
+		List<SysMenuDTO> list = sysMenuService.getUserMenuListByType(user, MenuTypeEnum.MENU.value());
 
 		return new Result<List<SysMenuDTO>>().ok(list);
 	}
@@ -125,7 +125,7 @@ public class SysMenuController {
 	@RequiresPermissions("sys:menu:select")
 	public Result<List<SysMenuDTO>> select(){
 		UserDetail user = SecurityUser.getUser();
-		List<SysMenuDTO> list = sysMenuService.getUserMenuList(user, null);
+		List<SysMenuDTO> list = sysMenuService.getUserMenuListByType(user, null);
 
 		return new Result<List<SysMenuDTO>>().ok(list);
 	}

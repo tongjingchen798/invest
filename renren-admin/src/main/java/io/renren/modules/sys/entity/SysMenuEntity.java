@@ -66,4 +66,10 @@ public class SysMenuEntity extends BaseEntity {
 	@TableField(exist = false)
 	private String parentName;
 
+	//代理是否展示(0否 1是)
+	private Integer agentPurview;
+
+	//业务员是否展示(0否 1是)
+	private Integer ywyPurview;
+
 }
