@@ -86,22 +86,12 @@ public class SysUserController {
 		return new Result<SysUserDTO>().ok(data);
 	}
 
-//	@GetMapping("info")
-//	@ApiOperation("登录用户信息")
-//	public Result<SysUserDTO> info(){
-//		UserDetail userDetail = SecurityUser.getUser();
-//		SysUserDTO data = ConvertUtils.sourceToTarget(userDetail, SysUserDTO.class);
-//
-//		// 如果用户类型为空，从数据库获取
-//		if (data.getType() == null) {
-//			SysUserDTO userInfo = sysUserService.get(userDetail.getId());
-//			if (userInfo != null) {
-//				data.setType(userInfo.getType());
-//			}
-//		}
-//
-//		return new Result<SysUserDTO>().ok(data);
-//	}
+	@GetMapping("info")
+	@ApiOperation("登录用户信息")
+	public Result<SysUserDTO> info(){
+		SysUserDTO data = ConvertUtils.sourceToTarget(SecurityUser.getUser(), SysUserDTO.class);
+		return new Result<SysUserDTO>().ok(data);
+	}
 
 	@PutMapping("password")
 	@ApiOperation("修改密码")

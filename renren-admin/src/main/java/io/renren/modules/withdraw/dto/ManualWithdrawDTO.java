@@ -31,6 +31,9 @@ public class ManualWithdrawDTO implements Serializable {
     @ApiModelProperty(value = "银行简称")
     private String blankCode;
 
+    @ApiModelProperty(value = "手机号")
+    private String mobile;
+
     @ApiModelProperty(value = "银行名称")
     private String blankName;
 

@@ -84,12 +84,17 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
                 Long endTime = Long.parseLong(params.get("endTime").toString());
                 queryWrapper.le("create_time", new Date(endTime));
             }
-            
-            // 裂变筛选
-            if (params.get("liebian") != null) {
-                Integer liebian = Integer.parseInt(params.get("liebian").toString());
-                queryWrapper.eq("liebian", liebian);
+
+            if(params.get("orderno") !=null){
+                String orderno = params.get("orderno").toString();
+                queryWrapper.eq("orderno", orderno);
             }
+
+            // 裂变筛选 TODO 要查询用户
+//            if (params.get("liebian") != null) {
+//                Integer liebian = Integer.parseInt(params.get("liebian").toString());
+//                queryWrapper.eq("liebian", liebian);
+//            }
             
             // 用户账号筛选
             if (params.get("mobile") != null && StringUtils.isNotBlank(params.get("mobile").toString())) {
@@ -133,7 +138,24 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
             ChargePageData pageData = new ChargePageData();
             pageData.setList(dtoList);
             pageData.setTotal((int) result.getTotal());
-            pageData.setSum(new HashMap<>());
+            
+            // 构建充值统计数据
+            Map<String, Object> sumData = new HashMap<>();
+            
+            // 统计总充值金额（amount字段，充值金币）
+            Long totalAmount = result.getRecords().stream()
+                    .mapToLong(order -> order.getAmount() != null ? order.getAmount() : 0L)
+                    .sum();
+            
+            // 统计真实充值金额（realAmount字段，真实充值额）
+            Long totalRealAmount = result.getRecords().stream()
+                    .mapToLong(order -> order.getRealAmount() != null ? order.getRealAmount() : 0L)
+                    .sum();
+            
+            sumData.put("amount", totalAmount);
+            sumData.put("realAmount", totalRealAmount);
+            
+            pageData.setSum(sumData);
             
             return pageData;
             
