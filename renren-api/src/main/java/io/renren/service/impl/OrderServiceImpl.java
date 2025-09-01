@@ -131,16 +131,10 @@ public class OrderServiceImpl implements OrderService {
 			recordBalanceDetail(userId, dto.getAmount(), orderNumber, project.getInvestName(), balanceResult.get("originalBalance"));
 			
 			// 8. 更新项目参与人数
-			int projectUpdateRows = projectDao.updateInvestmentAmount(dto.getInvestId(), dto.getAmount());
-			if (projectUpdateRows == 0) {
-				throw new RuntimeException("更新项目参与人数失败");
-			}
-			
+			projectDao.updateInvestmentAmount(dto.getInvestId(), dto.getAmount());
+
 			// 9. 更新用户表中的投资相关字段（项目数、总本金等）
-			int userUpdateRows = userDao.updateAllInvestmentFields(userId, dto.getAmount());
-			if (userUpdateRows == 0) {
-				throw new RuntimeException("更新用户投资统计失败");
-			}
+			userDao.updateAllInvestmentFields(userId, dto.getAmount());
 
 			// 获取1级推荐人
 			String firstLevelInviteCode = user.getUpinviteCode();

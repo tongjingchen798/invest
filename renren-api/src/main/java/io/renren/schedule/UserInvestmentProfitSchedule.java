@@ -15,13 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import io.renren.config.InvestmentProfitConfig;
 import io.renren.dao.InvestmentRecordDao;
-import io.renren.dao.ProjectDao;
 import io.renren.dao.UserDao;
 import io.renren.dao.InvestmentProfitDetailDao;
 import io.renren.entity.InvestmentRecordEntity;
-import io.renren.entity.ProjectEntity;
 import io.renren.entity.InvestmentProfitDetailEntity;
-import io.renren.service.BalanceDetailService;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
