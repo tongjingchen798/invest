@@ -183,31 +183,58 @@ public class UserInvestmentProfitSchedule {
                 return;
             }
 
-            // 4. 记录每日投资收益明细
+            // 3. 记录每日投资收益明细
             recordInvestmentProfitDetail(record, profitAmount);
 
-            // 5. 更新用户余额
-            updateUserBalance(record.getUserId(), profitAmount);
-
-            // 6. 判断投资是否到期（是否是最后一期）
+            // 4. 判断投资是否到期（是否是最后一期）
             boolean isMatured = InvestmentProfitCalculator.isInvestmentMatured(
                 record.getOrderDate(), record.getCycle()
             );
             
             if (isMatured) {
-                log.debug("投资项目 {} 已到期，更新状态为已收益", record.getOrderId());
-                // 更新投资记录状态为已收益
+                log.debug("投资项目 {} 已到期，需要返还设备本金", record.getOrderId());
+                
+                // 5. 计算需要返还的本金金额（投资金额 × 购买数量）
+                BigDecimal principalAmount = new BigDecimal(record.getInvestmentAmount())
+                    .multiply(new BigDecimal(record.getInvestCount() != null ? record.getInvestCount() : 1));
+                
+                // 6. 将本金直接加到收益中，作为最后一次收益
+                BigDecimal totalAmount = profitAmount.add(principalAmount);
+                
+                // 7. 更新用户余额（收益 + 本金）
+                updateUserBalance(record.getUserId(), totalAmount);
+                
+                // 8. 更新投资记录状态为已收益
                 record.setStatus(1);
+                record.setProfitPrincipal(principalAmount.longValue()); // 设置已返还的本金
                 investmentRecordDao.updateById(record);
+                
+                log.info("投资项目 {} 到期完成，返还本金: {} 分（投资金额: {} × 购买数量: {}），收益: {} 元，总计: {} 元", 
+                         record.getOrderId(), principalAmount, record.getInvestmentAmount(), 
+                         record.getInvestCount() != null ? record.getInvestCount() : 1, profitAmount, totalAmount);
+                
             } else {
                 log.debug("投资项目 {} 未到期，当前为第 {} 期，总周期 {} 天", 
                          record.getOrderId(),
                          InvestmentProfitCalculator.calculateInvestmentDays(record.getOrderDate()) + 1,
                          record.getCycle());
+                
+                // 未到期时只更新收益
+                updateUserBalance(record.getUserId(), profitAmount);
             }
 
-            // 7. 记录账变
-            recordProfitDetail(record, profitAmount);
+            // 9. 记录收益账变（包含本金返还）
+            if (isMatured) {
+                // 到期时记录总金额（收益+本金），本金需要乘以购买数量
+                BigDecimal totalAmount = profitAmount.add(
+                    new BigDecimal(record.getInvestmentAmount())
+                        .multiply(new BigDecimal(record.getInvestCount() != null ? record.getInvestCount() : 1))
+                );
+                recordProfitDetail(record, totalAmount, "投资收益+本金返还【"+record.getProjectId()+"】");
+            } else {
+                // 未到期时只记录收益
+                recordProfitDetail(record, profitAmount, "投资收益【"+record.getProjectId()+"】");
+            }
             
             log.debug("投资项目 {} 收益计算完成，收益金额: {}", record.getOrderId(), profitAmount);
             
@@ -666,8 +693,9 @@ public class UserInvestmentProfitSchedule {
      * 
      * @param record 投资记录
      * @param profitAmount 收益金额
+     * @param remark 备注信息
      */
-    private void recordProfitDetail(InvestmentRecordEntity record, BigDecimal profitAmount) {
+    private void recordProfitDetail(InvestmentRecordEntity record, BigDecimal profitAmount, String remark) {
         log.debug("记录投资项目 {} 的投资收益账变，金额：{}", record.getOrderId(), profitAmount);
         
         try {
@@ -686,15 +714,15 @@ public class UserInvestmentProfitSchedule {
             // 设置交易流水ID
             userBalanceDetail.setStreamId(record.getOrderId().toString());
 
-            // 设置使用金额（签到奖励金额）
+            // 设置使用金额（收益金额）
             userBalanceDetail.setUseAmount(profitAmountInCents);
             UserEntity user = userDao.getUserByUserId(record.getUserId());
-            // 设置原始金额（签到前的余额）
+            // 设置原始金额（收益前的余额）
             userBalanceDetail.setOriginalAmount(user.getAssets() != null ? user.getAssets() : 0L);
 
-            // 设置交易后金额（签到后的余额）
+            // 设置交易后金额（收益后的余额）
             userBalanceDetail.setTransactionAmount(user.getAssets() != null ? user.getAssets() + profitAmountInCents : profitAmountInCents);
-            userBalanceDetail.setRemarks("投资收益【"+record.getProjectId()+"】");
+            userBalanceDetail.setRemarks(remark);
             userBalanceDetail.setStatus(1);
             userBalanceDetail.setCreateDate(now);
             userBalanceDetail.setUpdateDate(now);
@@ -702,9 +730,6 @@ public class UserInvestmentProfitSchedule {
             // 插入账变记录
             userBalanceDetailDao.insert(userBalanceDetail);
             log.debug("投资项目 {} 投资收益账变记录完成，金额：{}", record.getOrderId(), profitAmount);
-            
-            // 更新用户余额和收益字段
-            updateUserBalance(record.getUserId(), profitAmount);
             
         } catch (Exception e) {
             log.error("记录投资项目 {} 投资收益账变失败", record.getOrderId(), e);
