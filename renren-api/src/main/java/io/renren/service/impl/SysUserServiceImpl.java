@@ -1,14 +1,14 @@
 package io.renren.service.impl;
 
-import io.renren.common.dao.BaseDao;
 import io.renren.dao.SysUserDao;
 import io.renren.dto.ChannelAllocationResult;
 import io.renren.entity.SysUserEntity;
 import io.renren.service.SysUserService;
 import io.renren.utils.RedisCacheUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
 
 /**
  * 系统用户服务实现类
@@ -20,13 +20,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class SysUserServiceImpl implements SysUserService {
 
-    @Autowired
+    @Resource
     private SysUserDao sysUserDao;
 
-    @Autowired
+    @Resource
     private RedisCacheUtil redisCacheUtil;
-    @Autowired
-    private BaseDao baseDao;
+
 
     @Override
     public SysUserEntity getSalesmanByChannel(Long channel) {

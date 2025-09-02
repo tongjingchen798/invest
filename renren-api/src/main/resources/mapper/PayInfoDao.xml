@@ -3,24 +3,4 @@
 
 <mapper namespace="io.renren.dao.PayInfoDao">
 
-    <resultMap type="io.renren.entity.PayInfoEntity" id="payInfoMap">
-        <result property="id" column="id"/>
-        <result property="userId" column="user_id"/>
-        <result property="blankCode" column="blank_code"/>
-        <result property="blankName" column="blank_name"/>
-        <result property="payName" column="pay_name"/>
-        <result property="payNo" column="pay_no"/>
-        <result property="mobile" column="mobile"/>
-        <result property="ifsc" column="ifsc"/>
-        <result property="state" column="state"/>
-        <result property="sortV" column="sort_v"/>
-        <result property="createTime" column="create_time"/>
-        <result property="operTime" column="oper_time"/>
-        <result property="operCode" column="oper_code"/>
-        <result property="stateTime" column="state_time"/>
-        <result property="channel" column="channel"/>
-        <result property="agent" column="agent"/>
-        <result property="salesmanid" column="salesmanid"/>
-    </resultMap>
-
 </mapper>
