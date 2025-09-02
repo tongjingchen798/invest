@@ -31,7 +31,13 @@
             m.invite_code_status as inviteCodeStatus,
             m.reward_withdraw_status as rewardWithdrawStatus,
             m.tz_withdraw_status as tzWithdrawStatus,
-            m.create_date as createDate
+            m.create_date as createDate,
+            COALESCE((
+                SELECT COUNT(*)
+                FROM tb_investment_record ir
+                WHERE ir.user_id = m.id
+                AND DATE(ir.order_date) = CURDATE()
+            ), 0) as todayInvestment
         FROM tb_user m
         <where>
             <!-- 权限筛选：根据当前用户类型限制查询范围 -->
