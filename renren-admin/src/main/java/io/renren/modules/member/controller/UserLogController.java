@@ -45,7 +45,15 @@ public class UserLogController {
         @ApiImplicitParam(name = Constant.PAGE, value = "当前页码，从1开始", paramType = "query", required = true, dataType="int") ,
         @ApiImplicitParam(name = Constant.LIMIT, value = "每页显示记录数", paramType = "query",required = true, dataType="int") ,
         @ApiImplicitParam(name = Constant.ORDER_FIELD, value = "排序字段", paramType = "query", dataType="String") ,
-        @ApiImplicitParam(name = Constant.ORDER, value = "排序方式，可选值(asc、desc)", paramType = "query", dataType="String")
+        @ApiImplicitParam(name = Constant.ORDER, value = "排序方式，可选值(asc、desc)", paramType = "query", dataType="String"),
+        @ApiImplicitParam(name = "mobile", value = "手机号", paramType = "query", dataType="String"),
+        @ApiImplicitParam(name = "flag", value = "是否相同IP 1:否(不同IP) 2:是(相同IP)", paramType = "query", dataType="int"),
+        @ApiImplicitParam(name = "loginIp", value = "登录IP地址", paramType = "query", dataType="String"),
+        @ApiImplicitParam(name = "logout", value = "登出状态 0:未登出 1:已登出", paramType = "query", dataType="int"),
+        @ApiImplicitParam(name = "biaoqian", value = "标签", paramType = "query", dataType="String"),
+        @ApiImplicitParam(name = "biaoqianFlag", value = "标签状态 0:无标签 1:有标签", paramType = "query", dataType="int"),
+        @ApiImplicitParam(name = "startTime", value = "开始时间(时间戳)", paramType = "query", dataType="long"),
+        @ApiImplicitParam(name = "endTime", value = "结束时间(时间戳)", paramType = "query", dataType="long")
     })
 //    @RequiresPermissions("sys:userlog:page")
     public Result<PageData<UserLogDTO>> page(@ApiIgnore @RequestParam Map<String, Object> params){

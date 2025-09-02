@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.member.dao.UserLogDao">
+
+    <!-- 自定义分页查询，支持多表关联查询和权限筛选 -->
+    <select id="selectUserLogPage" resultType="io.renren.modules.member.dto.UserLogDTO">
+        SELECT 
+            ul.id,
+            ul.user_id as userId,
+            ul.salesman_name as salesmanName,
+            ul.mobile,
+            ul.login_time as loginTime,
+            ul.logout_time as logoutTime,
+            ul.login_ip as loginIp,
+            ul.equipment,
+            ul.salesmanid,
+            ul.agent,
+            ul.biaoqian,
+            ul.create_time as createTime,
+            ul.update_time as updateTime,
+            m.username,
+            m.agent_name as agentName,
+            m.salesman_name as memberSalesmanName,
+            m.channel
+        FROM tb_user_log ul
+        LEFT JOIN tb_user m ON ul.user_id = m.id
+        <where>
+            <!-- 权限筛选：根据当前用户类型限制查询范围 -->
+            <if test="params.currentUserId != null and params.currentUserId != ''">
+                <if test="params.currentUserType != null and params.currentUserType == 1">
+                    <!-- 代理用户：只能查看自己代理的用户登录日志 -->
+                    AND ul.agent = #{params.currentUserId}
+                </if>
+                <if test="params.currentUserType != null and params.currentUserType == 2">
+                    <!-- 业务员用户：只能查看自己负责的用户登录日志 -->
+                    AND ul.salesmanid = #{params.currentUserId}
+                </if>
+                <!-- type=0是系统管理员，可以查看所有数据，不需要添加权限限制 -->
+            </if>
+            
+                         <!-- 基础查询条件 -->
+             <if test="params.mobile != null and params.mobile != ''">
+                 AND ul.mobile LIKE CONCAT('%', #{params.mobile}, '%')
+             </if>
+             <if test="params.loginIp != null and params.loginIp != ''">
+                 AND ul.login_ip LIKE CONCAT('%', #{params.loginIp}, '%')
+             </if>
+             <if test="params.biaoqian != null and params.biaoqian != ''">
+                 AND ul.biaoqian LIKE CONCAT('%', #{params.biaoqian}, '%')
+             </if>
+             
+             <!-- 相同IP筛选 -->
+             <if test="params.flag != null and params.flag != ''">
+                 <if test="params.flag == '1'">
+                     <!-- flag=1: 否（不同IP） -->
+                     AND ul.login_ip != (
+                         SELECT DISTINCT login_ip 
+                         FROM tb_user_log ul2 
+                         WHERE ul2.user_id = ul.user_id 
+                         AND ul2.id != ul.id 
+                         ORDER BY ul2.login_time DESC 
+                         LIMIT 1
+                     )
+                 </if>
+                 <if test="params.flag == '2'">
+                     <!-- flag=2: 是（相同IP） -->
+                     AND ul.login_ip = (
+                         SELECT DISTINCT login_ip 
+                         FROM tb_user_log ul2 
+                         WHERE ul2.user_id = ul.user_id 
+                         AND ul2.id != ul.id 
+                         ORDER BY ul2.login_time DESC 
+                         LIMIT 1
+                     )
+                 </if>
+             </if>
+             
+             <!-- 登出状态筛选 -->
+             <if test="params.logout != null and params.logout != ''">
+                 <if test="params.logout == '0'">
+                     <!-- logout=0: 未登出（logout_time为空） -->
+                     AND ul.logout_time IS NULL
+                 </if>
+                 <if test="params.logout == '1'">
+                     <!-- logout=1: 已登出（logout_time不为空） -->
+                     AND ul.logout_time IS NOT NULL
+                 </if>
+             </if>
+             
+             <!-- 标签存在性筛选 -->
+             <if test="params.biaoqianFlag != null and params.biaoqianFlag != ''">
+                 <if test="params.biaoqianFlag == '0'">
+                     <!-- biaoqianFlag=0: 无标签 -->
+                     AND (ul.biaoqian IS NULL OR ul.biaoqian = '')
+                 </if>
+                 <if test="params.biaoqianFlag == '1'">
+                     <!-- biaoqianFlag=1: 有标签 -->
+                     AND ul.biaoqian IS NOT NULL AND ul.biaoqian != ''
+                 </if>
+             </if>
+
+            <!-- 时间范围查询 -->
+            <if test="params.startTime != null and params.startTime != ''">
+                AND ul.login_time >= FROM_UNIXTIME(#{params.startTime}/1000)
+            </if>
+            <if test="params.endTime != null and params.endTime != ''">
+                AND ul.login_time &lt;= FROM_UNIXTIME(#{params.endTime}/1000)
+            </if>
+        </where>
+        ORDER BY     ul.login_time DESC
+    </select>
+
+</mapper>
