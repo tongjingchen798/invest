@@ -296,17 +296,52 @@ public class MemberController {
     @ApiOperation("手工调整余额")
     @LogOperation("手工调整余额")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "id", value = "用户ID", paramType = "query", required = true, dataType = "long"),
-            @ApiImplicitParam(name = "balance", value = "金额（分）", paramType = "query", required = true, dataType = "long"),
-            @ApiImplicitParam(name = "balance_type", value = "操作类型：1-增加余额，2-减少余额", paramType = "query", required = true, dataType = "int"),
-            @ApiImplicitParam(name = "remark", value = "备注", paramType = "query", required = false, dataType = "string")
+            @ApiImplicitParam(name = "id", value = "用户ID", paramType = "body", required = true, dataType = "string"),
+            @ApiImplicitParam(name = "balance", value = "金额（分）", paramType = "body", required = true, dataType = "long"),
+            @ApiImplicitParam(name = "balance_type", value = "操作类型：1-增加余额，2-减少余额", paramType = "body", required = true, dataType = "int"),
+            @ApiImplicitParam(name = "remark", value = "备注", paramType = "body", required = false, dataType = "string")
     })
 //    @RequiresPermissions("member:user:addBalance")
-    public Result addBalance(@RequestParam("id") Long userId, 
-                           @RequestParam("balance") Long amount,
-                           @RequestParam("balance_type") Integer balanceType,
-                           @RequestParam(value = "remark", required = false) String remark) {
+    public Result addBalance(@RequestBody Map<String, Object> params) {
         try {
+            // 参数解析和验证
+            Long userId = null;
+            Long amount = null;
+            Integer balanceType = null;
+            String remark = null;
+            
+            // 解析用户ID
+            if (params.get("id") != null) {
+                try {
+                    userId = Long.valueOf(params.get("id").toString());
+                } catch (NumberFormatException e) {
+                    return new Result().error("用户ID格式错误");
+                }
+            }
+            
+            // 解析金额
+            if (params.get("balance") != null) {
+                try {
+                    amount = Long.valueOf(params.get("balance").toString());
+                } catch (NumberFormatException e) {
+                    return new Result().error("金额格式错误");
+                }
+            }
+            
+            // 解析操作类型
+            if (params.get("balance_type") != null) {
+                try {
+                    balanceType = Integer.valueOf(params.get("balance_type").toString());
+                } catch (NumberFormatException e) {
+                    return new Result().error("操作类型格式错误");
+                }
+            }
+            
+            // 解析备注
+            if (params.get("remark") != null) {
+                remark = params.get("remark").toString();
+            }
+            
             // 参数验证
             if (userId == null || userId <= 0) {
                 return new Result().error("用户ID不能为空");
@@ -322,7 +357,7 @@ public class MemberController {
             return memberService.addBalance(userId, amount, balanceType, remark);
 
         } catch (Exception e) {
-            log.error("手工调整余额异常，用户ID: {}, 金额: {}, 操作类型: {}", userId, amount, balanceType, e);
+            log.error("手工调整余额异常，参数: {}", params, e);
             return new Result().error("余额调整失败: " + e.getMessage());
         }
     }
@@ -331,17 +366,52 @@ public class MemberController {
     @ApiOperation("操作冻结金额")
     @LogOperation("操作冻结金额")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "id", value = "用户ID", paramType = "query", required = true, dataType = "long"),
-            @ApiImplicitParam(name = "balance", value = "金额（分）", paramType = "query", required = true, dataType = "long"),
-            @ApiImplicitParam(name = "balance_type", value = "操作类型：1-冻结金额，2-解冻金额", paramType = "query", required = true, dataType = "int"),
-            @ApiImplicitParam(name = "remark", value = "备注", paramType = "query", required = false, dataType = "string")
+            @ApiImplicitParam(name = "id", value = "用户ID", paramType = "body", required = true, dataType = "string"),
+            @ApiImplicitParam(name = "balance", value = "金额（分）", paramType = "body", required = true, dataType = "long"),
+            @ApiImplicitParam(name = "balance_type", value = "操作类型：1-冻结金额，2-解冻金额", paramType = "body", required = true, dataType = "int"),
+            @ApiImplicitParam(name = "remark", value = "备注", paramType = "body", required = false, dataType = "string")
     })
 //    @RequiresPermissions("member:user:freeBalance")
-    public Result freeBalance(@RequestParam("id") Long userId, 
-                            @RequestParam("balance") Long amount,
-                            @RequestParam("balance_type") Integer balanceType,
-                            @RequestParam(value = "remark", required = false) String remark) {
+    public Result freeBalance(@RequestBody Map<String, Object> params) {
         try {
+            // 参数解析和验证
+            Long userId = null;
+            Long amount = null;
+            Integer balanceType = null;
+            String remark = null;
+            
+            // 解析用户ID
+            if (params.get("id") != null) {
+                try {
+                    userId = Long.valueOf(params.get("id").toString());
+                } catch (NumberFormatException e) {
+                    return new Result().error("用户ID格式错误");
+                }
+            }
+            
+            // 解析金额
+            if (params.get("balance") != null) {
+                try {
+                    amount = Long.valueOf(params.get("balance").toString());
+                } catch (NumberFormatException e) {
+                    return new Result().error("金额格式错误");
+                }
+            }
+            
+            // 解析操作类型
+            if (params.get("balance_type") != null) {
+                try {
+                    balanceType = Integer.valueOf(params.get("balance_type").toString());
+                } catch (NumberFormatException e) {
+                    return new Result().error("操作类型格式错误");
+                }
+            }
+            
+            // 解析备注
+            if (params.get("remark") != null) {
+                remark = params.get("remark").toString();
+            }
+            
             // 参数验证
             if (userId == null || userId <= 0) {
                 return new Result().error("用户ID不能为空");
@@ -357,7 +427,7 @@ public class MemberController {
             return memberService.freeBalance(userId, amount, balanceType, remark);
 
         } catch (Exception e) {
-            log.error("操作冻结金额异常，用户ID: {}, 金额: {}, 操作类型: {}", userId, amount, balanceType, e);
+            log.error("操作冻结金额异常，参数: {}", params, e);
             return new Result().error("冻结金额操作失败: " + e.getMessage());
         }
     }

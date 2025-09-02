@@ -39,7 +39,7 @@ public interface UserDao extends BaseDao<UserEntity> {
      * @param amount 扣款金额（分）
      * @return 影响行数
      */
-    @Update("UPDATE tb_user SET assets = assets - #{amount}, history_investment = history_investment + #{amount}, today_investment = today_investment + #{amount} WHERE id = #{userId} AND assets >= #{amount}")
+    @Update("UPDATE tb_user SET assets = assets - #{amount} WHERE id = #{userId} AND assets >= #{amount}")
     int updateBalanceForInvestment(@Param("userId") Long userId, @Param("amount") Long amount);
 
     /**

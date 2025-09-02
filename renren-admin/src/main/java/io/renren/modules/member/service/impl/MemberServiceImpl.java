@@ -576,7 +576,9 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             balanceDetail.setAgentName(member.getAgentName());
             balanceDetail.setBusiType(businessType); // 7表示手工充值，8表示手工扣款
             balanceDetail.setChannel("后台手工调整");
-            balanceDetail.setOriginalAmount(amount);
+            balanceDetail.setUseAmount(amount);
+            balanceDetail.setOriginalAmount(currentBalance);
+            balanceDetail.setTransactionAmount(newBalance);
             balanceDetail.setRemarks(remark != null ? remark : operationType);
             balanceDetail.setSalesmanName(member.getSalesmanName());
             balanceDetail.setSalesmanId(member.getSalesmanid() != null ? Long.valueOf(member.getSalesmanid()) : null);
@@ -658,7 +660,9 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             balanceDetail.setAgentName(member.getAgentName());
             balanceDetail.setBusiType(businessType); // 5表示冻结金额，6表示解冻金额
             balanceDetail.setChannel("后台冻结操作");
-            balanceDetail.setOriginalAmount(amount);
+            balanceDetail.setUseAmount(amount);
+            balanceDetail.setOriginalAmount(currentBalance);
+            balanceDetail.setTransactionAmount(newBalance);
             balanceDetail.setRemarks(remark != null ? remark : operationType);
             balanceDetail.setSalesmanName(member.getSalesmanName());
             balanceDetail.setSalesmanId(member.getSalesmanid() != null ? Long.valueOf(member.getSalesmanid()) : null);
