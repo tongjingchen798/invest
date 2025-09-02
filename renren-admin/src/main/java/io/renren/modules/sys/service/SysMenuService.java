@@ -32,13 +32,13 @@ public interface SysMenuService extends BaseService<SysMenuEntity> {
 	 */
 	List<SysMenuDTO> getAllMenuList(Integer menuType);
 
-	/**
-	 * 用户菜单列表
-	 *
-	 * @param user  用户
-	 * @param menuType 菜单类型
-	 */
-	List<SysMenuDTO> getUserMenuList(UserDetail user, Integer menuType);
+//	/**
+//	 * 用户菜单列表
+//	 *
+//	 * @param user  用户
+//	 * @param menuType 菜单类型
+//	 */
+//	List<SysMenuDTO> getUserMenuList(UserDetail user, Integer menuType);
 
 	/**
 	 * 根据父菜单，查询子菜单

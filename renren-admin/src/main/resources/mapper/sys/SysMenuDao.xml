@@ -14,6 +14,19 @@
 			<if test="menuType != null">
 				t1.menu_type = #{menuType}
 			</if>
+			<choose>
+				<when test="userType == 1">
+					<!-- 代理用户：根据agent_purview字段判断 -->
+					and (t1.agent_purview = 1 or t1.agent_purview is null)
+				</when>
+				<when test="userType == 2">
+					<!-- 业务员用户：根据ywy_purview字段判断 -->
+					and (t1.ywy_purview = 1 or t1.ywy_purview is null)
+				</when>
+				<otherwise>
+					<!-- 管理员用户：显示所有权限 -->
+				</otherwise>
+			</choose>
 		</where>
 		order by t1.sort asc
 	</select>

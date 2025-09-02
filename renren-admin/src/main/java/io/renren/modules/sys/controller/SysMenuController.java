@@ -38,14 +38,14 @@ public class SysMenuController {
 	@Autowired
 	private ShiroService shiroService;
 
-	@GetMapping("nav")
-	@ApiOperation("导航")
-	public Result<List<SysMenuDTO>> nav(){
-		UserDetail user = SecurityUser.getUser();
-		List<SysMenuDTO> list = sysMenuService.getUserMenuListByType(user, MenuTypeEnum.MENU.value());
-
-		return new Result<List<SysMenuDTO>>().ok(list);
-	}
+//	@GetMapping("nav")
+//	@ApiOperation("导航")
+//	public Result<List<SysMenuDTO>> nav(){
+//		UserDetail user = SecurityUser.getUser();
+//		List<SysMenuDTO> list = sysMenuService.getUserMenuListByType(user, MenuTypeEnum.MENU.value());
+//
+//		return new Result<List<SysMenuDTO>>().ok(list);
+//	}
 
 	@GetMapping("permissions")
 	@ApiOperation("权限标识")

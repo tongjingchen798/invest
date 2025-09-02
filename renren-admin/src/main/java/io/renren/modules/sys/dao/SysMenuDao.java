@@ -24,7 +24,7 @@ public interface SysMenuDao extends BaseDao<SysMenuEntity> {
 	 *
 	 * @param menuType 菜单类型
 	 */
-	List<SysMenuEntity> getMenuList(@Param("menuType") Integer menuType);
+	List<SysMenuEntity> getMenuList(@Param("menuType") Integer menuType, @Param("userType") Integer userType);
 
 	/**
 	 * 查询用户菜单列表

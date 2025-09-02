@@ -8,6 +8,7 @@ import io.renren.common.exception.RenException;
 import io.renren.common.service.impl.BaseServiceImpl;
 import io.renren.common.utils.ConvertUtils;
 import io.renren.common.utils.TreeUtils;
+import io.renren.modules.security.user.SecurityUser;
 import io.renren.modules.security.user.UserDetail;
 import io.renren.modules.sys.dao.SysMenuDao;
 import io.renren.modules.sys.dto.SysMenuDTO;
@@ -70,28 +71,30 @@ public class SysMenuServiceImpl extends BaseServiceImpl<SysMenuDao, SysMenuEntit
 
 	@Override
 	public List<SysMenuDTO> getAllMenuList(Integer menuType) {
-		List<SysMenuEntity> menuList = baseDao.getMenuList(menuType);
+		UserDetail user = SecurityUser.getUser();
+		Integer userType=user.getType();
+		List<SysMenuEntity> menuList = baseDao.getMenuList(menuType,userType);
 
 		List<SysMenuDTO> dtoList = ConvertUtils.sourceToTarget(menuList, SysMenuDTO.class);
 
 		return TreeUtils.build(dtoList, Constant.MENU_ROOT);
 	}
 
-	@Override
-	public List<SysMenuDTO> getUserMenuList(UserDetail user, Integer menuType) {
-		List<SysMenuEntity> menuList;
-
-		//系统管理员，拥有最高权限
-		if(user.getSuperAdmin() == SuperAdminEnum.YES.value()){
-			menuList = baseDao.getMenuList(menuType);
-		}else {
-			menuList = baseDao.getUserMenuList(user.getId(), menuType);
-		}
-
-		List<SysMenuDTO> dtoList = ConvertUtils.sourceToTarget(menuList, SysMenuDTO.class);
-
-		return TreeUtils.build(dtoList);
-	}
+//	@Override
+//	public List<SysMenuDTO> getUserMenuList(UserDetail user, Integer menuType) {
+//		List<SysMenuEntity> menuList;
+//
+//		//系统管理员，拥有最高权限
+//		if(user.getSuperAdmin() == SuperAdminEnum.YES.value()){
+//			menuList = baseDao.getMenuList(menuType);
+//		}else {
+//			menuList = baseDao.getUserMenuList(user.getId(), menuType);
+//		}
+//
+//		List<SysMenuDTO> dtoList = ConvertUtils.sourceToTarget(menuList, SysMenuDTO.class);
+//
+//		return TreeUtils.build(dtoList);
+//	}
 
 	@Override
 	public List<SysMenuDTO> getListPid(Long pid) {
@@ -103,10 +106,9 @@ public class SysMenuServiceImpl extends BaseServiceImpl<SysMenuDao, SysMenuEntit
 	@Override
 	public List<SysMenuDTO> getUserMenuListByType(UserDetail user, Integer menuType) {
 		List<SysMenuEntity> menuList;
-
 		//系统管理员，拥有最高权限
 		if(user.getSuperAdmin() == SuperAdminEnum.YES.value()){
-			menuList = baseDao.getMenuList(menuType);
+			menuList = baseDao.getMenuList(menuType,user.getType());
 		}else {
 			// 根据用户类型获取菜单列表
 			Integer userType = user.getType();
