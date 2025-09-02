@@ -2,6 +2,7 @@ package io.renren.service;
 
 import io.renren.dto.ChannelAllocationResult;
 import io.renren.entity.SysUserEntity;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * 系统用户服务接口
@@ -64,4 +65,6 @@ public interface SysUserService {
      * @param userId 用户ID
      */
     void clearUserCache(Long userId);
+
+    SysUserEntity selectByAgentInviteCode(String agentInviteCode);
 }

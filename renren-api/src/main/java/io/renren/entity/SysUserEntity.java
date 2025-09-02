@@ -64,4 +64,9 @@ public class SysUserEntity implements Serializable {
 
     private Long agent;
 
+    /**
+     * 代理邀请码
+     */
+    private String agentInviteCode;
+
 }

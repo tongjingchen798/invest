@@ -1,9 +1,12 @@
 package io.renren.controller;
 
+import io.renren.common.exception.ErrorCode;
+import io.renren.common.exception.RenException;
 import io.renren.common.utils.Result;
 import io.renren.common.validator.ValidatorUtils;
 import io.renren.dao.UserBalanceDetailDao;
 import io.renren.dao.UserDao;
+import io.renren.entity.SysUserEntity;
 import io.renren.entity.TokenEntity;
 import io.renren.entity.UserBalanceDetailEntity;
 import io.renren.entity.UserEntity;
@@ -66,9 +69,9 @@ public class ApiRegisterController {
         //表单校验
         ValidatorUtils.validateEntity(dto);
 
-        // 检查手机号是否已经注册（使用高效方法）
+        // 检查手机号是否已经注册
         if (userService.isMobileRegistered(dto.getMobile())) {
-            return new Result().error("该手机号已经注册，请直接登录或使用其他手机号");
+            throw new RenException(ErrorCode.PHONE_NUMBER_HAS_BEEN_REGISTERED);
         }
 
         UserEntity user = new UserEntity();
@@ -81,43 +84,31 @@ public class ApiRegisterController {
         if (dto.getTwoPwd() != null) {
             user.setTwoPwd(DigestUtils.sha256Hex(dto.getTwoPwd()));
         }
-        user.setUpinviteCode(dto.getInviteCode());
         String newInviteCode = InviteCodeGenerator.generateInviteCode();
         user.setInviteCode(newInviteCode);
         //根据渠道查询对应代理
-        if(Objects.nonNull(dto.getChannel())){
-            try {
-                // 根据渠道获取业务员和代理信息
-                ChannelAllocationResult allocationResult = sysUserService.getChannelResources(dto.getChannel());
-                
-                if (allocationResult.isSuccess()) {
+        if(Objects.nonNull(dto.getInviteCode())){
+            SysUserEntity sysUserEntity= sysUserService.selectByAgentInviteCode(dto.getInviteCode());
+            if (Objects.nonNull(sysUserEntity)) {
+                // 设置业务员信息
+                user.setSalesmanid(sysUserEntity.getId());
+                user.setSalesmanName(sysUserEntity.getUsername());
+                // 设置代理信息
+                user.setAgent(sysUserEntity.getAgent());
+//                user.setAgentName(allocationResult.getAgentName());
+            }else {
+                user.setUpinviteCode(dto.getInviteCode());
+                UserEntity userEntity=userDao.selectByInviteCode(dto.getInviteCode());
+                if (Objects.nonNull(userEntity)) {
                     // 设置业务员信息
-                    user.setSalesmanid(allocationResult.getSalesmanId());
-                    user.setSalesmanName(allocationResult.getSalesmanName());
-                    
+                    user.setSalesmanid(userEntity.getSalesmanid());
+                    user.setSalesmanName(userEntity.getSalesmanName());
                     // 设置代理信息
-                    user.setAgent(allocationResult.getAgentId());
-                    user.setAgentName(allocationResult.getAgentName());
-                    
-                    log.info("用户注册成功，渠道: {}, 分配业务员: {} (ID: {}), 代理: {} (ID: {})", 
-                            dto.getChannel(), allocationResult.getSalesmanName(), allocationResult.getSalesmanId(),
-                            allocationResult.getAgentName(), allocationResult.getAgentId());
-                } else {
-                    log.warn("渠道 {} 获取业务员和代理失败: {}", dto.getChannel(), allocationResult.getErrorMessage());
-                    // 获取失败时使用默认值或记录错误
-                    user.setAgent(0L);
-                    user.setSalesmanid(0L);
-                    user.setSalesmanName("总代");
+                    user.setAgent(userEntity.getAgent());
+                    user.setAgentName(userEntity.getAgentName());
                 }
-            } catch (Exception e) {
-                log.error("根据渠道获取业务员和代理时发生异常，渠道: {}", dto.getChannel(), e);
-                // 异常时使用默认值
-                user.setAgent(0L);
-                user.setSalesmanid(0L);
-                user.setSalesmanName("系统分配");
             }
         }
-
         user.setChannel(dto.getChannel());
         user.setEquipment(dto.getEquipment());
         // 获取用户注册IP地址

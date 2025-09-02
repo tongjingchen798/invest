@@ -37,6 +37,7 @@ public interface ErrorCode {
     int REDIS_ERROR = 10027;
     int JOB_ERROR = 10028;
     int INVALID_SYMBOL = 10029;
+    int PHONE_NUMBER_HAS_BEEN_REGISTERED=10030;
     //
     int INVALID_CODE=10033;
 }

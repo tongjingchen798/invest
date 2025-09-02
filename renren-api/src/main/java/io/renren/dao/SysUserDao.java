@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import io.renren.entity.SysUserEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
@@ -50,4 +51,8 @@ public interface SysUserDao extends BaseMapper<SysUserEntity> {
      * @return 用户信息
      */
     SysUserEntity selectById(@Param("userId") Long userId);
+
+    @Select("select * from sys_user where agent_invite_code=#{agentInviteCode}")
+    SysUserEntity selectByAgentInviteCode(@Param("agentInviteCode") String agentInviteCode);
+
 }

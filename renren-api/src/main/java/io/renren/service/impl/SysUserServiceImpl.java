@@ -1,5 +1,6 @@
 package io.renren.service.impl;
 
+import io.renren.common.dao.BaseDao;
 import io.renren.dao.SysUserDao;
 import io.renren.dto.ChannelAllocationResult;
 import io.renren.entity.SysUserEntity;
@@ -24,6 +25,8 @@ public class SysUserServiceImpl implements SysUserService {
 
     @Autowired
     private RedisCacheUtil redisCacheUtil;
+    @Autowired
+    private BaseDao baseDao;
 
     @Override
     public SysUserEntity getSalesmanByChannel(Long channel) {
@@ -158,5 +161,10 @@ public class SysUserServiceImpl implements SysUserService {
 
         redisCacheUtil.deleteUserCache(userId);
         log.info("清除用户缓存成功，用户ID: {}", userId);
+    }
+
+    @Override
+    public SysUserEntity selectByAgentInviteCode(String agentInviteCode) {
+        return sysUserDao.selectByAgentInviteCode(agentInviteCode);
     }
 }
