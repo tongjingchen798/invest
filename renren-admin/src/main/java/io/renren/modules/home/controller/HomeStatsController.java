@@ -5,6 +5,8 @@ import io.renren.modules.home.dto.DailyReportDTO;
 import io.renren.modules.home.dto.MainStatsDTO;
 import io.renren.modules.home.dto.QuantityAnalysisDTO;
 import io.renren.modules.home.service.HomeStatsService;
+import io.renren.modules.security.user.SecurityUser;
+import io.renren.modules.security.user.UserDetail;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -56,7 +58,22 @@ public class HomeStatsController {
         logger.info("获取首页统计数据，开始时间: {}, 结束时间: {}", startTime, endTime);
         
         try {
-            MainStatsDTO stats = homeStatsService.getMainStats(startTime, endTime);
+            // 获取当前用户权限信息
+            Long currentUserId = null;
+            Integer currentUserType = null;
+            
+            try {
+                UserDetail user = SecurityUser.getUser();
+                if (user != null) {
+                    currentUserId = user.getId();
+                    currentUserType = user.getType();
+                    logger.debug("当前用户ID: {}, 用户类型: {}", currentUserId, currentUserType);
+                }
+            } catch (Exception e) {
+                logger.warn("获取当前用户信息失败: {}", e.getMessage());
+            }
+            
+            MainStatsDTO stats = homeStatsService.getMainStats(startTime, endTime, currentUserId, currentUserType);
             logger.info("成功获取统计数据: {}", stats);
             return new Result<MainStatsDTO>().ok(stats);
             
@@ -120,8 +137,18 @@ public class HomeStatsController {
                     calculatedEndTime = LocalDate.now().atTime(23, 59, 59).atZone(ZoneOffset.of("+8")).toInstant().toEpochMilli();
                     break;
             }
+            // 获取当前用户权限信息
+            Long currentUserId = null;
+            Integer currentUserType = null;
+
+            UserDetail user = SecurityUser.getUser();
+            if (user != null) {
+                currentUserId = user.getId();
+                currentUserType = user.getType();
+                logger.debug("当前用户ID: {}, 用户类型: {}", currentUserId, currentUserType);
+            }
             
-            List<DailyReportDTO> reportList = homeStatsService.getDailyReportStats(calculatedStartTime, calculatedEndTime, type);
+            List<DailyReportDTO> reportList = homeStatsService.getDailyReportStats(calculatedStartTime, calculatedEndTime, type,currentUserId, currentUserType);
             return new Result().ok(reportList);
         } catch (Exception e) {
             logger.error("获取日报表统计数据失败", e);
@@ -146,7 +173,17 @@ public class HomeStatsController {
             if (!Arrays.asList("d", "w", "m").contains(type.toLowerCase())) {
                 return new Result<List<QuantityAnalysisDTO>>().error("无效的统计类型，支持的类型：d(日)、w(周)、m(月)");
             }
-            
+            // 获取当前用户权限信息
+            Long currentUserId = null;
+            Integer currentUserType = null;
+
+            UserDetail user = SecurityUser.getUser();
+            if (user != null) {
+                currentUserId = user.getId();
+                currentUserType = user.getType();
+                logger.debug("当前用户ID: {}, 用户类型: {}", currentUserId, currentUserType);
+            }
+
             // 计算时间范围
             TimeRange timeRange = calculateTimeRange(type.toLowerCase());
             
@@ -154,7 +191,7 @@ public class HomeStatsController {
             List<QuantityAnalysisDTO> analysisData = homeStatsService.getQuantityAnalysisData(
                 timeRange.getStartTime(), 
                 timeRange.getEndTime(), 
-                type
+                type,currentUserId,currentUserType
             );
             
             return new Result<List<QuantityAnalysisDTO>>().ok(analysisData);

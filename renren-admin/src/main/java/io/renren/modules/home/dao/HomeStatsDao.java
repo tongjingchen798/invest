@@ -21,57 +21,78 @@ public interface HomeStatsDao {
      * 获取充值订单统计
      * @param startTime 开始时间戳
      * @param endTime 结束时间戳
+     * @param currentUserId 当前用户ID
+     * @param currentUserType 当前用户类型
      * @return 统计结果
      */
-    Map<String, Object> getChargeOrderStats(@Param("startTime") Long startTime, @Param("endTime") Long endTime);
+    Map<String, Object> getChargeOrderStats(@Param("startTime") Long startTime, @Param("endTime") Long endTime, 
+                                           @Param("currentUserId") Long currentUserId, @Param("currentUserType") Integer currentUserType);
 
     /**
      * 获取提现订单统计
      * @param startTime 开始时间戳
      * @param endTime 结束时间戳
+     * @param currentUserId 当前用户ID
+     * @param currentUserType 当前用户类型
      * @return 统计结果
      */
-    Map<String, Object> getWithdrawOrderStats(@Param("startTime") Long startTime, @Param("endTime") Long endTime);
+    Map<String, Object> getWithdrawOrderStats(@Param("startTime") Long startTime, @Param("endTime") Long endTime,
+                                             @Param("currentUserId") Long currentUserId, @Param("currentUserType") Integer currentUserType);
 
     /**
      * 获取项目统计
      * @param startTime 开始时间戳
      * @param endTime 结束时间戳
+     * @param currentUserId 当前用户ID
+     * @param currentUserType 当前用户类型
      * @return 统计结果
      */
-    Map<String, Object> getProjectStats(@Param("startTime") Long startTime, @Param("endTime") Long endTime);
+    Map<String, Object> getProjectStats(@Param("startTime") Long startTime, @Param("endTime") Long endTime,
+                                       @Param("currentUserId") Long currentUserId, @Param("currentUserType") Integer currentUserType);
 
     /**
      * 获取用户注册统计
      * @param startTime 开始时间戳
      * @param endTime 结束时间戳
+     * @param currentUserId 当前用户ID
+     * @param currentUserType 当前用户类型
      * @return 统计结果
      */
-    Map<String, Object> getUserRegistrationStats(@Param("startTime") Long startTime, @Param("endTime") Long endTime);
+    Map<String, Object> getUserRegistrationStats(@Param("startTime") Long startTime, @Param("endTime") Long endTime,
+                                                @Param("currentUserId") Long currentUserId, @Param("currentUserType") Integer currentUserType);
 
     /**
      * 获取销售总额统计
      * @param startTime 开始时间戳
      * @param endTime 结束时间戳
+     * @param currentUserId 当前用户ID
+     * @param currentUserType 当前用户类型
      * @return 统计结果
      */
-    Map<String, Object> getSalesAmountStats(@Param("startTime") Long startTime, @Param("endTime") Long endTime);
+    Map<String, Object> getSalesAmountStats(@Param("startTime") Long startTime, @Param("endTime") Long endTime,
+                                           @Param("currentUserId") Long currentUserId, @Param("currentUserType") Integer currentUserType);
 
     /**
      * 获取日报表统计
      * @param startTime 开始时间戳
      * @param endTime 结束时间戳
      * @param type 统计类型 (d: 日报, m: 月报, y: 年报)
+     * @param currentUserId 当前用户ID
+     * @param currentUserType 当前用户类型
      * @return 日报表数据列表
      */
-    List<Map<String, Object>> getDailyReportStats(@Param("startTime") Long startTime, @Param("endTime") Long endTime, @Param("type") String type);
+    List<Map<String, Object>> getDailyReportStats(@Param("startTime") Long startTime, @Param("endTime") Long endTime, @Param("type") String type,
+                                                 @Param("currentUserId") Long currentUserId, @Param("currentUserType") Integer currentUserType);
 
     /**
      * 获取数量统计分析图数据
      * @param startTime 开始时间戳
      * @param endTime 结束时间戳
      * @param type 统计类型 (1: 日, 2: 周, 3: 月)
+     * @param currentUserId 当前用户ID
+     * @param currentUserType 当前用户类型
      * @return 数量统计分析数据列表
      */
-    List<QuantityAnalysisDTO> getQuantityAnalysisData(@Param("startTime") Long startTime, @Param("endTime") Long endTime, @Param("type") Integer type);
+    List<QuantityAnalysisDTO> getQuantityAnalysisData(@Param("startTime") Long startTime, @Param("endTime") Long endTime, @Param("type") Integer type,
+                                                     @Param("currentUserId") Long currentUserId, @Param("currentUserType") Integer currentUserType);
 }

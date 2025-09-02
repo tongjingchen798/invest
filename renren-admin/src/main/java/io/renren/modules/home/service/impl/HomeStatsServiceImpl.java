@@ -33,15 +33,15 @@ public class HomeStatsServiceImpl implements HomeStatsService {
     private HomeStatsDao homeStatsDao;
 
     @Override
-    public MainStatsDTO getMainStats(Long startTime, Long endTime) {
-        logger.info("开始获取首页统计数据，时间范围: {} - {}", startTime, endTime);
+    public MainStatsDTO getMainStats(Long startTime, Long endTime, Long currentUserId, Integer currentUserType) {
+        logger.info("开始获取首页统计数据，时间范围: {} - {}, 当前用户ID: {}, 用户类型: {}", startTime, endTime, currentUserId, currentUserType);
         
         MainStatsDTO statsDTO = new MainStatsDTO();
 
         try {
             // 获取充值订单统计
             logger.debug("获取充值订单统计...");
-            Map<String, Object> chargeStats = homeStatsDao.getChargeOrderStats(startTime, endTime);
+            Map<String, Object> chargeStats = homeStatsDao.getChargeOrderStats(startTime, endTime, currentUserId, currentUserType);
             if (chargeStats != null) {
                 statsDTO.setChargeOrderAmount(getLongValue(chargeStats.get("chargeOrderAmount")));
                 statsDTO.setCharge_order_cnt(getLongValue(chargeStats.get("charge_order_cnt")));
@@ -50,7 +50,7 @@ public class HomeStatsServiceImpl implements HomeStatsService {
 
             // 获取提现订单统计
             logger.debug("获取提现订单统计...");
-            Map<String, Object> withdrawStats = homeStatsDao.getWithdrawOrderStats(startTime, endTime);
+            Map<String, Object> withdrawStats = homeStatsDao.getWithdrawOrderStats(startTime, endTime, currentUserId, currentUserType);
             if (withdrawStats != null) {
                 statsDTO.setWithdrawOrderAmount(getLongValue(withdrawStats.get("withdrawOrderAmount")));
                 statsDTO.setWithdraw_order_cnt(getLongValue(withdrawStats.get("withdraw_order_cnt")));
@@ -59,7 +59,7 @@ public class HomeStatsServiceImpl implements HomeStatsService {
 
             // 获取项目统计
             logger.debug("获取项目统计...");
-            Map<String, Object> projectStats = homeStatsDao.getProjectStats(startTime, endTime);
+            Map<String, Object> projectStats = homeStatsDao.getProjectStats(startTime, endTime, currentUserId, currentUserType);
             if (projectStats != null) {
                 statsDTO.setOnline_privilege_cnt(getLongValue(projectStats.get("online_privilege_cnt")));
                 statsDTO.setPrivilege_cnt(getLongValue(projectStats.get("privilege_cnt")));
@@ -69,7 +69,7 @@ public class HomeStatsServiceImpl implements HomeStatsService {
 
             // 获取用户注册统计
             logger.debug("获取用户注册统计...");
-            Map<String, Object> userStats = homeStatsDao.getUserRegistrationStats(startTime, endTime);
+            Map<String, Object> userStats = homeStatsDao.getUserRegistrationStats(startTime, endTime, currentUserId, currentUserType);
             if (userStats != null) {
                 statsDTO.setZc_cnt(getLongValue(userStats.get("zc_cnt")));
                 logger.debug("用户注册统计: {}", userStats);
@@ -77,7 +77,7 @@ public class HomeStatsServiceImpl implements HomeStatsService {
 
             // 获取销售总额统计
             logger.debug("获取销售总额统计...");
-            Map<String, Object> salesStats = homeStatsDao.getSalesAmountStats(startTime, endTime);
+            Map<String, Object> salesStats = homeStatsDao.getSalesAmountStats(startTime, endTime, currentUserId, currentUserType);
             if (salesStats != null) {
                 statsDTO.setXs_amount(getLongValue(salesStats.get("xs_amount")));
                 logger.debug("销售总额统计: {}", salesStats);
@@ -95,13 +95,13 @@ public class HomeStatsServiceImpl implements HomeStatsService {
     }
 
     @Override
-    public List<DailyReportDTO> getDailyReportStats(Long startTime, Long endTime, String type) {
-        logger.info("开始获取日报表统计数据，时间范围: {} - {}, 类型: {}", startTime, endTime, type);
+    public List<DailyReportDTO> getDailyReportStats(Long startTime, Long endTime, String type, Long currentUserId, Integer currentUserType) {
+        logger.info("开始获取日报表统计数据，时间范围: {} - {}, 类型: {}, 当前用户ID: {}, 用户类型: {}", startTime, endTime, type, currentUserId, currentUserType);
         
         List<DailyReportDTO> reportList = new ArrayList<>();
         
         try {
-            List<Map<String, Object>> rawData = homeStatsDao.getDailyReportStats(startTime, endTime, type);
+            List<Map<String, Object>> rawData = homeStatsDao.getDailyReportStats(startTime, endTime, type, currentUserId, currentUserType);
             
             if (rawData != null && !rawData.isEmpty()) {
                 for (Map<String, Object> data : rawData) {
@@ -126,8 +126,8 @@ public class HomeStatsServiceImpl implements HomeStatsService {
     }
 
     @Override
-    public List<QuantityAnalysisDTO> getQuantityAnalysisData(Long startTime, Long endTime, String type) {
-        logger.info("开始获取数量统计分析图数据，时间范围: {} - {}, 类型: {}", startTime, endTime, type);
+    public List<QuantityAnalysisDTO> getQuantityAnalysisData(Long startTime, Long endTime, String type, Long currentUserId, Integer currentUserType) {
+        logger.info("开始获取数量统计分析图数据，时间范围: {} - {}, 类型: {}, 当前用户ID: {}, 用户类型: {}", startTime, endTime, type, currentUserId, currentUserType);
         
         List<QuantityAnalysisDTO> analysisList = new ArrayList<>();
         
@@ -150,7 +150,7 @@ public class HomeStatsServiceImpl implements HomeStatsService {
             Integer typeNum = convertTypeToNumber(type);
             
             // 直接获取DTO对象列表
-            analysisList = homeStatsDao.getQuantityAnalysisData(startTime, endTime, typeNum);
+            analysisList = homeStatsDao.getQuantityAnalysisData(startTime, endTime, typeNum, currentUserId, currentUserType);
             
             if (analysisList != null && !analysisList.isEmpty()) {
                 // 设置type字段

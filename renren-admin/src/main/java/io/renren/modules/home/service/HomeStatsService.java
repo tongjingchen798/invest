@@ -19,25 +19,31 @@ public interface HomeStatsService {
      * 获取首页统计数据
      * @param startTime 开始时间戳
      * @param endTime 结束时间戳
+     * @param currentUserId 当前用户ID
+     * @param currentUserType 当前用户类型
      * @return 统计数据
      */
-    MainStatsDTO getMainStats(Long startTime, Long endTime);
+    MainStatsDTO getMainStats(Long startTime, Long endTime, Long currentUserId, Integer currentUserType);
 
     /**
      * 获取日报表统计数据
      * @param startTime 开始时间戳
      * @param endTime 结束时间戳
      * @param type 统计类型 (d: 日报, m: 月报, y: 年报)
+     * @param currentUserId 当前用户ID
+     * @param currentUserType 当前用户类型
      * @return 日报表数据列表
      */
-    List<DailyReportDTO> getDailyReportStats(Long startTime, Long endTime, String type);
+    List<DailyReportDTO> getDailyReportStats(Long startTime, Long endTime, String type, Long currentUserId, Integer currentUserType);
 
     /**
      * 获取数量统计分析图数据
      * @param startTime 开始时间戳
      * @param endTime 结束时间戳
      * @param type 统计类型 (d: 日, w: 周, m: 月)
+     * @param currentUserId 当前用户ID
+     * @param currentUserType 当前用户类型
      * @return 数量统计分析数据列表
      */
-    List<QuantityAnalysisDTO> getQuantityAnalysisData(Long startTime, Long endTime, String type);
+    List<QuantityAnalysisDTO> getQuantityAnalysisData(Long startTime, Long endTime, String type, Long currentUserId, Integer currentUserType);
 }

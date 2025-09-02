@@ -6,15 +6,29 @@
     <!-- 获取充值订单统计 -->
     <select id="getChargeOrderStats" resultType="map">
         SELECT 
-            COALESCE(SUM(CASE WHEN state = 1 THEN amount ELSE 0 END), 0) as chargeOrderAmount,
+            COALESCE(SUM(CASE WHEN co.state = 1 THEN co.amount ELSE 0 END), 0) as chargeOrderAmount,
             COUNT(*) as charge_order_cnt
-        FROM tb_charge_order
+        FROM tb_charge_order co
+        LEFT JOIN tb_user u ON co.user_id = u.id
         <where>
+            <!-- 权限筛选：根据当前用户类型限制查询范围 -->
+            <if test="currentUserId != null and currentUserId != ''">
+                <if test="currentUserType != null and currentUserType == 1">
+                    <!-- 代理用户：只能查看自己代理的用户充值数据 -->
+                    AND u.agent = #{currentUserId}
+                </if>
+                <if test="currentUserType != null and currentUserType == 2">
+                    <!-- 业务员用户：只能查看自己负责的用户充值数据 -->
+                    AND u.salesmanid = #{currentUserId}
+                </if>
+                <!-- type=0是系统管理员，可以查看所有数据，不需要添加权限限制 -->
+            </if>
+            
             <if test="startTime != null">
-                AND create_time >= FROM_UNIXTIME(#{startTime}/1000)
+                AND co.create_time >= FROM_UNIXTIME(#{startTime}/1000)
             </if>
             <if test="endTime != null">
-                AND create_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                AND co.create_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
             </if>
         </where>
     </select>
@@ -22,15 +36,29 @@
     <!-- 获取提现订单统计 -->
     <select id="getWithdrawOrderStats" resultType="map">
         SELECT 
-            COALESCE(SUM(CASE WHEN state = 1 THEN amount ELSE 0 END), 0) as withdrawOrderAmount,
+            COALESCE(SUM(CASE WHEN wo.state = 1 THEN wo.amount ELSE 0 END), 0) as withdrawOrderAmount,
             COUNT(*) as withdraw_order_cnt
-        FROM tb_withdraw_order
+        FROM tb_withdraw_order wo
+        LEFT JOIN tb_user u ON wo.user_id = u.id
         <where>
+            <!-- 权限筛选：根据当前用户类型限制查询范围 -->
+            <if test="currentUserId != null and currentUserId != ''">
+                <if test="currentUserType != null and currentUserType == 1">
+                    <!-- 代理用户：只能查看自己代理的用户提现数据 -->
+                    AND u.agent = #{currentUserId}
+                </if>
+                <if test="currentUserType != null and currentUserType == 2">
+                    <!-- 业务员用户：只能查看自己负责的用户提现数据 -->
+                    AND u.salesmanid = #{currentUserId}
+                </if>
+                <!-- type=0是系统管理员，可以查看所有数据，不需要添加权限限制 -->
+            </if>
+            
             <if test="startTime != null">
-                AND create_time >= FROM_UNIXTIME(#{startTime}/1000)
+                AND wo.create_time >= FROM_UNIXTIME(#{startTime}/1000)
             </if>
             <if test="endTime != null">
-                AND create_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                AND wo.create_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
             </if>
         </where>
     </select>
@@ -38,31 +66,58 @@
     <!-- 获取项目统计 -->
     <select id="getProjectStats" resultType="map">
         SELECT 
-            COUNT(CASE WHEN status = 1 THEN 1 END) as online_privilege_cnt,
-            (SELECT COUNT(*) FROM tb_investment_record 
+            COUNT(CASE WHEN p.status = 1 THEN 1 END) as online_privilege_cnt,
+            (SELECT COUNT(*) FROM tb_investment_record ir
+             LEFT JOIN tb_user u ON ir.user_id = u.id
              <where>
+                 <!-- 权限筛选：根据当前用户类型限制查询范围 -->
+                 <if test="currentUserId != null and currentUserId != ''">
+                     <if test="currentUserType != null and currentUserType == 1">
+                         <!-- 代理用户：只能查看自己代理的用户投资数据 -->
+                         AND u.agent = #{currentUserId}
+                     </if>
+                     <if test="currentUserType != null and currentUserType == 2">
+                         <!-- 业务员用户：只能查看自己负责的用户投资数据 -->
+                         AND u.salesmanid = #{currentUserId}
+                     </if>
+                     <!-- type=0是系统管理员，可以查看所有数据，不需要添加权限限制 -->
+                 </if>
+                 
                  <if test="startTime != null">
-                     AND order_date >= FROM_UNIXTIME(#{startTime}/1000)
+                     AND ir.order_date >= FROM_UNIXTIME(#{startTime}/1000)
                  </if>
                  <if test="endTime != null">
-                     AND order_date &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                     AND ir.order_date &lt;= FROM_UNIXTIME(#{endTime}/1000)
                  </if>
              </where>
             ) as privilege_cnt
-        FROM tb_project
+        FROM tb_project p
     </select>
 
     <!-- 获取用户注册统计 -->
     <select id="getUserRegistrationStats" resultType="map">
         SELECT 
             COUNT(*) as zc_cnt
-        FROM tb_user
+        FROM tb_user u
         <where>
+            <!-- 权限筛选：根据当前用户类型限制查询范围 -->
+            <if test="currentUserId != null and currentUserId != ''">
+                <if test="currentUserType != null and currentUserType == 1">
+                    <!-- 代理用户：只能查看自己代理的用户注册数据 -->
+                    AND u.agent = #{currentUserId}
+                </if>
+                <if test="currentUserType != null and currentUserType == 2">
+                    <!-- 业务员用户：只能查看自己负责的用户注册数据 -->
+                    AND u.salesmanid = #{currentUserId}
+                </if>
+                <!-- type=0是系统管理员，可以查看所有数据，不需要添加权限限制 -->
+            </if>
+            
             <if test="startTime != null">
-                AND create_date >= FROM_UNIXTIME(#{startTime}/1000)
+                AND u.create_date >= FROM_UNIXTIME(#{startTime}/1000)
             </if>
             <if test="endTime != null">
-                AND create_date &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                AND u.create_date &lt;= FROM_UNIXTIME(#{endTime}/1000)
             </if>
         </where>
     </select>
@@ -70,15 +125,29 @@
     <!-- 获取销售总额统计 -->
     <select id="getSalesAmountStats" resultType="map">
         SELECT
-        COALESCE(SUM(investment_amount), 0) AS xs_amount
+        COALESCE(SUM(ir.investment_amount), 0) AS xs_amount
         FROM
-        tb_investment_record
+        tb_investment_record ir
+        LEFT JOIN tb_user u ON ir.user_id = u.id
         <where>
+            <!-- 权限筛选：根据当前用户类型限制查询范围 -->
+            <if test="currentUserId != null and currentUserId != ''">
+                <if test="currentUserType != null and currentUserType == 1">
+                    <!-- 代理用户：只能查看自己代理的用户销售数据 -->
+                    AND u.agent = #{currentUserId}
+                </if>
+                <if test="currentUserType != null and currentUserType == 2">
+                    <!-- 业务员用户：只能查看自己负责的用户销售数据 -->
+                    AND u.salesmanid = #{currentUserId}
+                </if>
+                <!-- type=0是系统管理员，可以查看所有数据，不需要添加权限限制 -->
+            </if>
+            
             <if test="startTime != null">
-                AND order_date >= FROM_UNIXTIME(#{startTime}/1000)
+                AND ir.order_date >= FROM_UNIXTIME(#{startTime}/1000)
             </if>
             <if test="endTime != null">
-                AND order_date &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                AND ir.order_date &lt;= FROM_UNIXTIME(#{endTime}/1000)
             </if>
         </where>
     </select>
@@ -92,48 +161,90 @@
             COALESCE(SUM(CASE WHEN source = 'investment' THEN amount ELSE 0 END), 0) as totalOrders
         FROM (
             SELECT 
-                create_time as date_column,
+                co.create_time as date_column,
                 'charge' as source,
-                CASE WHEN state = 1 THEN amount ELSE 0 END as amount
-            FROM tb_charge_order
+                CASE WHEN co.state = 1 THEN co.amount ELSE 0 END as amount
+            FROM tb_charge_order co
+            LEFT JOIN tb_user u ON co.user_id = u.id
             <where>
+                <!-- 权限筛选：根据当前用户类型限制查询范围 -->
+                <if test="currentUserId != null and currentUserId != ''">
+                    <if test="currentUserType != null and currentUserType == 1">
+                        <!-- 代理用户：只能查看自己代理的用户充值数据 -->
+                        AND u.agent = #{currentUserId}
+                    </if>
+                    <if test="currentUserType != null and currentUserType == 2">
+                        <!-- 业务员用户：只能查看自己负责的用户充值数据 -->
+                        AND u.salesmanid = #{currentUserId}
+                    </if>
+                    <!-- type=0是系统管理员，可以查看所有数据，不需要添加权限限制 -->
+                </if>
+                
                 <if test="startTime != null">
-                    AND create_time >= FROM_UNIXTIME(#{startTime}/1000)
+                    AND co.create_time >= FROM_UNIXTIME(#{startTime}/1000)
                 </if>
                 <if test="endTime != null">
-                    AND create_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                    AND co.create_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
                 </if>
             </where>
             
             UNION ALL
             
             SELECT 
-                create_time as date_column,
+                wo.create_time as date_column,
                 'withdraw' as source,
-                CASE WHEN state = 1 THEN amount ELSE 0 END as amount
-            FROM tb_withdraw_order
+                CASE WHEN wo.state = 1 THEN wo.amount ELSE 0 END as amount
+            FROM tb_withdraw_order wo
+            LEFT JOIN tb_user u ON wo.user_id = u.id
             <where>
+                <!-- 权限筛选：根据当前用户类型限制查询范围 -->
+                <if test="currentUserId != null and currentUserId != ''">
+                    <if test="currentUserType != null and currentUserType == 1">
+                        <!-- 代理用户：只能查看自己代理的用户提现数据 -->
+                        AND u.agent = #{currentUserId}
+                    </if>
+                    <if test="currentUserType != null and currentUserType == 2">
+                        <!-- 业务员用户：只能查看自己负责的用户提现数据 -->
+                        AND u.salesmanid = #{currentUserId}
+                    </if>
+                    <!-- type=0是系统管理员，可以查看所有数据，不需要添加权限限制 -->
+                </if>
+                
                 <if test="startTime != null">
-                    AND create_time >= FROM_UNIXTIME(#{startTime}/1000)
+                    AND wo.create_time >= FROM_UNIXTIME(#{startTime}/1000)
                 </if>
                 <if test="endTime != null">
-                    AND create_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                    AND wo.create_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
                 </if>
             </where>
             
             UNION ALL
             
             SELECT 
-                order_date as date_column,
+                ir.order_date as date_column,
                 'investment' as source,
-                investment_amount as amount
-            FROM tb_investment_record
+                ir.investment_amount as amount
+            FROM tb_investment_record ir
+            LEFT JOIN tb_user u ON ir.user_id = u.id
             <where>
+                <!-- 权限筛选：根据当前用户类型限制查询范围 -->
+                <if test="currentUserId != null and currentUserId != ''">
+                    <if test="currentUserType != null and currentUserType == 1">
+                        <!-- 代理用户：只能查看自己代理的用户投资数据 -->
+                        AND u.agent = #{currentUserId}
+                    </if>
+                    <if test="currentUserType != null and currentUserType == 2">
+                        <!-- 业务员用户：只能查看自己负责的用户投资数据 -->
+                        AND u.salesmanid = #{currentUserId}
+                    </if>
+                    <!-- type=0是系统管理员，可以查看所有数据，不需要添加权限限制 -->
+                </if>
+                
                 <if test="startTime != null">
-                    AND order_date >= FROM_UNIXTIME(#{startTime}/1000)
+                    AND ir.order_date >= FROM_UNIXTIME(#{startTime}/1000)
                 </if>
                 <if test="endTime != null">
-                    AND order_date &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                    AND ir.order_date &lt;= FROM_UNIXTIME(#{endTime}/1000)
                 </if>
             </where>
         ) combined_data
@@ -155,73 +266,128 @@
                 FROM (
                     <!-- 新增注册会员 -->
                     SELECT 
-                        DATE_FORMAT(create_date, '%Y-%m-%d') as date_column,
+                        DATE_FORMAT(u.create_date, '%Y-%m-%d') as date_column,
                         'register' as source,
                         COUNT(*) as cnt
-                    FROM tb_user
+                    FROM tb_user u
                     <where>
+                        <!-- 权限筛选：根据当前用户类型限制查询范围 -->
+                        <if test="currentUserId != null and currentUserId != ''">
+                            <if test="currentUserType != null and currentUserType == 1">
+                                <!-- 代理用户：只能查看自己代理的用户注册数据 -->
+                                AND u.agent = #{currentUserId}
+                            </if>
+                            <if test="currentUserType != null and currentUserType == 2">
+                                <!-- 业务员用户：只能查看自己负责的用户注册数据 -->
+                                AND u.salesmanid = #{currentUserId}
+                            </if>
+                            <!-- type=0是系统管理员，可以查看所有数据，不需要添加权限限制 -->
+                        </if>
+                        
                         <if test="startTime != null">
-                            AND create_date >= FROM_UNIXTIME(#{startTime}/1000)
+                            AND u.create_date >= FROM_UNIXTIME(#{startTime}/1000)
                         </if>
                         <if test="endTime != null">
-                            AND create_date &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                            AND u.create_date &lt;= FROM_UNIXTIME(#{endTime}/1000)
                         </if>
                     </where>
-                    GROUP BY DATE_FORMAT(create_date, '%Y-%m-%d')
+                    GROUP BY DATE_FORMAT(u.create_date, '%Y-%m-%d')
                     
                     UNION ALL
                     
                     <!-- 新增充值会员 -->
                     SELECT 
-                        DATE_FORMAT(create_time, '%Y-%m-%d') as date_column,
+                        DATE_FORMAT(co.create_time, '%Y-%m-%d') as date_column,
                         'recharge' as source,
-                        COUNT(DISTINCT user_id) as cnt
-                    FROM tb_charge_order
+                        COUNT(DISTINCT co.user_id) as cnt
+                    FROM tb_charge_order co
+                    LEFT JOIN tb_user u ON co.user_id = u.id
                     <where>
+                        <!-- 权限筛选：根据当前用户类型限制查询范围 -->
+                        <if test="currentUserId != null and currentUserId != ''">
+                            <if test="currentUserType != null and currentUserType == 1">
+                                <!-- 代理用户：只能查看自己代理的用户充值数据 -->
+                                AND u.agent = #{currentUserId}
+                            </if>
+                            <if test="currentUserType != null and currentUserType == 2">
+                                <!-- 业务员用户：只能查看自己负责的用户充值数据 -->
+                                AND u.salesmanid = #{currentUserId}
+                            </if>
+                            <!-- type=0是系统管理员，可以查看所有数据，不需要添加权限限制 -->
+                        </if>
+                        
                         <if test="startTime != null">
-                            AND create_time >= FROM_UNIXTIME(#{startTime}/1000)
+                            AND co.create_time >= FROM_UNIXTIME(#{startTime}/1000)
                         </if>
                         <if test="endTime != null">
-                            AND create_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                            AND co.create_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
                         </if>
                     </where>
-                    GROUP BY DATE_FORMAT(create_time, '%Y-%m-%d')
+                    GROUP BY DATE_FORMAT(co.create_time, '%Y-%m-%d')
                     
                     UNION ALL
                     
                     <!-- 充值订单数 -->
                     SELECT 
-                        DATE_FORMAT(create_time, '%Y-%m-%d') as date_column,
+                        DATE_FORMAT(co.create_time, '%Y-%m-%d') as date_column,
                         'order' as source,
                         COUNT(*) as cnt
-                    FROM tb_charge_order
+                    FROM tb_charge_order co
+                    LEFT JOIN tb_user u ON co.user_id = u.id
                     <where>
+                        <!-- 权限筛选：根据当前用户类型限制查询范围 -->
+                        <if test="currentUserId != null and currentUserId != ''">
+                            <if test="currentUserType != null and currentUserType == 1">
+                                <!-- 代理用户：只能查看自己代理的用户充值订单数据 -->
+                                AND u.agent = #{currentUserId}
+                            </if>
+                            <if test="currentUserType != null and currentUserType == 2">
+                                <!-- 业务员用户：只能查看自己负责的用户充值订单数据 -->
+                                AND u.salesmanid = #{currentUserId}
+                            </if>
+                            <!-- type=0是系统管理员，可以查看所有数据，不需要添加权限限制 -->
+                        </if>
+                        
                         <if test="startTime != null">
-                            AND create_time >= FROM_UNIXTIME(#{startTime}/1000)
+                            AND co.create_time >= FROM_UNIXTIME(#{startTime}/1000)
                         </if>
                         <if test="endTime != null">
-                            AND create_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                            AND co.create_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
                         </if>
                     </where>
-                    GROUP BY DATE_FORMAT(create_time, '%Y-%m-%d')
+                    GROUP BY DATE_FORMAT(co.create_time, '%Y-%m-%d')
                     
                     UNION ALL
                     
                     <!-- 签到人数 -->
                     SELECT 
-                        DATE_FORMAT(sign_time, '%Y-%m-%d') as date_column,
+                        DATE_FORMAT(usi.sign_time, '%Y-%m-%d') as date_column,
                         'signin' as source,
-                        COUNT(DISTINCT user_id) as cnt
-                    FROM tb_user_sign_in
+                        COUNT(DISTINCT usi.user_id) as cnt
+                    FROM tb_user_sign_in usi
+                    LEFT JOIN tb_user u ON usi.user_id = u.id
                     <where>
+                        <!-- 权限筛选：根据当前用户类型限制查询范围 -->
+                        <if test="currentUserId != null and currentUserId != ''">
+                            <if test="currentUserType != null and currentUserType == 1">
+                                <!-- 代理用户：只能查看自己代理的用户签到数据 -->
+                                AND u.agent = #{currentUserId}
+                            </if>
+                            <if test="currentUserType != null and currentUserType == 2">
+                                <!-- 业务员用户：只能查看自己负责的用户签到数据 -->
+                                AND u.salesmanid = #{currentUserId}
+                            </if>
+                            <!-- type=0是系统管理员，可以查看所有数据，不需要添加权限限制 -->
+                        </if>
+                        
                         <if test="startTime != null">
-                            AND sign_time >= FROM_UNIXTIME(#{startTime}/1000)
+                            AND usi.sign_time >= FROM_UNIXTIME(#{startTime}/1000)
                         </if>
                         <if test="endTime != null">
-                            AND sign_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
+                            AND usi.sign_time &lt;= FROM_UNIXTIME(#{endTime}/1000)
                         </if>
                     </where>
-                    GROUP BY DATE_FORMAT(sign_time, '%Y-%m-%d')
+                    GROUP BY DATE_FORMAT(usi.sign_time, '%Y-%m-%d')
                 ) combined_data
                 GROUP BY date_column
                 ORDER BY date_column
