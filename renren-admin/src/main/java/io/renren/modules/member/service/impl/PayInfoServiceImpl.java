@@ -10,6 +10,8 @@ import io.renren.modules.member.dao.PayInfoDao;
 import io.renren.modules.member.dto.PayInfoDTO;
 import io.renren.modules.member.entity.PayInfoEntity;
 import io.renren.modules.member.service.PayInfoService;
+import io.renren.modules.security.user.SecurityUser;
+import io.renren.modules.security.user.UserDetail;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +47,13 @@ public class PayInfoServiceImpl extends CrudServiceImpl<PayInfoDao, PayInfoEntit
         }
         if (params.get(Constant.LIMIT) != null) {
             limit = Long.parseLong((String) params.get(Constant.LIMIT));
+        }
+        
+        // 添加权限控制参数
+        UserDetail user = SecurityUser.getUser();
+        if (user != null) {
+            params.put("currentUserId", user.getId());
+            params.put("currentUserType", user.getType());
         }
         
         // 创建分页对象，注意这里使用PayInfoDTO作为泛型

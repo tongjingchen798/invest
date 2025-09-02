@@ -25,18 +25,31 @@
 --             m.agent_name as agentName,
             m.salesman_name as salesmanName,
             m.channel
-        FROM tb_pay_info pi
-        LEFT JOIN tb_user m ON pi.user_id = m.id
-        <where>
-            <if test="params.payName != null and params.payName != ''">
-                AND pi.pay_name LIKE CONCAT('%', #{params.payName}, '%')
-            </if>
-            <if test="params.payNo != null and params.payNo != ''">
-                AND pi.pay_no LIKE CONCAT('%', #{params.payNo}, '%')
-            </if>
-            <if test="params.mobile != null and params.mobile != ''">
-                AND pi.mobile LIKE CONCAT('%', #{params.mobile}, '%')
-            </if>
+                 FROM tb_pay_info pi
+         LEFT JOIN tb_user m ON pi.user_id = m.id
+         <where>
+             <!-- 权限筛选：根据当前用户类型限制查询范围 -->
+             <if test="params.currentUserId != null and params.currentUserId != ''">
+                 <if test="params.currentUserType != null and params.currentUserType == 1">
+                     <!-- 代理用户：只能查看自己代理的用户数据 -->
+                     AND m.agent = #{params.currentUserId}
+                 </if>
+                 <if test="params.currentUserType != null and params.currentUserType == 2">
+                     <!-- 业务员用户：只能查看自己负责的用户数据 -->
+                     AND m.salesmanid = #{params.currentUserId}
+                 </if>
+             </if>
+             
+             <if test="params.payName != null and params.payName != ''">
+                 AND pi.pay_name LIKE CONCAT('%', #{params.payName}, '%')
+             </if>
+             <if test="params.payNo != null and params.payNo != ''">
+                 AND pi.pay_no LIKE CONCAT('%', #{params.payNo}, '%')
+             </if>
+             <if test="params.mobile != null and params.mobile != ''">
+                 AND pi.mobile LIKE CONCAT('%', #{params.mobile}, '%')
+             </if>
+            
 <!--            <if test="params.ifsc != null and params.ifsc != ''">-->
 <!--                AND pi.ifsc = #{params.ifsc}-->
 <!--            </if>-->
