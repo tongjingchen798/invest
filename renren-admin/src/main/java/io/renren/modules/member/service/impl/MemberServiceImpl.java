@@ -14,6 +14,8 @@ import io.renren.modules.member.dto.FissionRewardDTO;
 import io.renren.modules.member.dto.MemberInfoDTO;
 import io.renren.modules.member.entity.MemberEntity;
 import io.renren.modules.member.service.MemberService;
+import io.renren.modules.security.user.SecurityUser;
+import io.renren.modules.security.user.UserDetail;
 import io.renren.modules.sys.dao.SysUserDao;
 import io.renren.modules.sys.entity.SysUserEntity;
 import lombok.extern.slf4j.Slf4j;
@@ -96,6 +98,17 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
         // 渠道筛选
         if (StringUtils.isNotBlank(channel)) {
             queryWrapper.eq("channel", channel);
+        }
+
+        UserDetail user = SecurityUser.getUser();
+        if(user != null){
+            if(user.getType() > 0){
+                if(user.getType() == 1){
+                    queryWrapper.eq("agent", user.getId());
+                } else {
+                    queryWrapper.eq("salesmanid", user.getId());
+                }
+            }
         }
         
         // 充值筛选
