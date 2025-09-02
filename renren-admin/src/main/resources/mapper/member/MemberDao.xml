@@ -3,40 +3,218 @@
 
 <mapper namespace="io.renren.modules.member.dao.MemberDao">
 
+    <!-- 自定义分页查询会员信息，支持多表关联查询和权限筛选 -->
+    <select id="selectMemberPage" resultType="io.renren.modules.member.dto.MemberInfoDTO">
+        SELECT 
+            m.id,
+            m.mobile,
+            m.username,
+            m.password,
+            m.assets as balance,
+            m.freeze_balance as freezeBalance,
+            m.charge_sum as chargeSum,
+            m.withdraw_sum as withdrawSum,
+            m.history_investment as historyInvestment,
+            m.history_profit as historyProfit,
+            m.commission_balance as commissionBalance,
+            m.tgrs,
+            m.invite_code as inviteCode,
+            m.upinvite_code as upinviteCode,
+            m.agent,
+            m.agent_name as agentName,
+            m.salesmanid,
+            m.salesman_name as salesmanName,
+            m.channel,
+            m.biaoqian,
+            m.vip,
+            m.status,
+            m.invite_code_status as inviteCodeStatus,
+            m.reward_withdraw_status as rewardWithdrawStatus,
+            m.tz_withdraw_status as tzWithdrawStatus,
+            m.create_date as createDate
+        FROM tb_user m
+        <where>
+            <!-- 权限筛选：根据当前用户类型限制查询范围 -->
+            <if test="params.currentUserId != null and params.currentUserId != ''">
+                <if test="params.currentUserType != null and params.currentUserType == 1">
+                    <!-- 代理用户：只能查看自己代理的用户数据 -->
+                    AND m.agent = #{params.currentUserId}
+                </if>
+                <if test="params.currentUserType != null and params.currentUserType == 2">
+                    <!-- 业务员用户：只能查看自己负责的用户数据 -->
+                    AND m.salesmanid = #{params.currentUserId}
+                </if>
+                <!-- type=0是系统管理员，可以查看所有数据，不需要添加权限限制 -->
+            </if>
+            
+            <!-- 基础查询条件 -->
+            <if test="params.mobile != null and params.mobile != ''">
+                AND m.mobile LIKE CONCAT('%', #{params.mobile}, '%')
+            </if>
+            <if test="params.username != null and params.username != ''">
+                AND m.username LIKE CONCAT('%', #{params.username}, '%')
+            </if>
+
+            <if test="params.inviteCode != null and params.inviteCode != ''">
+                AND m.invite_code LIKE CONCAT('%', #{params.inviteCode}, '%')
+            </if>
+
+            <if test="params.channel != null and params.channel != ''">
+                AND m.channel = #{params.channel}
+            </if>
+            <if test="params.biaoqian != null and params.biaoqian != ''">
+                AND m.biaoqian = #{params.biaoqian}
+            </if>
+            <if test="params.vip != null and params.vip != ''">
+                AND m.vip = #{params.vip}
+            </if>
+            
+            <!-- 余额筛选 -->
+            <if test="params.balanceFlag != null and params.balanceFlag != ''">
+                <if test="params.balanceFlag == '1'">
+                    <!-- 有余额 -->
+                    AND m.assets > 0
+                </if>
+                <if test="params.balanceFlag == '0'">
+                    <!-- 无余额 -->
+                    AND m.assets = 0
+                </if>
+            </if>
+            
+            <!-- 标签存在性筛选 -->
+            <if test="params.biaoqianFlag != null and params.biaoqianFlag != ''">
+                <if test="params.biaoqianFlag == '1'">
+                    <!-- 有标签 -->
+                    AND m.biaoqian IS NOT NULL AND m.biaoqian != ''
+                </if>
+                <if test="params.biaoqianFlag == '0'">
+                    <!-- 无标签 -->
+                    AND (m.biaoqian IS NULL OR m.biaoqian = '')
+                </if>
+            </if>
+            
+            <!-- 充值筛选 -->
+            <if test="params.chargeFlag != null and params.chargeFlag != ''">
+                <if test="params.chargeFlag == '1'">
+                    <!-- 有充值 -->
+                    AND m.charge_sum > 0
+                </if>
+                <if test="params.chargeFlag == '0'">
+                    <!-- 无充值 -->
+                    AND m.charge_sum = 0
+                </if>
+            </if>
+            
+            <!-- 投资筛选 -->
+            <if test="params.tzFlag != null and params.tzFlag != ''">
+                <if test="params.tzFlag == '1'">
+                    <!-- 有投资 -->
+                    AND m.history_investment > 0
+                </if>
+                <if test="params.tzFlag == '0'">
+                    <!-- 无投资 -->
+                    AND m.history_investment = 0
+                </if>
+            </if>
+            
+            <!-- 提现筛选 -->
+            <if test="params.withdrawFlag != null and params.withdrawFlag != ''">
+                <if test="params.withdrawFlag == '1'">
+                    <!-- 有提现 -->
+                    AND m.withdraw_sum > 0
+                </if>
+                <if test="params.withdrawFlag == '0'">
+                    <!-- 无提现 -->
+                    AND m.withdraw_sum = 0
+                </if>
+            </if>
+            
+            <!-- 裂变筛选 -->
+            <if test="params.liebian != null and params.liebian != ''">
+                <if test="params.liebian == '1'">
+                    <!-- 是裂变 -->
+                    AND m.tgrs > 0
+                </if>
+                <if test="params.liebian == '0'">
+                    <!-- 否裂变 -->
+                    AND m.tgrs = 0
+                </if>
+            </if>
+            
+
+            <!-- 时间范围查询 -->
+            <if test="params.startTime != null and params.startTime != ''">
+                AND m.create_date >= FROM_UNIXTIME(#{params.startTime}/1000)
+            </if>
+            <if test="params.endTime != null and params.endTime != ''">
+                AND m.create_date &lt;= FROM_UNIXTIME(#{params.endTime}/1000)
+            </if>
+        </where>
+        ORDER BY 
+        <choose>
+            <when test="params.orderField != null and params.orderField != ''">
+                <choose>
+                    <when test="params.orderField == 'createDate'">m.create_date</when>
+                    <when test="params.orderField == 'updateDate'">m.update_date</when>
+                    <when test="params.orderField == 'mobile'">m.mobile</when>
+                    <when test="params.orderField == 'username'">m.username</when>
+                    <when test="params.orderField == 'balance'">m.assets</when>
+                    <when test="params.orderField == 'chargeSum'">m.charge_sum</when>
+                    <when test="params.orderField == 'withdrawSum'">m.withdraw_sum</when>
+                    <when test="params.orderField == 'historyInvestment'">m.history_investment</when>
+                    <when test="params.orderField == 'historyProfit'">m.history_profit</when>
+                    <when test="params.orderField == 'commissionBalance'">m.commission_balance</when>
+                    <when test="params.orderField == 'vip'">m.vip</when>
+                    <when test="params.orderField == 'agent'">m.agent</when>
+                    <when test="params.orderField == 'salesmanid'">m.salesmanid</when>
+                    <otherwise>m.create_date</otherwise>
+                </choose>
+                <choose>
+                    <when test="params.order != null and params.order == 'asc'">ASC</when>
+                    <otherwise>DESC</otherwise>
+                </choose>
+            </when>
+            <otherwise>
+                m.create_date DESC
+            </otherwise>
+        </choose>
+    </select>
+
+
     <!-- 查询结算报表分页数据 -->
     <select id="getSettlementReport" resultType="io.renren.modules.member.dto.SettlementReportDTO">
-        SELECT 
-            u.agent,
-            MAX(u.agent_name) as agentName,
-            COALESCE(SUM(c.amount), 0) as czRealAmount,
-            COALESCE(SUM(c.amount), 0) - COALESCE(SUM(w.inputamount), 0) as lr,
-            MAX(u.salesman_name) as salesmanName,
-            u.salesmanid,
-            COALESCE(SUM(w.inputamount), 0) as txRealAmount
+        SELECT
+        u.agent,
+        MAX(u.agent_name) as agentName,
+        COALESCE(SUM(c.amount), 0) as czRealAmount,
+        COALESCE(SUM(c.amount), 0) - COALESCE(SUM(w.inputamount), 0) as lr,
+        MAX(u.salesman_name) as salesmanName,
+        u.salesmanid,
+        COALESCE(SUM(w.inputamount), 0) as txRealAmount
         FROM tb_user u
-        LEFT JOIN tb_charge_order c ON u.id = c.user_id 
-            AND c.state = 1 
-            <if test="params.startTime != null">
-                AND c.create_time &gt;= FROM_UNIXTIME(#{params.startTime} / 1000)
-            </if>
-            <if test="params.endTime != null">
-                AND c.create_time &lt;= FROM_UNIXTIME(#{params.endTime} / 1000)
-            </if>
-        LEFT JOIN tb_withdraw_order w ON u.id = w.user_id 
-            AND w.state IN (1, 2) 
-            <if test="params.startTime != null">
-                AND w.create_time &gt;= FROM_UNIXTIME(#{params.startTime} / 1000)
-            </if>
-            <if test="params.endTime != null">
-                AND w.create_time &lt;= FROM_UNIXTIME(#{params.endTime} / 1000)
-            </if>
+        LEFT JOIN tb_charge_order c ON u.id = c.user_id
+        AND c.state = 1
+        <if test="params.startTime != null">
+            AND c.create_time &gt;= FROM_UNIXTIME(#{params.startTime} / 1000)
+        </if>
+        <if test="params.endTime != null">
+            AND c.create_time &lt;= FROM_UNIXTIME(#{params.endTime} / 1000)
+        </if>
+        LEFT JOIN tb_withdraw_order w ON u.id = w.user_id
+        AND w.state IN (1, 2)
+        <if test="params.startTime != null">
+            AND w.create_time &gt;= FROM_UNIXTIME(#{params.startTime} / 1000)
+        </if>
+        <if test="params.endTime != null">
+            AND w.create_time &lt;= FROM_UNIXTIME(#{params.endTime} / 1000)
+        </if>
         WHERE 1=1
-            <if test="params.agent != null">
-                AND u.agent = #{params.agent}
-            </if>
-            <if test="params.salesmanid != null">
-                AND u.salesmanid = #{params.salesmanid}
-            </if>
+        <if test="params.agent != null">
+            AND u.agent = #{params.agent}
+        </if>
+        <if test="params.salesmanid != null">
+            AND u.salesmanid = #{params.salesmanid}
+        </if>
         GROUP BY u.agent, u.salesmanid
         <if test="params.orderField != null and params.order != null">
             ORDER BY ${params.orderField} ${params.order}
@@ -51,12 +229,13 @@
         SELECT COUNT(DISTINCT CONCAT(u.agent, '-', u.salesmanid))
         FROM tb_user u
         WHERE 1=1
-            <if test="params.agent != null">
-                AND u.agent = #{params.agent}
-            </if>
-            <if test="params.salesmanid != null">
-                AND u.salesmanid = #{params.salesmanid}
-            </if>
+        <if test="params.agent != null">
+            AND u.agent = #{params.agent}
+        </if>
+        <if test="params.salesmanid != null">
+            AND u.salesmanid = #{params.salesmanid}
+        </if>
     </select>
+
 
 </mapper>

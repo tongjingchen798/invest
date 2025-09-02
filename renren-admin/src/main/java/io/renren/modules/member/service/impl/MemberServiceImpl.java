@@ -210,6 +210,36 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
     }
 
     @Override
+    public PageData<MemberInfoDTO> customMemberPage(Map<String, Object> params) {
+        // 创建MyBatis-Plus分页对象
+        long curPage = 1;
+        long limit = 10;
+
+        if (params.get(Constant.PAGE) != null) {
+            curPage = Long.parseLong((String) params.get(Constant.PAGE));
+        }
+        if (params.get(Constant.LIMIT) != null) {
+            limit = Long.parseLong((String) params.get(Constant.LIMIT));
+        }
+        
+        // 添加权限控制参数
+        UserDetail user = SecurityUser.getUser();
+        if (user != null) {
+            params.put("currentUserId", user.getId());
+            params.put("currentUserType", user.getType());
+        }
+        
+        // 创建分页对象，注意这里使用MemberInfoDTO作为泛型
+        Page<MemberInfoDTO> page = new Page<>(curPage, limit);
+        
+        // 调用自定义的XML查询方法
+        IPage<MemberInfoDTO> pageResult = baseDao.selectMemberPage(page, params);
+        
+        // 转换为PageData格式
+        return new PageData<>(pageResult.getRecords(), pageResult.getTotal());
+    }
+
+    @Override
     public PageData<SettlementReportDTO> getSettlementReport(Integer page, Integer limit, Long agent, 
         Long endTime, String order, String orderField, Long salesmanid, Long startTime) {
         

@@ -5,6 +5,7 @@ import io.renren.common.utils.Result;
 import io.renren.modules.member.dto.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 会员查询管理
@@ -44,6 +45,13 @@ public interface MemberService {
                                            Long endTime, Integer liebian, String mobile, String order, String orderField,
                                            Long salesmanid, Long startTime, Integer tzFlag, String username, 
                                            Integer vip, Integer viplr, Integer withdrawFlag);
+
+    /**
+     * 自定义分页查询会员信息，支持多表关联查询和权限筛选
+     * @param params 查询参数
+     * @return 分页数据
+     */
+    PageData<MemberInfoDTO> customMemberPage(Map<String, Object> params);
 
     /**
      * 获取结算报表分页数据
