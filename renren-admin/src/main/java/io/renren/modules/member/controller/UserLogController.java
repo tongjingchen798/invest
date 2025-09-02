@@ -49,7 +49,8 @@ public class UserLogController {
     })
 //    @RequiresPermissions("sys:userlog:page")
     public Result<PageData<UserLogDTO>> page(@ApiIgnore @RequestParam Map<String, Object> params){
-        PageData<UserLogDTO> page = userLogService.page(params);
+        
+        PageData<UserLogDTO> page = userLogService.customPage(params);
 
         return new Result<PageData<UserLogDTO>>().ok(page);
     }
