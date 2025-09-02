@@ -70,5 +70,7 @@ public class PayInfoDTO implements Serializable {
 	@ApiModelProperty(value = "业务员ID")
 	private String salesmanid;
 
+	private String salesmanName;
+
 
 }

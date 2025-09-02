@@ -12,6 +12,8 @@ import io.renren.common.validator.group.DefaultGroup;
 import io.renren.common.validator.group.UpdateGroup;
 import io.renren.modules.member.dto.PayInfoDTO;
 import io.renren.modules.member.service.PayInfoService;
+import io.renren.modules.security.user.SecurityUser;
+import io.renren.modules.security.user.UserDetail;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -49,8 +51,7 @@ public class PayInfoController {
     })
 //    @RequiresPermissions("sys:payinfo:page")
     public Result<PageData<PayInfoDTO>> page(@ApiIgnore @RequestParam Map<String, Object> params){
-        PageData<PayInfoDTO> page = payInfoService.page(params);
-
+        PageData<PayInfoDTO> page = payInfoService.customPage(params);
         return new Result<PageData<PayInfoDTO>>().ok(page);
     }
 

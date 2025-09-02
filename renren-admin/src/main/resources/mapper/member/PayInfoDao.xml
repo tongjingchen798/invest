@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.member.dao.PayInfoDao">
+
+    <!-- 自定义分页查询，支持多表关联查询 -->
+    <select id="selectPayInfoPage" resultType="io.renren.modules.member.dto.PayInfoDTO">
+        SELECT 
+            pi.id,
+            pi.user_id as userId,
+            pi.blank_code as blankCode,
+            pi.blank_name as blankName,
+            pi.pay_name as payName,
+            pi.pay_no as payNo,
+            pi.mobile,
+            pi.ifsc,
+            pi.state,
+            pi.sort_v as sortV,
+            pi.create_time as createTime,
+            pi.oper_time as operTime,
+            pi.oper_code as operCode,
+            pi.state_time as stateTime,
+            m.agent,
+            m.salesmanid,
+--             m.agent_name as agentName,
+            m.salesman_name as salesmanName,
+            m.channel
+        FROM tb_pay_info pi
+        LEFT JOIN tb_user m ON pi.user_id = m.id
+        <where>
+            <if test="params.payName != null and params.payName != ''">
+                AND pi.pay_name LIKE CONCAT('%', #{params.payName}, '%')
+            </if>
+            <if test="params.payNo != null and params.payNo != ''">
+                AND pi.pay_no LIKE CONCAT('%', #{params.payNo}, '%')
+            </if>
+            <if test="params.mobile != null and params.mobile != ''">
+                AND pi.mobile LIKE CONCAT('%', #{params.mobile}, '%')
+            </if>
+<!--            <if test="params.ifsc != null and params.ifsc != ''">-->
+<!--                AND pi.ifsc = #{params.ifsc}-->
+<!--            </if>-->
+<!--            <if test="params.state != null and params.state != ''">-->
+<!--                AND pi.state = #{params.state}-->
+<!--            </if>-->
+<!--            <if test="params.operCode != null and params.operCode != ''">-->
+<!--                AND pi.oper_code = #{params.operCode}-->
+<!--            </if>-->
+<!--            <if test="params.agent != null and params.agent != ''">-->
+<!--                AND m.agent = #{params.agent}-->
+<!--            </if>-->
+<!--            <if test="params.salesmanid != null and params.salesmanid != ''">-->
+<!--                AND m.salesmanid = #{params.salesmanid}-->
+<!--            </if>-->
+<!--            <if test="params.channel != null and params.channel != ''">-->
+<!--                AND m.channel = #{params.channel}-->
+<!--            </if>-->
+<!--            <if test="params.startTime != null and params.startTime != ''">-->
+<!--                AND pi.create_time >= FROM_UNIXTIME(#{params.startTime}/1000)-->
+<!--            </if>-->
+<!--            <if test="params.endTime != null and params.endTime != ''">-->
+<!--                AND pi.create_time &lt;= FROM_UNIXTIME(#{params.endTime}/1000)-->
+<!--            </if>-->
+        </where>
+        ORDER BY  pi.create_time DESC
+    </select>
+
+</mapper>

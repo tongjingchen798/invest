@@ -76,6 +76,8 @@ public class ApiPayInfoController {
         
         // 设置创建时间
         entity.setCreateTime(new Date());
+        entity.setOperTime(new Date());
+        entity.setOperCode("sys");
         
         // 设置默认状态
         entity.setState(1);
