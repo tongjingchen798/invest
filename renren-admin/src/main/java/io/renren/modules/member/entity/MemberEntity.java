@@ -309,19 +309,19 @@ public class MemberEntity implements Serializable {
     private Long toDaywithdrawCount;
 
     /**
-     * 今日提现额度(分)
+     * 今日佣金提现总额(分)
      */
     @TableField("to_daywithdraw_quota")
     private Long toDaywithdrawQuota;
 
     /**
-     * 提现次数
+     * 佣金提现次数
      */
     @TableField("withdraw_count")
     private Long withdrawCount;
 
     /**
-     * 提现额度(分)
+     * 佣金提现总额(分)
      */
     @TableField("withdraw_quota")
     private Long withdrawQuota;

@@ -31,6 +31,10 @@
         m.today_recharge AS todayRecharge,
         m.today_withdraw as todayWithdraw,
         m.today_profit,
+        m.sy_sum,
+        m.history_ua_profit,
+        m.history_ub_profit,
+        m.history_uc_profit,
         COALESCE((
         SELECT COUNT(*)
         FROM tb_investment_record ir

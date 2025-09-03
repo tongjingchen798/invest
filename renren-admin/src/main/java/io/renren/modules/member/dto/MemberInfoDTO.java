@@ -137,7 +137,7 @@ public class MemberInfoDTO implements Serializable {
     @ApiModelProperty(value = "今日充提差（今日充值-今日提现）")
     private Long toDayctc;
 
-    @ApiModelProperty(value = "今日佣金提现总数")
+    @ApiModelProperty(value = "今日佣金提现总次数")
     private Long toDaywithdrawCount;
 
     @ApiModelProperty(value = "今日佣金提现总额")
@@ -194,10 +194,10 @@ public class MemberInfoDTO implements Serializable {
     @ApiModelProperty(value = "VIP等级范围")
     private Integer viplr;
 
-    @ApiModelProperty(value = "历史佣金提现总数")
+    @ApiModelProperty(value = "历史佣金提现总次数")
     private Long withdrawCount;
 
-    @ApiModelProperty(value = "历史佣金提现总额")
+    @ApiModelProperty(value = "佣金提现总额")
     private Long withdrawQuota;
 
     @ApiModelProperty(value = "历史总提现")
