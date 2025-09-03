@@ -55,7 +55,7 @@ public class MemberEntity implements Serializable {
     private String inviteCode;
 
     /**
-     * 上级邀请码
+     * 上级邀请码(重复了)
      */
     @TableField("upinvite_code")
     private String upinviteCode;
@@ -82,17 +82,17 @@ public class MemberEntity implements Serializable {
     @TableField("salesman_name")
     private String salesmanName;
 
-//    /**
-//     * 上级名称
-//     */
-//    @TableField("superior_name")
-//    private String superiorName;
+   /**
+    * 上级名称
+    */
+   @TableField("superior_name")
+   private String superiorName;
 
-//    /**
-//     * 上级邀请码
-//     */
-//    @TableField("superior_code")
-//    private String superiorCode;
+   /**
+    * 上级邀请码
+    */
+   @TableField("superior_code")
+   private String superiorCode;
 
     /**
      * 客户渠道号

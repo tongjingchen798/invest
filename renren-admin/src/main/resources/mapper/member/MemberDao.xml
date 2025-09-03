@@ -26,6 +26,7 @@
         m.salesmanid,
         salesman_user.username as salesmanName,
         m.channel,
+        m.tz_withdraw_status,
         m.equipment,
         m.today_recharge AS todayRecharge,
         m.today_withdraw as todayWithdraw,
