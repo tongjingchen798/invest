@@ -205,4 +205,6 @@ public class MemberInfoDTO implements Serializable {
 
     @ApiModelProperty(value = "是否裂变(0否1是)")
     private Integer liebian;
+
+
 }

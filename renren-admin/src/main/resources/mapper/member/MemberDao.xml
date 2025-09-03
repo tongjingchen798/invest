@@ -5,43 +5,56 @@
 
     <!-- 自定义分页查询会员信息，支持多表关联查询和权限筛选 -->
     <select id="selectMemberPage" resultType="io.renren.modules.member.dto.MemberInfoDTO">
-        SELECT 
-            m.id,
-            m.mobile,
-            m.username,
-            m.password,
-            m.assets as balance,
-            m.freeze_balance as freezeBalance,
-            m.charge_sum as chargeSum,
-            m.withdraw_sum as withdrawSum,
-            m.history_investment as historyInvestment,
-            m.history_profit as historyProfit,
-            m.commission_balance as commissionBalance,
-            m.tgrs,
-            m.invite_code as inviteCode,
-            m.upinvite_code as upinviteCode,
-            m.agent,
-            m.agent_name as agentName,
-            m.salesmanid,
-            m.salesman_name as salesmanName,
-            m.channel,
-            m.biaoqian,
-            m.vip,
-            m.uacnt,
-            m.ubcnt,
-            m.uccnt,
-            m.status,
-            m.invite_code_status as inviteCodeStatus,
-            m.reward_withdraw_status as rewardWithdrawStatus,
-            m.tz_withdraw_status as tzWithdrawStatus,
-            m.create_date as createDate,
-            COALESCE((
-                SELECT COUNT(*)
-                FROM tb_investment_record ir
-                WHERE ir.user_id = m.id
-                AND DATE(ir.order_date) = CURDATE()
-            ), 0) as todayInvestment
+        SELECT
+        m.id,
+        m.mobile,
+        m.username,
+        m.password,
+        m.register_ip,
+        m.assets as balance,
+        m.freeze_balance as freezeBalance,
+        m.charge_sum as chargeSum,
+        m.withdraw_sum as withdrawSum,
+        m.history_investment as historyInvestment,
+        m.history_profit as historyProfit,
+        m.commission_balance as commissionBalance,
+        m.tgrs,
+        m.invite_code as inviteCode,
+        m.upinvite_code as upinviteCode,
+        m.agent,
+        agent_user.username as agentName,
+        m.salesmanid,
+        salesman_user.username as salesmanName,
+        m.channel,
+        m.equipment,
+        m.today_recharge AS todayRecharge,
+        m.today_withdraw as todayWithdraw,
+        m.today_profit,
+        COALESCE((
+        SELECT COUNT(*)
+        FROM tb_investment_record ir
+        WHERE ir.user_id = m.id ), 0) as historyInvestment,
+        m.biaoqian,
+        m.vip,
+        m.uacnt,
+        m.cashwithdrawable,
+        m.ubcnt,
+        m.uccnt,
+        m.status,
+        m.superior_code as superiorCode,
+        m.invite_code_status as inviteCodeStatus,
+        m.reward_withdraw_status as rewardWithdrawStatus,
+        m.tz_withdraw_status as tzWithdrawStatus,
+        m.create_date as createDate,
+        COALESCE((
+        SELECT COUNT(*)
+        FROM tb_investment_record ir
+        WHERE ir.user_id = m.id
+        AND DATE(ir.order_date) = CURDATE()
+        ), 0) as todayInvestment
         FROM tb_user m
+        LEFT JOIN sys_user agent_user ON m.agent = agent_user.id
+        LEFT JOIN sys_user salesman_user ON m.salesmanid = salesman_user.id
         <where>
             <!-- 权限筛选：根据当前用户类型限制查询范围 -->
             <if test="params.currentUserId != null and params.currentUserId != ''">

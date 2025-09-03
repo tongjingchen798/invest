@@ -98,8 +98,10 @@ public class ApiRegisterController {
 //                user.setAgentName(allocationResult.getAgentName());
             }else {
                 user.setUpinviteCode(dto.getInviteCode());
+                user.setSuperiorCode(dto.getInviteCode());
                 UserEntity userEntity=userDao.selectByInviteCode(dto.getInviteCode());
                 if (Objects.nonNull(userEntity)) {
+                    user.setSuperiorName(userEntity.getMobile());
                     // 设置业务员信息
                     user.setSalesmanid(userEntity.getSalesmanid());
                     user.setSalesmanName(userEntity.getSalesmanName());
