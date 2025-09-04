@@ -64,4 +64,12 @@ public interface SysUserService extends BaseService<SysUserEntity> {
 	 * 根据部门ID,查询用户Id列表
 	 */
 	List<Long> getUserIdListByDeptId(List<Long> deptIdList);
+
+	/**
+	 * 检查代理用户是否有权限删除指定的业务员
+	 * @param agentId 代理用户ID
+	 * @param userIds 要删除的用户ID列表
+	 * @return true表示有权限，false表示无权限
+	 */
+	boolean checkAgentDeletePermission(Long agentId, List<Long> userIds);
 }

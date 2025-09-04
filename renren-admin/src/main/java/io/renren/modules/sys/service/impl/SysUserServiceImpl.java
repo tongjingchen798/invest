@@ -189,4 +189,28 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDao, SysUserEntit
 	public List<Long> getUserIdListByDeptId(List<Long> deptIdList) {
 		return baseDao.getUserIdListByDeptId(deptIdList);
 	}
+
+	@Override
+	public boolean checkAgentDeletePermission(Long agentId, List<Long> userIds) {
+		if (agentId == null || userIds == null || userIds.isEmpty()) {
+			return false;
+		}
+		
+		// 查询要删除的用户信息
+		List<SysUserEntity> users = baseDao.selectBatchIds(userIds);
+		
+		// 检查所有用户是否都是该代理名下的业务员
+		for (SysUserEntity user : users) {
+			// 用户类型必须是业务员(type=2)
+			if (user.getType() == null || user.getType() != 2) {
+				return false;
+			}
+			// 代理ID必须等于当前代理用户ID
+			if (user.getAgent() == null || !user.getAgent().equals(agentId)) {
+				return false;
+			}
+		}
+		
+		return true;
+	}
 }

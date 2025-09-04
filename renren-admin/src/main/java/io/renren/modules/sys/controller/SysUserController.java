@@ -120,6 +120,41 @@ public class SysUserController {
 		//效验数据
 //		ValidatorUtils.validateEntity(dto, AddGroup.class, DefaultGroup.class);
 
+		// 权限控制：检查当前用户类型
+		UserDetail currentUser = SecurityUser.getUser();
+		if (currentUser == null) {
+			return new Result().error("用户未登录");
+		}
+
+		// 获取当前用户类型
+		Integer currentUserType = currentUser.getType();
+		Long currentUserId = currentUser.getId();
+
+		// 权限控制逻辑
+		if (currentUserType == 1) {
+			// 代理用户：只能创建业务员(type=2)，且agent字段必须等于当前用户ID
+			if (dto.getType() == null || dto.getType() != 2) {
+				return new Result().error("代理只能创建业务员");
+			}
+			if (dto.getAgent() == null || !dto.getAgent().equals(currentUserId)) {
+				return new Result().error("代理只能创建自己名下的业务员");
+			}
+		} else if (currentUserType == 2) {
+			// 业务员：不能创建其他用户
+			return new Result().error("业务员无权限创建用户");
+		} else if (currentUserType == 0) {
+			// 系统管理员：可以创建所有类型的用户
+			// 如果创建的是业务员，需要设置正确的代理ID
+			if (dto.getType() != null && dto.getType() == 2) {
+				if (dto.getAgent() == null) {
+					return new Result().error("创建业务员时必须指定代理ID");
+				}
+			}
+		} else {
+			// 其他类型用户：无权限
+			return new Result().error("无权限创建用户");
+		}
+
 		sysUserService.save(dto);
 
 		return new Result();
@@ -133,6 +168,41 @@ public class SysUserController {
 		//效验数据
 		ValidatorUtils.validateEntity(dto, UpdateGroup.class, DefaultGroup.class);
 
+		// 权限控制：检查当前用户类型
+		UserDetail currentUser = SecurityUser.getUser();
+		if (currentUser == null) {
+			return new Result().error("用户未登录");
+		}
+
+		// 获取当前用户类型
+		Integer currentUserType = currentUser.getType();
+		Long currentUserId = currentUser.getId();
+
+		// 权限控制逻辑
+		if (currentUserType == 1) {
+			// 代理用户：只能修改自己名下的业务员
+			if (dto.getType() == null || dto.getType() != 2) {
+				return new Result().error("代理只能修改业务员");
+			}
+			if (dto.getAgent() == null || !dto.getAgent().equals(currentUserId)) {
+				return new Result().error("代理只能修改自己名下的业务员");
+			}
+		} else if (currentUserType == 2) {
+			// 业务员：不能修改其他用户
+			return new Result().error("业务员无权限修改用户");
+		} else if (currentUserType == 0) {
+			// 系统管理员：可以修改所有类型的用户
+			// 如果修改的是业务员，需要设置正确的代理ID
+			if (dto.getType() != null && dto.getType() == 2) {
+				if (dto.getAgent() == null) {
+					return new Result().error("修改业务员时必须指定代理ID");
+				}
+			}
+		} else {
+			// 其他类型用户：无权限
+			return new Result().error("无权限修改用户");
+		}
+
 		sysUserService.update(dto);
 
 		return new Result();
@@ -145,6 +215,32 @@ public class SysUserController {
 	public Result delete(@RequestBody Long[] ids){
 		//效验数据
 		AssertUtils.isArrayEmpty(ids, "id");
+
+		// 权限控制：检查当前用户类型
+		UserDetail currentUser = SecurityUser.getUser();
+		if (currentUser == null) {
+			return new Result().error("用户未登录");
+		}
+
+		// 获取当前用户类型
+		Integer currentUserType = currentUser.getType();
+		Long currentUserId = currentUser.getId();
+
+		// 权限控制逻辑
+		if (currentUserType == 1) {
+			// 代理用户：只能删除自己名下的业务员
+			if (!sysUserService.checkAgentDeletePermission(currentUserId, Arrays.asList(ids))) {
+				return new Result().error("代理只能删除自己名下的业务员");
+			}
+		} else if (currentUserType == 2) {
+			// 业务员：不能删除其他用户
+			return new Result().error("业务员无权限删除用户");
+		} else if (currentUserType == 0) {
+			// 系统管理员：可以删除所有类型的用户
+		} else {
+			// 其他类型用户：无权限
+			return new Result().error("无权限删除用户");
+		}
 
 		sysUserService.deleteBatchIds(Arrays.asList(ids));
 
