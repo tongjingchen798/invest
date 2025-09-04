@@ -54,4 +54,11 @@ public interface MemberDao extends BaseMapper<MemberEntity> {
      */
     Map<String, Object> selectFissionRewardSummary(@Param("params") Map<String, Object> params);
 
+    /**
+     * 统计结算报表汇总数据
+     * @param params 查询参数
+     * @return 汇总数据
+     */
+    Map<String, Object> selectSettlementReportSummary(@Param("params") Map<String, Object> params);
+
 }

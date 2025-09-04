@@ -253,6 +253,13 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             params.put("orderField", orderField);
             params.put("salesmanid", salesmanid);
             params.put("startTime", startTime);
+            
+            // 添加权限控制参数
+            UserDetail user = SecurityUser.getUser();
+            if (user != null) {
+                params.put("currentUserId", user.getId());
+                params.put("currentUserType", user.getType());
+            }
 
             // 创建MyBatis-Plus分页对象
             Page<SettlementReportDTO> pageParam = new Page<>(page, limit);
@@ -260,9 +267,13 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             // 调用DAO查询结算报表数据（MyBatis-Plus自动处理分页）
             Page<SettlementReportDTO> result = baseDao.getSettlementReport(pageParam, params);
             
-            // 转换为PageData格式
-            PageData<SettlementReportDTO> pageData = new PageData<>(result.getRecords(), result.getTotal());
+            // 统计汇总数据
+            Map<String, Object> summaryData = baseDao.selectSettlementReportSummary(params);
             
+            // 转换为PageData格式（包含汇总数据）
+            PageData<SettlementReportDTO> pageData = new PageData<>(result.getRecords(), result.getTotal(), summaryData);
+            
+            log.info("结算报表查询成功，共 {} 条记录，汇总数据: {}", result.getTotal(), summaryData);
             return pageData;
             
         } catch (Exception e) {
