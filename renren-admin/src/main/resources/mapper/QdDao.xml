@@ -114,4 +114,68 @@
         </choose>
     </select>
 
+    <!-- 统计签到记录汇总数据 -->
+    <select id="selectQdRecordSummary" resultType="map">
+        SELECT
+        COALESCE(SUM(q.reward_amount), 0) AS amount
+        FROM tb_user_sign_in q
+        LEFT JOIN tb_user u ON q.user_id = u.id
+        LEFT JOIN sys_user agent_user ON u.agent = agent_user.id
+        LEFT JOIN sys_user salesman_user ON u.salesmanid = salesman_user.id
+        WHERE q.status = 1
+        <if test="params.mobile != null and params.mobile != ''">
+            AND u.mobile LIKE CONCAT('%', #{params.mobile}, '%')
+        </if>
+        <if test="params.username != null and params.username != ''">
+            AND u.username LIKE CONCAT('%', #{params.username}, '%')
+        </if>
+        <if test="params.agent != null">
+            AND u.agent = #{params.agent}
+        </if>
+        <if test="params.salesmanid != null">
+            AND u.salesmanid = #{params.salesmanid}
+        </if>
+        <if test="params.biaoqian != null and params.biaoqian != ''">
+            AND u.biaoqian LIKE CONCAT('%', #{params.biaoqian}, '%')
+        </if>
+        <if test="params.biaoqianFlag != null">
+            <choose>
+                <when test="params.biaoqianFlag == 1">
+                    AND u.biaoqian IS NOT NULL AND u.biaoqian != ''
+                </when>
+                <when test="params.biaoqianFlag == 0">
+                    AND (u.biaoqian IS NULL OR u.biaoqian = '')
+                </when>
+            </choose>
+        </if>
+        <if test="params.liebian != null">
+            <choose>
+                <when test="params.liebian == 1">
+                    <!-- 是裂变 - 有上级 -->
+                    AND u.superior_name IS NOT NULL AND u.superior_name != ''
+                </when>
+                <when test="params.liebian == 0">
+                    <!-- 否裂变 - 无上级 -->
+                    AND (u.superior_name IS NULL OR u.superior_name = '')
+                </when>
+            </choose>
+        </if>
+        <if test="params.startTime != null">
+            AND q.sign_time >= FROM_UNIXTIME(#{params.startTime}/1000)
+        </if>
+        <if test="params.endTime != null">
+            AND q.sign_time &lt;= FROM_UNIXTIME(#{params.endTime}/1000)
+        </if>
+        
+        <!-- 权限筛选 -->
+        <if test="params.currentUserId != null and params.currentUserId != ''">
+            <if test="params.currentUserType != null and params.currentUserType == 1">
+                AND u.agent = #{params.currentUserId}
+            </if>
+            <if test="params.currentUserType != null and params.currentUserType == 2">
+                AND u.salesmanid = #{params.currentUserId}
+            </if>
+        </if>
+    </select>
+
 </mapper>

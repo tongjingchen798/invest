@@ -63,8 +63,11 @@ public class QdServiceImpl implements QdService {
             // 执行分页查询，直接传递参数给DAO
             IPage<QdRecordDTO> resultPage = qdDao.selectQdRecordPage(page, params);
             
-            // 转换为PageData
-            return new PageData<>(resultPage.getRecords(), resultPage.getTotal());
+            // 统计汇总数据
+            Map<String, Object> summaryData = qdDao.selectQdRecordSummary(params);
+            
+            // 转换为PageData（包含汇总数据）
+            return new PageData<>(resultPage.getRecords(), resultPage.getTotal(), summaryData);
             
         } catch (Exception e) {
             log.error("查询签到记录失败", e);

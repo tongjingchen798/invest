@@ -25,4 +25,11 @@ public interface QdDao {
      */
     IPage<QdRecordDTO> selectQdRecordPage(@Param("page") Page<QdRecordDTO> page, 
                                           @Param("params") Map<String, Object> params);
+
+    /**
+     * 统计签到记录汇总数据
+     * @param params 查询参数
+     * @return 汇总数据
+     */
+    Map<String, Object> selectQdRecordSummary(@Param("params") Map<String, Object> params);
 }
