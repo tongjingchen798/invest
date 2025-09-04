@@ -123,6 +123,16 @@ public class ApiRegisterController {
         user.setCreateDate(new Date());
         userService.insert(user);
 
+        // 更新邀请人和邀请人上级的会员数
+        try {
+            if (dto.getInviteCode() != null && !dto.getInviteCode().trim().isEmpty()) {
+                updateInviterMemberCounts(dto.getInviteCode());
+            }
+        } catch (Exception e) {
+            log.error("更新邀请人会员数时发生异常，用户ID: {}, 邀请码: {}", user.getId(), dto.getInviteCode(), e);
+            // 不影响注册流程，只记录日志
+        }
+
         // 处理推荐返利
         try {
             if (dto.getInviteCode() != null && !dto.getInviteCode().trim().isEmpty()) {
@@ -221,5 +231,44 @@ public class ApiRegisterController {
         // 模拟发送成功
         System.out.println("向手机号 " + mobile + " 发送验证码: " + code);
         return true;
+    }
+
+    /**
+     * 更新邀请人和邀请人上级的会员数
+     * @param inviteCode 邀请码
+     */
+    private void updateInviterMemberCounts(String inviteCode) {
+        try {
+            // 查找邀请人
+            UserEntity inviter = userDao.selectByInviteCode(inviteCode);
+            if (inviter != null) {
+                // 更新邀请人的一级会员数
+                userDao.updateUacnt(inviter.getId());
+                log.info("更新邀请人 {} 的一级会员数", inviter.getId());
+                
+                // 查找邀请人的上级（二级邀请人）
+                if (inviter.getUpinviteCode() != null && !inviter.getUpinviteCode().trim().isEmpty()) {
+                    UserEntity secondLevelInviter = userDao.selectByInviteCode(inviter.getUpinviteCode());
+                    if (secondLevelInviter != null) {
+                        // 更新二级邀请人的二级会员数
+                        userDao.updateUbcnt(secondLevelInviter.getId());
+                        log.info("更新二级邀请人 {} 的二级会员数", secondLevelInviter.getId());
+                        
+                        // 查找二级邀请人的上级（三级邀请人）
+                        if (secondLevelInviter.getUpinviteCode() != null && !secondLevelInviter.getUpinviteCode().trim().isEmpty()) {
+                            UserEntity thirdLevelInviter = userDao.selectByInviteCode(secondLevelInviter.getUpinviteCode());
+                            if (thirdLevelInviter != null) {
+                                // 更新三级邀请人的三级会员数
+                                userDao.updateUccnt(thirdLevelInviter.getId());
+                                log.info("更新三级邀请人 {} 的三级会员数", thirdLevelInviter.getId());
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("更新邀请人会员数时发生异常，邀请码: {}", inviteCode, e);
+            throw e;
+        }
     }
 }

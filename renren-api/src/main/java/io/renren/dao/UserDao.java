@@ -202,4 +202,28 @@ public interface UserDao extends BaseDao<UserEntity> {
             "today_commission = today_commission + #{commissionAmount} " +
             "WHERE id = #{userId}")
     int updateCommissionFields(@Param("userId") Long userId, @Param("commissionAmount") long commissionAmount);
+
+    /**
+     * 更新用户一级会员数
+     * @param userId 用户ID
+     * @return 影响行数
+     */
+    @Update("UPDATE tb_user SET uacnt = uacnt + 1 WHERE id = #{userId}")
+    int updateUacnt(@Param("userId") Long userId);
+
+    /**
+     * 更新用户二级会员数
+     * @param userId 用户ID
+     * @return 影响行数
+     */
+    @Update("UPDATE tb_user SET ubcnt = ubcnt + 1 WHERE id = #{userId}")
+    int updateUbcnt(@Param("userId") Long userId);
+
+    /**
+     * 更新用户三级会员数
+     * @param userId 用户ID
+     * @return 影响行数
+     */
+    @Update("UPDATE tb_user SET uccnt = uccnt + 1 WHERE id = #{userId}")
+    int updateUccnt(@Param("userId") Long userId);
 }
