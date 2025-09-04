@@ -45,7 +45,7 @@ public class FissionRewardDTO implements Serializable {
     private Integer gz;
 
     /**
-     * 用户的投资金额
+     * 充值金额
      */
     private Integer investmentAmount;
 

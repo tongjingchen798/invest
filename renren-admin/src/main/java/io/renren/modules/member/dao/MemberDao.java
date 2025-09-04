@@ -3,6 +3,7 @@ package io.renren.modules.member.dao;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.renren.modules.member.dto.FissionRewardDTO;
 import io.renren.modules.member.entity.MemberEntity;
 import io.renren.modules.member.dto.MemberInfoDTO;
 import io.renren.modules.member.dto.SettlementReportDTO;
@@ -37,5 +38,13 @@ public interface MemberDao extends BaseMapper<MemberEntity> {
      * @return 分页结果
      */
     Page<SettlementReportDTO> getSettlementReport(Page<SettlementReportDTO> page, @Param("params") Map<String, Object> params);
+
+    /**
+     * 查询会员裂变佣金
+     * @param page
+     * @param params
+     * @return
+     */
+    IPage<FissionRewardDTO> selectMemberFissionRewardPage(Page<FissionRewardDTO> page, @Param("params") Map<String, Object> params);
 
 }

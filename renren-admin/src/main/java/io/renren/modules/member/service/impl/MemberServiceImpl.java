@@ -26,6 +26,8 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 import io.renren.modules.member.dto.SettlementReportDTO;
 import io.renren.modules.finance.entity.UserBalanceDetailEntity;
@@ -839,137 +841,12 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
                                                            Integer rewardFlag, Long salesmanid, Long startTime,
                                                            Integer xjFlag, Integer ytrewardFlag, Integer zcFlag) {
         try {
-            log.info("开始查询裂变佣金，页码: {}, 每页记录数: {}, 代理: {}, 手机号: {}, 排序: {}", 
-                    page, limit, agent, mobile, order);
-            
-            // 创建MyBatis-Plus分页对象
-            Page<MemberEntity> pageParam = new Page<>(page, limit);
-            
-            // 构建查询条件
-            QueryWrapper<MemberEntity> queryWrapper = new QueryWrapper<>();
-            
-            // 代理筛选
-            if (agent != null) {
-                queryWrapper.eq("agent", agent);
-            }
-            
-            // 标签筛选
-            if (StringUtils.isNotBlank(biaoqian)) {
-                queryWrapper.eq("biaoqian", biaoqian);
-            }
-            
-            // 标签存在性筛选
-            if (biaoqianFlag != null) {
-                if (biaoqianFlag == 1) {
-                    queryWrapper.isNotNull("biaoqian").ne("biaoqian", ""); // 有标签
-                } else if (biaoqianFlag == 0) {
-                    queryWrapper.and(wrapper -> wrapper.isNull("biaoqian").or().eq("biaoqian", "")); // 无标签
-                }
-            }
-            
-            // CCE3返佣筛选 - 字段不存在，暂时跳过
-            // if (cce3Flag != null) {
-            //     if (cce3Flag == 1) {
-            //         queryWrapper.gt("cce3fl", 0); // 有CCE3返佣
-            //     } else if (cce3Flag == 0) {
-            //         queryWrapper.eq("cce3fl", 0); // 无CCE3返佣
-            //     }
-            // }
-            
-            // 工资筛选 - 字段不存在，暂时跳过
-            // if (gzFlag != null) {
-            //     if (gzFlag == 1) {
-            //         queryWrapper.gt("gz", 0); // 有工资
-            //     } else if (gzFlag == 0) {
-            //         queryWrapper.eq("gz", 0); // 无工资
-            //     }
-            // }
-            
-            // 浏览筛选 - 字段不存在，暂时跳过
-            // if (llFlag != null) {
-            //     if (llFlag == 1) {
-            //         queryWrapper.gt("fxfl", 0); // 有访问奖励
-            //     } else if (llFlag == 0) {
-            //         queryWrapper.eq("fxfl", 0); // 无访问奖励
-            //     }
-            // }
-            
-            // 手机号筛选
-            if (StringUtils.isNotBlank(mobile)) {
-                queryWrapper.like("mobile", mobile);
-            }
-            
-            // 佣金余额筛选
-            if (rewardFlag != null) {
-                if (rewardFlag == 1) {
-                    queryWrapper.gt("commission_balance", 0); // 有佣金余额
-                } else if (rewardFlag == 0) {
-                    queryWrapper.eq("commission_balance", 0); // 无佣金余额
-                }
-            }
-            
-            // 业务员筛选
-            if (salesmanid != null) {
-                queryWrapper.eq("salesmanid", salesmanid);
-            }
-            
-            // 下级筛选
-            if (xjFlag != null) {
-                if (xjFlag == 1) {
-                    queryWrapper.gt("tgrs", 0); // 有下级
-                } else if (xjFlag == 0) {
-                    queryWrapper.eq("tgrs", 0); // 无下级
-                }
-            }
-            
-            // 已提佣金筛选 - 字段不存在，暂时跳过
-            // if (ytrewardFlag != null) {
-            //     if (ytrewardFlag == 1) {
-            //         queryWrapper.gt("yt_reward", 0); // 有已提佣金
-            //     } else if (ytrewardFlag == 0) {
-            //         queryWrapper.eq("yt_reward", 0); // 无已提佣金
-            //     }
-            // }
-            
-            // 注册筛选 - 字段不存在，暂时跳过
-            // if (zcFlag != null) {
-            //     if (zcFlag == 1) {
-            //         queryWrapper.gt("zcfl", 0); // 有注册奖励
-            //     } else if (zcFlag == 0) {
-            //         queryWrapper.eq("zcfl", 0); // 无注册奖励
-            //     }
-            // }
-            
-            // 时间范围筛选
-            if (startTime != null) {
-                queryWrapper.ge("create_time", new Date(startTime));
-            }
-            if (endTime != null) {
-                queryWrapper.le("create_time", new Date(endTime));
-            }
-            
-            // 排序处理
-            if (StringUtils.isNotBlank(order)) {
-                if (Constant.DESC.equalsIgnoreCase(order)) {
-                    queryWrapper.orderByDesc("create_time");
-                } else {
-                    queryWrapper.orderByAsc("create_time");
-                }
-            } else {
-                // 默认按创建时间倒序排序
-                queryWrapper.orderByDesc("create_date");
-            }
-            
-            // 执行分页查询
-            IPage<MemberEntity> pageResult = baseDao.selectPage(pageParam, queryWrapper);
-            
-            // 转换为DTO
-            List<FissionRewardDTO> dtoList = pageResult.getRecords().stream()
-                .map(this::convertToFissionRewardDTO)
-                .collect(java.util.stream.Collectors.toList());
+            Page<FissionRewardDTO> pageInfo = new Page<>(page, limit);
+            Map<String, Object> params = buildFissionRewardParamsMap(agent, biaoqian, biaoqianFlag, cce3Flag, endTime, gzFlag, llFlag, mobile, order, rewardFlag, salesmanid, startTime, xjFlag, ytrewardFlag, zcFlag);
+            IPage<FissionRewardDTO> pageResult = baseDao.selectMemberFissionRewardPage(pageInfo, params);
             
             // 创建分页数据对象
-            PageData<FissionRewardDTO> pageData = new PageData<>(dtoList, pageResult.getTotal());
+            PageData<FissionRewardDTO> pageData = new PageData<>(pageResult.getRecords(), pageResult.getTotal());
             
             log.info("裂变佣金查询成功，共 {} 条记录", pageResult.getTotal());
             return pageData;
@@ -1016,6 +893,42 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
         dto.setXjzhCnt(entity.getTgrs() != null ? entity.getTgrs().intValue() : 0);
         
         return dto;
+    }
+
+    /**
+     * 构建裂变佣金查询参数Map
+     */
+    private Map<String, Object> buildFissionRewardParamsMap(Long agent, String biaoqian, Integer biaoqianFlag, 
+                                                           Integer cce3Flag, Long endTime, Integer gzFlag, 
+                                                           Integer llFlag, String mobile, String order, 
+                                                           Integer rewardFlag, Long salesmanid, Long startTime, 
+                                                           Integer xjFlag, Integer ytrewardFlag, Integer zcFlag) {
+        Map<String, Object> params = new HashMap<>();
+        
+        if (agent != null) params.put("agent", agent);
+        if (StringUtils.isNotBlank(biaoqian)) params.put("biaoqian", biaoqian);
+        if (biaoqianFlag != null) params.put("biaoqianFlag", biaoqianFlag);
+        if (cce3Flag != null) params.put("cce3Flag", cce3Flag);
+        if (endTime != null) params.put("endTime", endTime);
+        if (gzFlag != null) params.put("gzFlag", gzFlag);
+        if (llFlag != null) params.put("llFlag", llFlag);
+        if (StringUtils.isNotBlank(mobile)) params.put("mobile", mobile);
+        if (StringUtils.isNotBlank(order)) params.put("order", order);
+        if (rewardFlag != null) params.put("rewardFlag", rewardFlag);
+        if (salesmanid != null) params.put("salesmanid", salesmanid);
+        if (startTime != null) params.put("startTime", startTime);
+        if (xjFlag != null) params.put("xjFlag", xjFlag);
+        if (ytrewardFlag != null) params.put("ytrewardFlag", ytrewardFlag);
+        if (zcFlag != null) params.put("zcFlag", zcFlag);
+        
+        // 添加当前用户权限信息
+        UserDetail user = SecurityUser.getUser();
+        if (user != null) {
+            params.put("currentUserId", user.getId());
+            params.put("currentUserType", user.getType());
+        }
+        
+        return params;
     }
 
     @Override
