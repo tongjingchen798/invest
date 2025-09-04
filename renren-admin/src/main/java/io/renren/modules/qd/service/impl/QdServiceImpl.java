@@ -6,6 +6,8 @@ import io.renren.common.page.PageData;
 import io.renren.modules.qd.dao.QdDao;
 import io.renren.modules.qd.dto.QdRecordDTO;
 import io.renren.modules.qd.service.QdService;
+import io.renren.modules.security.user.SecurityUser;
+import io.renren.modules.security.user.UserDetail;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -46,6 +48,13 @@ public class QdServiceImpl implements QdService {
                 } catch (NumberFormatException e) {
                     size = 10;
                 }
+            }
+            
+            // 添加权限控制参数
+            UserDetail user = SecurityUser.getUser();
+            if (user != null) {
+                params.put("currentUserId", user.getId());
+                params.put("currentUserType", user.getType());
             }
             
             // 创建分页对象

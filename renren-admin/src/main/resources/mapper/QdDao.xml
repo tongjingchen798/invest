@@ -5,6 +5,7 @@
 
     <!-- 分页查询签到记录（关联用户表） -->
     <select id="selectQdRecordPage" resultType="io.renren.modules.qd.dto.QdRecordDTO">
+
         SELECT
         q.id,
         q.user_id as userId,
@@ -15,15 +16,9 @@
         q.user_id as creator,
         u.mobile,
         u.agent as agent,
-        CASE
-        WHEN u.agent IS NOT NULL THEN CONCAT('代理', u.agent)
-        ELSE ''
-        END as agentName,
+        agent_user.username as agentName,
         u.salesmanid as salesmanid,
-        CASE
-        WHEN u.salesmanid IS NOT NULL THEN CONCAT('业务员', u.salesmanid)
-        ELSE ''
-        END as salesmanName,
+        salesman_user.username as salesmanName,
         CASE
         WHEN q.continuous_days = 1 THEN 1
         WHEN q.continuous_days = 2 THEN 2
@@ -46,6 +41,8 @@
         END as inviteCodeStatus
         FROM tb_user_sign_in q
         LEFT JOIN tb_user u ON q.user_id = u.id
+        LEFT JOIN sys_user agent_user ON u.agent = agent_user.id
+        LEFT JOIN sys_user salesman_user ON u.salesmanid = salesman_user.id
         WHERE q.status = 1
         <if test="params.mobile != null and params.mobile != ''">
             AND u.mobile LIKE CONCAT('%', #{params.mobile}, '%')
@@ -54,10 +51,10 @@
             AND u.username LIKE CONCAT('%', #{params.username}, '%')
         </if>
         <if test="params.agent != null">
-            AND u.agent_id = #{params.agent}
+            AND u.agent = #{params.agent}
         </if>
         <if test="params.salesmanid != null">
-            AND u.salesman_id = #{params.salesmanid}
+            AND u.salesmanid = #{params.salesmanid}
         </if>
         <if test="params.biaoqian != null and params.biaoqian != ''">
             AND u.biaoqian LIKE CONCAT('%', #{params.biaoqian}, '%')
@@ -73,13 +70,32 @@
             </choose>
         </if>
         <if test="params.liebian != null">
-            AND u.liebian = #{params.liebian}
+            <choose>
+                <when test="params.liebian == 1">
+                    <!-- 是裂变 - 有上级 -->
+                    AND u.superior_name IS NOT NULL AND u.superior_name != ''
+                </when>
+                <when test="params.liebian == 0">
+                    <!-- 否裂变 - 无上级 -->
+                    AND (u.superior_name IS NULL OR u.superior_name = '')
+                </when>
+            </choose>
         </if>
         <if test="params.startTime != null">
             AND q.sign_time >= FROM_UNIXTIME(#{params.startTime}/1000)
         </if>
         <if test="params.endTime != null">
             AND q.sign_time &lt;= FROM_UNIXTIME(#{params.endTime}/1000)
+        </if>
+        
+        <!-- 权限筛选 -->
+        <if test="params.currentUserId != null and params.currentUserId != ''">
+            <if test="params.currentUserType != null and params.currentUserType == 1">
+                AND u.agent = #{params.currentUserId}
+            </if>
+            <if test="params.currentUserType != null and params.currentUserType == 2">
+                AND u.salesmanid = #{params.currentUserId}
+            </if>
         </if>
         <choose>
             <when test="params.orderField != null and params.orderField != ''">
