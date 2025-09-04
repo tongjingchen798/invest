@@ -14,6 +14,7 @@ import io.renren.service.TokenService;
 import io.renren.service.UserService;
 import io.renren.service.CustomerServiceService;
 import io.renren.common.utils.IpUtils;
+import io.renren.dao.UserLogDao;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -39,6 +41,8 @@ public class ApiLoginController {
     private TokenService tokenService;
     @Autowired
     private CustomerServiceService customerServiceService;
+    @Autowired
+    private UserLogDao userLogDao;
 
 
     @PostMapping("login")
@@ -66,8 +70,20 @@ public class ApiLoginController {
     @PostMapping("logout")
     @ApiOperation("退出")
     public Result logout(@ApiIgnore @RequestAttribute("userId") Long userId){
-        tokenService.expireToken(userId);
-        return new Result();
+        try {
+            // 使token失效
+            tokenService.expireToken(userId);
+            
+            // 更新登出时间
+            Date logoutTime = new Date();
+            userLogDao.updateLogoutTime(userId, logoutTime);
+            
+            return new Result().ok("退出成功");
+        } catch (Exception e) {
+            // 即使更新登出时间失败，也要确保token失效
+            e.printStackTrace();
+            return new Result().ok("退出成功");
+        }
     }
 
     @GetMapping("nologinwslist")
