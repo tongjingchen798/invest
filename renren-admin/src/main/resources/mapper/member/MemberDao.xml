@@ -279,7 +279,56 @@
         m.invite_code_status AS inviteCodeStatus,
         m.commission_balance AS rewardBalance,
         m.history_commission AS totalReward,
-        m.uacnt AS xjzhCnt
+        m.uacnt AS xjzhCnt,
+        -- 一级佣金统计（返佣A - 业务类型3）
+        COALESCE((
+            SELECT SUM(ubd.original_amount)
+            FROM user_balance_detail ubd
+            WHERE ubd.user_id = m.id
+            AND ubd.busi_type = 3
+            AND ubd.status = 1
+            <if test="params.startTime != null">
+                AND ubd.transaction_date >= FROM_UNIXTIME(#{params.startTime}/1000)
+            </if>
+            <if test="params.endTime != null">
+                AND ubd.transaction_date &lt;= FROM_UNIXTIME(#{params.endTime}/1000)
+            </if>
+        ), 0) AS oneReward,
+        -- 二级佣金统计（返佣B - 业务类型30）
+        COALESCE((
+            SELECT SUM(ubd.original_amount)
+            FROM user_balance_detail ubd
+            WHERE ubd.user_id = m.id
+            AND ubd.busi_type = 30
+            AND ubd.status = 1
+            <if test="params.startTime != null">
+                AND ubd.transaction_date &gt;= FROM_UNIXTIME(#{params.startTime}/1000)
+            </if>
+            <if test="params.endTime != null">
+                AND ubd.transaction_date &lt;= FROM_UNIXTIME(#{params.endTime}/1000)
+            </if>
+        ), 0) AS twoReward,
+        -- 三级佣金统计（项目返上级 - 业务类型32）
+        COALESCE((
+            SELECT SUM(ubd.original_amount)
+            FROM user_balance_detail ubd
+            WHERE ubd.user_id = m.id
+            AND ubd.busi_type = 32
+            AND ubd.status = 1
+            <if test="params.startTime != null">
+                AND ubd.transaction_date &gt;= FROM_UNIXTIME(#{params.startTime}/1000)
+            </if>
+            <if test="params.endTime != null">
+                AND ubd.transaction_date &lt;= FROM_UNIXTIME(#{params.endTime}/1000)
+            </if>
+        ), 0) AS threeReward,
+        -- 其他奖励字段（暂时使用默认值）
+        0 AS ytReward,
+        0 AS zztReward,
+        0 AS cce3fl,
+        0 AS fxfl,
+        0 AS gz,
+        0 AS zcfl
         FROM
         tb_user m
         LEFT JOIN sys_user agent_user ON m.agent = agent_user.id
@@ -396,8 +445,110 @@
             <if test="params.endTime != null and params.endTime != ''">
                 AND m.create_date &lt;= FROM_UNIXTIME(#{params.endTime}/1000)
             </if>
+            
+            <!-- 裂变佣金特定筛选条件 -->
+            <if test="params.agent != null">
+                AND m.agent = #{params.agent}
+            </if>
+            
+            <if test="params.salesmanid != null">
+                AND m.salesmanid = #{params.salesmanid}
+            </if>
+            
+            <!-- 佣金余额筛选 -->
+            <if test="params.rewardFlag != null">
+                <if test="params.rewardFlag == 1">
+                    AND m.commission_balance > 0
+                </if>
+                <if test="params.rewardFlag == 0">
+                    AND m.commission_balance = 0
+                </if>
+            </if>
+            
+            <!-- 下级筛选 -->
+            <if test="params.xjFlag != null">
+                <if test="params.xjFlag == 1">
+                    AND m.tgrs > 0
+                </if>
+                <if test="params.xjFlag == 0">
+                    AND m.tgrs = 0
+                </if>
+            </if>
+            
+            <!-- CCE3返佣筛选（暂时无此字段） -->
+            <if test="params.cce3Flag != null">
+                <if test="params.cce3Flag == 1">
+                    AND 0 > 0  <!-- 暂时无此字段，使用false条件 -->
+                </if>
+                <if test="params.cce3Flag == 0">
+                    AND 0 = 0  <!-- 暂时无此字段，使用true条件 -->
+                </if>
+            </if>
+            
+            <!-- 工资筛选（暂时无此字段） -->
+            <if test="params.gzFlag != null">
+                <if test="params.gzFlag == 1">
+                    AND 0 > 0  <!-- 暂时无此字段，使用false条件 -->
+                </if>
+                <if test="params.gzFlag == 0">
+                    AND 0 = 0  <!-- 暂时无此字段，使用true条件 -->
+                </if>
+            </if>
+            
+            <!-- 浏览筛选（暂时无此字段） -->
+            <if test="params.llFlag != null">
+                <if test="params.llFlag == 1">
+                    AND 0 > 0  <!-- 暂时无此字段，使用false条件 -->
+                </if>
+                <if test="params.llFlag == 0">
+                    AND 0 = 0  <!-- 暂时无此字段，使用true条件 -->
+                </if>
+            </if>
+            
+            <!-- 已提佣金筛选（暂时无此字段） -->
+            <if test="params.ytrewardFlag != null">
+                <if test="params.ytrewardFlag == 1">
+                    AND 0 > 0  <!-- 暂时无此字段，使用false条件 -->
+                </if>
+                <if test="params.ytrewardFlag == 0">
+                    AND 0 = 0  <!-- 暂时无此字段，使用true条件 -->
+                </if>
+            </if>
+            
+            <!-- 注册筛选 -->
+            <if test="params.zcFlag != null">
+                <if test="params.zcFlag == 1">
+                    AND m.create_date IS NOT NULL
+                </if>
+                <if test="params.zcFlag == 0">
+                    AND m.create_date IS NULL
+                </if>
+            </if>
         </where>
-        ORDER BY  m.create_date DESC
+        
+        <!-- 排序处理 -->
+        <choose>
+            <when test="params.order != null and params.order != ''">
+                ORDER BY
+                <choose>
+                    <when test="params.order == 'mobile'">m.mobile</when>
+                    <when test="params.order == 'commission_balance'">m.commission_balance</when>
+                    <when test="params.order == 'history_investment'">m.history_investment</when>
+                    <when test="params.order == 'tgrs'">m.tgrs</when>
+                    <when test="params.order == 'vip'">m.vip</when>
+                    <when test="params.order == 'agent'">m.agent</when>
+                    <when test="params.order == 'salesmanid'">m.salesmanid</when>
+                    <otherwise>m.create_date</otherwise>
+                </choose>
+                <choose>
+                    <when test="params.order == 'asc'">ASC</when>
+                    <otherwise>DESC</otherwise>
+                </choose>
+            </when>
+            <otherwise>
+                ORDER BY m.create_date DESC
+            </otherwise>
+        </choose>
     </select>
 
 
