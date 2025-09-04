@@ -672,6 +672,20 @@ public class MemberController {
         }
     }
 
+    @GetMapping("22")
+    @ApiOperation("代理详情")
+    @ApiImplicitParam(name = "mobile", value = "用户账号", paramType = "query", required = false, dataType = "string")
+    public Result<List<AgentDetailDTO>> getAgentDetail(@RequestParam(value = "mobile", required = false) String mobile) {
+        try {
+            List<AgentDetailDTO> agentDetailList = memberService.getAgentDetailList(mobile);
+            return new Result<List<AgentDetailDTO>>().ok(agentDetailList);
+
+        } catch (Exception e) {
+            log.error("查询代理详情失败", e);
+            return new Result<List<AgentDetailDTO>>().error("查询代理详情失败: " + e.getMessage());
+        }
+    }
+
     @DeleteMapping("deleteblack")
     @ApiOperation("删除黑白名单")
     @LogOperation("删除黑白名单")

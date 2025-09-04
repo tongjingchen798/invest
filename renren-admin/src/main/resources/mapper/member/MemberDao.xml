@@ -685,5 +685,76 @@
         </if>
     </select>
 
+    <!-- 查询代理详情列表 -->
+    <select id="selectAgentDetailList" resultType="io.renren.modules.member.dto.AgentDetailDTO">
+        SELECT
+        u.mobile,
+        0 as level,
+        COALESCE(ir.tzcnt, 0) as tzcnt,
+        COALESCE(ir.tzamount, '0') as tzamount,
+        COALESCE(wo.withdrawamt, '0') as withdrawamt,
+        COALESCE(u.assets, 0) as balance,
+        u.biaoqian,
+        u.invite_code_status as inviteCodeStatus
+        FROM tb_user u
+        LEFT JOIN (
+            SELECT 
+            user_id,
+            COUNT(*) as tzcnt,
+            CAST(SUM(investment_amount) AS CHAR) as tzamount
+            FROM tb_investment_record 
+            WHERE status = 1
+            GROUP BY user_id
+        ) ir ON u.id = ir.user_id
+        LEFT JOIN (
+            SELECT 
+            user_id,
+            CAST(SUM(real_amount) AS CHAR) as withdrawamt
+            FROM tb_withdraw_order 
+            WHERE state IN (1, 2)
+            GROUP BY user_id
+        ) wo ON u.id = wo.user_id
+        WHERE u.agent IS NOT NULL
+        <if test="mobile != null and mobile != ''">
+            AND u.mobile = #{mobile}
+        </if>
+        ORDER BY u.create_date DESC
+    </select>
+
+    <!-- 查询代理的下级列表 -->
+    <select id="selectAgentSubordinates" resultType="io.renren.modules.member.dto.AgentDetailDTO">
+        SELECT
+        u.mobile,
+        0 as level,
+        COALESCE(ir.tzcnt, 0) as tzcnt,
+        COALESCE(ir.tzamount, '0') as tzamount,
+        COALESCE(wo.withdrawamt, '0') as withdrawamt,
+        COALESCE(u.assets, 0) as balance,
+        u.biaoqian,
+        u.invite_code_status as inviteCodeStatus
+        FROM tb_user u
+        LEFT JOIN (
+            SELECT 
+            user_id,
+            COUNT(*) as tzcnt,
+            CAST(SUM(investment_amount) AS CHAR) as tzamount
+            FROM tb_investment_record 
+            WHERE status = 1
+            GROUP BY user_id
+        ) ir ON u.id = ir.user_id
+        LEFT JOIN (
+            SELECT 
+            user_id,
+            CAST(SUM(real_amount) AS CHAR) as withdrawamt
+            FROM tb_withdraw_order 
+            WHERE state IN (1, 2)
+            GROUP BY user_id
+        ) wo ON u.id = wo.user_id
+        WHERE u.agent = (
+            SELECT id FROM tb_user WHERE mobile = #{agentMobile}
+        )
+        ORDER BY u.create_date DESC
+    </select>
+
 
 </mapper>

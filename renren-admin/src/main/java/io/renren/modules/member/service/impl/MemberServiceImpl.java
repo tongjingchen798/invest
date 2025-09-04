@@ -8,10 +8,7 @@ import io.renren.common.page.PageData;
 import io.renren.common.service.impl.BaseServiceImpl;
 import io.renren.common.utils.ConvertUtils;
 import io.renren.modules.member.dao.MemberDao;
-import io.renren.modules.member.dto.AgentDTO;
-import io.renren.modules.member.dto.AmountToBeCashedDTO;
-import io.renren.modules.member.dto.FissionRewardDTO;
-import io.renren.modules.member.dto.MemberInfoDTO;
+import io.renren.modules.member.dto.*;
 import io.renren.modules.member.entity.MemberEntity;
 import io.renren.modules.member.service.MemberService;
 import io.renren.modules.security.user.SecurityUser;
@@ -29,7 +26,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
-import io.renren.modules.member.dto.SettlementReportDTO;
+
 import io.renren.modules.finance.entity.UserBalanceDetailEntity;
 import io.renren.modules.finance.service.UserBalanceDetailService;
 import io.renren.common.utils.Result;
@@ -1088,5 +1085,25 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
         }
         
         return dto;
+    }
+
+    @Override
+    public List<AgentDetailDTO> getAgentDetailList(String mobile) {
+        try {
+            // 查询代理详情列表
+            List<AgentDetailDTO> agentList = baseDao.selectAgentDetailList(mobile);
+            
+            // 为每个代理查询下级列表
+            for (AgentDetailDTO agent : agentList) {
+                List<AgentDetailDTO> subordinates = baseDao.selectAgentSubordinates(agent.getMobile());
+                agent.setListxj(subordinates);
+            }
+            
+            return agentList;
+            
+        } catch (Exception e) {
+            log.error("查询代理详情失败", e);
+            throw new RuntimeException("查询代理详情失败: " + e.getMessage());
+        }
     }
 }

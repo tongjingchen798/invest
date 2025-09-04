@@ -223,4 +223,11 @@ public interface MemberService {
      */
     List<AgentDTO> getAgentList(String agent, Integer type);
 
+    /**
+     * 查询代理详情列表
+     * @param mobile 用户手机号（可选）
+     * @return 代理详情列表
+     */
+    List<AgentDetailDTO> getAgentDetailList(String mobile);
+
 }

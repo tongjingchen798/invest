@@ -3,6 +3,7 @@ package io.renren.modules.member.dao;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.renren.modules.member.dto.AgentDetailDTO;
 import io.renren.modules.member.dto.FissionRewardDTO;
 import io.renren.modules.member.entity.MemberEntity;
 import io.renren.modules.member.dto.MemberInfoDTO;
@@ -60,5 +61,19 @@ public interface MemberDao extends BaseMapper<MemberEntity> {
      * @return 汇总数据
      */
     Map<String, Object> selectSettlementReportSummary(@Param("params") Map<String, Object> params);
+
+    /**
+     * 查询代理详情列表
+     * @param mobile 用户手机号（可选）
+     * @return 代理详情列表
+     */
+    List<AgentDetailDTO> selectAgentDetailList(@Param("mobile") String mobile);
+
+    /**
+     * 查询代理的下级列表
+     * @param agentMobile 代理手机号
+     * @return 下级列表
+     */
+    List<AgentDetailDTO> selectAgentSubordinates(@Param("agentMobile") String agentMobile);
 
 }
