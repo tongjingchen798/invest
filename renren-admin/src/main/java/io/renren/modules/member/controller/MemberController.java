@@ -108,7 +108,7 @@ public class MemberController {
                 return new Result<PageData<SettlementReportDTO>>().error("每页记录数必须在1-1000之间");
             }
 
-            // 调用服务查询结算报表数据
+            // 调用服务查询数据
             PageData<SettlementReportDTO> pageData = memberService.getSettlementReport(
                 page, limit, agent, endTime, order, orderField, salesmanid, startTime
             );
@@ -116,7 +116,7 @@ public class MemberController {
             return new Result<PageData<SettlementReportDTO>>().ok(pageData);
 
         } catch (Exception e) {
-            return new Result<PageData<SettlementReportDTO>>().error("查询结算报表失败: " + e.getMessage());
+            return new Result<PageData<SettlementReportDTO>>().error("查询失败: " + e.getMessage());
         }
     }
 

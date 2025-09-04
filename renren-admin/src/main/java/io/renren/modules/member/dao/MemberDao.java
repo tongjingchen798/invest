@@ -31,7 +31,7 @@ public interface MemberDao extends BaseMapper<MemberEntity> {
     IPage<MemberInfoDTO> selectMemberPage(Page<MemberInfoDTO> page, @Param("params") Map<String, Object> params);
 
     /**
-     * 查询结算报表分页数据
+     * 查询分页数据
      *
      * @param page 分页对象
      * @param params 查询参数

@@ -244,7 +244,6 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
     @Override
     public PageData<SettlementReportDTO> getSettlementReport(Integer page, Integer limit, Long agent, 
         Long endTime, String order, String orderField, Long salesmanid, Long startTime) {
-        
         try {
             // 构建查询参数
             Map<String, Object> params = new HashMap<>();

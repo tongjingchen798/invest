@@ -212,17 +212,19 @@
     </select>
 
 
-    <!-- 查询结算报表分页数据 -->
+    <!-- 查询结算报表分页数据 - 按业务员统计 -->
     <select id="getSettlementReport" resultType="io.renren.modules.member.dto.SettlementReportDTO">
         SELECT
-        u.agent,
-        MAX(u.agent_name) as agentName,
-        COALESCE(SUM(c.amount), 0) as czRealAmount,
-        COALESCE(SUM(c.amount), 0) - COALESCE(SUM(w.inputamount), 0) as lr,
-        MAX(u.salesman_name) as salesmanName,
         u.salesmanid,
-        COALESCE(SUM(w.inputamount), 0) as txRealAmount
+        MAX(salesman_user.username) as salesmanName,
+        MAX(u.agent) as agent,
+        MAX(agent_user.username) as agentName,
+        COALESCE(SUM(c.real_amount), 0) as czRealAmount,
+        COALESCE(SUM(c.real_amount), 0) - COALESCE(SUM(w.real_amount), 0) as lr,
+        COALESCE(SUM(w.real_amount), 0) as txRealAmount
         FROM tb_user u
+        LEFT JOIN sys_user salesman_user ON u.salesmanid = salesman_user.id
+        LEFT JOIN sys_user agent_user ON u.agent = agent_user.id
         LEFT JOIN tb_charge_order c ON u.id = c.user_id
         AND c.state = 1
         <if test="params.startTime != null">
@@ -246,18 +248,27 @@
         <if test="params.salesmanid != null">
             AND u.salesmanid = #{params.salesmanid}
         </if>
-        GROUP BY u.agent, u.salesmanid
+        <!-- 权限筛选 -->
+        <if test="params.currentUserId != null and params.currentUserId != ''">
+            <if test="params.currentUserType != null and params.currentUserType == 1">
+                AND u.agent = #{params.currentUserId}
+            </if>
+            <if test="params.currentUserType != null and params.currentUserType == 2">
+                AND u.salesmanid = #{params.currentUserId}
+            </if>
+        </if>
+        GROUP BY u.salesmanid
         <if test="params.orderField != null and params.order != null">
             ORDER BY ${params.orderField} ${params.order}
         </if>
         <if test="params.orderField == null or params.order == null">
-            ORDER BY u.agent, u.salesmanid
+            ORDER BY u.salesmanid
         </if>
     </select>
 
-    <!-- 查询结算报表总数 -->
+    <!-- 查询结算报表总数 - 按业务员统计 -->
     <select id="getSettlementReportCount" resultType="long">
-        SELECT COUNT(DISTINCT CONCAT(u.agent, '-', u.salesmanid))
+        SELECT COUNT(DISTINCT u.salesmanid)
         FROM tb_user u
         WHERE 1=1
         <if test="params.agent != null">
@@ -265,6 +276,15 @@
         </if>
         <if test="params.salesmanid != null">
             AND u.salesmanid = #{params.salesmanid}
+        </if>
+        <!-- 权限筛选 -->
+        <if test="params.currentUserId != null and params.currentUserId != ''">
+            <if test="params.currentUserType != null and params.currentUserType == 1">
+                AND u.agent = #{params.currentUserId}
+            </if>
+            <if test="params.currentUserType != null and params.currentUserType == 2">
+                AND u.salesmanid = #{params.currentUserId}
+            </if>
         </if>
     </select>
     <select id="selectMemberFissionRewardPage" resultType="io.renren.modules.member.dto.FissionRewardDTO">
