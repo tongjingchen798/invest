@@ -25,9 +25,11 @@
         agent_user.username as agentName,
         m.salesmanid,
         salesman_user.username as salesmanName,
-        m.channel,
+        m.channel as extensionName,
         m.tz_withdraw_status,
         m.equipment,
+        m.last_date,
+        m.last_ip,
         m.today_recharge AS todayRecharge,
         m.today_withdraw as todayWithdraw,
         m.today_profit,
@@ -35,6 +37,9 @@
         m.history_ua_profit,
         m.history_ub_profit,
         m.history_uc_profit,
+        m.ua_profit,
+        m.ub_profit,
+        m.uc_profit,
         COALESCE((
         SELECT COUNT(*)
         FROM tb_investment_record ir

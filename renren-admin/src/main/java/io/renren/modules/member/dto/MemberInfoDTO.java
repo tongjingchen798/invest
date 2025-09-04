@@ -122,8 +122,8 @@ public class MemberInfoDTO implements Serializable {
     @ApiModelProperty(value = "状态 0：停用 1：正常")
     private Integer status;
 
-//    @ApiModelProperty(value = "上级邀请码")
-//    private String superiorCode;
+    @ApiModelProperty(value = "上级邀请码")
+    private String superiorCode;
 
 //    @ApiModelProperty(value = "上级会员名称")
 //    private String superiorName;
