@@ -14,15 +14,15 @@ import java.io.Serializable;
 public class BlacklistDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 主键ID
-     */
-    private Long id;
-
-    /**
-     * 用户ID
-     */
-    private Long userId;
+//    /**
+//     * 主键ID
+//     */
+//    private Long id;
+//
+//    /**
+//     * 用户ID
+//     */
+//    private Long userId;
 
     /**
      * 会员账号
@@ -34,8 +34,8 @@ public class BlacklistDTO implements Serializable {
      */
     private Integer type;
 
-    /**
-     * 类型名称
-     */
-    private String typeName;
+//    /**
+//     * 类型名称
+//     */
+//    private String typeName;
 }

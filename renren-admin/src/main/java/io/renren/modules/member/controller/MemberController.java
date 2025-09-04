@@ -655,10 +655,7 @@ public class MemberController {
 //    @RequiresPermissions("member:user:addblack")
     public Result addblack(@RequestBody BlacklistDTO dto) {
         try {
-            // 参数验证
-            if (dto.getUserId() == null || dto.getUserId() <= 0) {
-                return new Result().error("用户ID不能为空");
-            }
+
             if (dto.getMobile() == null || dto.getMobile().trim().isEmpty()) {
                 return new Result().error("会员账号不能为空");
             }
@@ -667,10 +664,10 @@ public class MemberController {
             }
 
             // 调用服务添加用户到黑白名单
-            return blacklistService.addToBlacklist(dto.getUserId(), dto.getMobile().trim(), dto.getType());
+            return blacklistService.addToBlacklist( dto.getMobile().trim(), dto.getType());
 
         } catch (Exception e) {
-            log.error("新增黑白名单失败，用户ID: {}, 类型: {}", dto.getUserId(), dto.getType(), e);
+            log.error("新增黑白名单失败，用户ID: {}, 类型: {}", dto.getMobile(), dto.getType(), e);
             return new Result().error("新增黑白名单失败: " + e.getMessage());
         }
     }

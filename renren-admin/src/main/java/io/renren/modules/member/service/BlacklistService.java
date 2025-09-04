@@ -28,12 +28,11 @@ public interface BlacklistService extends IService<BlacklistEntity> {
     /**
      * 添加用户到黑白名单
      *
-     * @param userId 用户ID
      * @param mobile 会员账号
      * @param type 类型：1-白名单，2-黑名单
      * @return 操作结果
      */
-    Result addToBlacklist(Long userId, String mobile, Integer type);
+    Result addToBlacklist( String mobile, Integer type);
 
     /**
      * 从黑白名单中移除用户
@@ -43,19 +42,19 @@ public interface BlacklistService extends IService<BlacklistEntity> {
      */
     Result removeFromBlacklist(Long id);
 
-    /**
-     * 检查用户是否在黑名单中
-     *
-     * @param userId 用户ID
-     * @return 黑名单记录，如果不在黑名单中返回null
-     */
-    BlacklistEntity checkUserInBlacklist(Long userId);
-
-    /**
-     * 检查用户是否在白名单中
-     *
-     * @param userId 用户ID
-     * @return 白名单记录，如果不在白名单中返回null
-     */
-    BlacklistEntity checkUserInWhitelist(Long userId);
+//    /**
+//     * 检查用户是否在黑名单中
+//     *
+//     * @param userId 用户ID
+//     * @return 黑名单记录，如果不在黑名单中返回null
+//     */
+//    BlacklistEntity checkUserInBlacklist(Long userId);
+//
+//    /**
+//     * 检查用户是否在白名单中
+//     *
+//     * @param userId 用户ID
+//     * @return 白名单记录，如果不在白名单中返回null
+//     */
+//    BlacklistEntity checkUserInWhitelist(Long userId);
 }
