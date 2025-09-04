@@ -333,7 +333,7 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
             chargeOrder.setChannelType(chargeTypeEnum.getChannelType());
             chargeOrder.setSourcetypeName(chargeTypeEnum.getName());
         } else {
-            chargeOrder.setChannel("unknown");
+            chargeOrder.setChannel("1");
             chargeOrder.setChannelType("unknown");
             chargeOrder.setSourcetypeName("未知渠道");
         }
