@@ -8,17 +8,14 @@
         SELECT
         ubd.id,
         ubd.user_id,
-        ubd.agent_name as agentName,
         ubd.busi_type as busiType,
         ubd.channel,
         ubd.form_user_id,
-        ubd.invite_code_status,
         u.mobile,
         ubd.original_amount,
         ubd.remarks,
-        ubd.salesman_name,
-        ubd.salesman_id,
-        ubd.status,
+        salesman_user.username as salesmanName,
+        u.salesmanid as salesmanId,
         ubd.stream_id,
         ubd.transaction_amount,
         ubd.transaction_date,
@@ -26,12 +23,12 @@
         ubd.create_date,
         ubd.update_date,
         u.mobile AS mobile,
-        u.salesmanid,
         u.agent,
         u.biaoqian
         FROM
         user_balance_detail ubd
         LEFT JOIN tb_user u ON ubd.user_id = u.id
+        LEFT JOIN sys_user salesman_user ON u.salesmanid = salesman_user.id
         <where>
             <!-- 标签筛选 -->
             <if test="biaoqian != null and biaoqian != ''">
@@ -64,6 +61,26 @@
             <!-- 用户账号筛选 -->
             <if test="mobile != null and mobile != ''">
                 AND (ubd.mobile LIKE CONCAT('%', #{mobile}, '%') OR u.mobile LIKE CONCAT('%', #{mobile}, '%'))
+            </if>
+            
+            <!-- 代理筛选 -->
+            <if test="agent != null">
+                AND u.agent = #{agent}
+            </if>
+            
+            <!-- 业务员筛选 -->
+            <if test="salesmanid != null">
+                AND u.salesmanid = #{salesmanid}
+            </if>
+            
+            <!-- 权限筛选 -->
+            <if test="currentUserId != null and currentUserId != ''">
+                <if test="currentUserType != null and currentUserType == 1">
+                    AND u.agent = #{currentUserId}
+                </if>
+                <if test="currentUserType != null and currentUserType == 2">
+                    AND u.salesmanid = #{currentUserId}
+                </if>
             </if>
         </where>
         ORDER BY ubd.transaction_date DESC

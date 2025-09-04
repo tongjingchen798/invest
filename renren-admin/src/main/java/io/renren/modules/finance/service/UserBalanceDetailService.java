@@ -27,9 +27,12 @@ public interface UserBalanceDetailService extends BaseService<UserBalanceDetailE
      * @param order 排序方式
      * @param orderField 排序字段
      * @param startTime 开始时间
+     * @param agent 代理ID
+     * @param salesmanid 业务员ID
      * @return 分页数据
      */
     PageData<UserBalanceDetailDTO> getBalanceDetailPage(Integer page, Integer limit, String biaoqian, 
                                                        Integer biaoqianFlag, Integer busiType, Long endTime, 
-                                                       String mobile, String order, String orderField, Long startTime);
+                                                       String mobile, String order, String orderField, Long startTime,
+                                                       Long agent, Long salesmanid);
 }

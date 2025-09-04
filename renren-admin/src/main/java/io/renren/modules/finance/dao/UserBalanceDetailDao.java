@@ -29,6 +29,10 @@ public interface UserBalanceDetailDao extends BaseMapper<UserBalanceDetailEntity
      * @param endTime 结束时间
      * @param mobile 手机号
      * @param startTime 开始时间
+     * @param agent 代理ID
+     * @param salesmanid 业务员ID
+     * @param currentUserId 当前用户ID
+     * @param currentUserType 当前用户类型
      * @return 分页结果
      */
     IPage<UserBalanceDetailDTO> selectBalanceDetailPage(Page<UserBalanceDetailEntity> page,
@@ -37,5 +41,9 @@ public interface UserBalanceDetailDao extends BaseMapper<UserBalanceDetailEntity
                                                         @Param("busiType") Integer busiType,
                                                         @Param("endTime") Date endTime,
                                                         @Param("mobile") String mobile,
-                                                        @Param("startTime") Date startTime);
+                                                        @Param("startTime") Date startTime,
+                                                        @Param("agent") Long agent,
+                                                        @Param("salesmanid") Long salesmanid,
+                                                        @Param("currentUserId") Long currentUserId,
+                                                        @Param("currentUserType") Integer currentUserType);
 }

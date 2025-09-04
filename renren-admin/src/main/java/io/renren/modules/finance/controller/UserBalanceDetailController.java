@@ -38,7 +38,9 @@ public class UserBalanceDetailController {
         @ApiImplicitParam(name = "mobile", value = "用户账号", required = false, dataType = "string", paramType = "query"),
         @ApiImplicitParam(name = "order", value = "排序方式，可选值(asc、desc)", required = false, dataType = "string", paramType = "query"),
         @ApiImplicitParam(name = "orderField", value = "排序字段", required = false, dataType = "string", paramType = "query"),
-        @ApiImplicitParam(name = "startTime", value = "开始日期:时间戳", required = false, dataType = "long", paramType = "query")
+        @ApiImplicitParam(name = "startTime", value = "开始日期:时间戳", required = false, dataType = "long", paramType = "query"),
+        @ApiImplicitParam(name = "agent", value = "代理ID", required = false, dataType = "long", paramType = "query"),
+        @ApiImplicitParam(name = "salesmanid", value = "业务员ID", required = false, dataType = "long", paramType = "query")
     })
     // @RequiresPermissions("finance:userbalancedetail:page")
     public Result<PageData<UserBalanceDetailDTO>> page(
@@ -51,7 +53,9 @@ public class UserBalanceDetailController {
             @RequestParam(value = "mobile", required = false) String mobile,
             @RequestParam(value = "order", required = false) String order,
             @RequestParam(value = "orderField", required = false) String orderField,
-            @RequestParam(value = "startTime", required = false) Long startTime) {
+            @RequestParam(value = "startTime", required = false) Long startTime,
+            @RequestParam(value = "agent", required = false) Long agent,
+            @RequestParam(value = "salesmanid", required = false) Long salesmanid) {
         
         try {
             // 参数验证
@@ -64,7 +68,8 @@ public class UserBalanceDetailController {
 
             // 调用Service查询
             PageData<UserBalanceDetailDTO> pageData = userBalanceDetailService.getBalanceDetailPage(
-                page, limit, biaoqian, biaoqianFlag, busiType, endTime, mobile, order, orderField, startTime
+                page, limit, biaoqian, biaoqianFlag, busiType, endTime, mobile, order, orderField, startTime,
+                agent, salesmanid
             );
 
             return new Result<PageData<UserBalanceDetailDTO>>().ok(pageData);
