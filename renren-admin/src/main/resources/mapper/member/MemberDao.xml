@@ -164,12 +164,12 @@
             <!-- 裂变筛选 -->
             <if test="params.liebian != null and params.liebian != ''">
                 <if test="params.liebian == '1'">
-                    <!-- 是裂变 -->
-                    AND m.tgrs > 0
+                    <!-- 是裂变 - 有上级 -->
+                    AND m.superior_name IS NOT NULL AND m.superior_name != ''
                 </if>
                 <if test="params.liebian == '0'">
-                    <!-- 否裂变 -->
-                    AND m.tgrs = 0
+                    <!-- 否裂变 - 无上级 -->
+                    AND (m.superior_name IS NULL OR m.superior_name = '')
                 </if>
             </if>
             
@@ -423,12 +423,12 @@
             <!-- 裂变筛选 -->
             <if test="params.liebian != null and params.liebian != ''">
                 <if test="params.liebian == '1'">
-                    <!-- 是裂变 -->
-                    AND m.tgrs > 0
+                    <!-- 是裂变 - 有上级 -->
+                    AND m.superior_name IS NOT NULL AND m.superior_name != ''
                 </if>
                 <if test="params.liebian == '0'">
-                    <!-- 否裂变 -->
-                    AND m.tgrs = 0
+                    <!-- 否裂变 - 无上级 -->
+                    AND (m.superior_name IS NULL OR m.superior_name = '')
                 </if>
             </if>
 
@@ -584,12 +584,12 @@
             <!-- 裂变筛选 -->
             <if test="params.liebian != null and params.liebian != ''">
                 <if test="params.liebian == '1'">
-                    <!-- 是裂变 -->
-                    AND m.tgrs > 0
+                    <!-- 是裂变 - 有上级 -->
+                    AND m.superior_name IS NOT NULL AND m.superior_name != ''
                 </if>
                 <if test="params.liebian == '0'">
-                    <!-- 否裂变 -->
-                    AND m.tgrs = 0
+                    <!-- 否裂变 - 无上级 -->
+                    AND (m.superior_name IS NULL OR m.superior_name = '')
                 </if>
             </if>
 

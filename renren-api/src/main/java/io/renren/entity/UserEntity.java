@@ -546,4 +546,6 @@ public class UserEntity implements Serializable {
 
 //	@ApiModelProperty(value = "总邀请收益(分)")
 //	private Long inviteIncome;
+
+	private Integer liebian;
 }

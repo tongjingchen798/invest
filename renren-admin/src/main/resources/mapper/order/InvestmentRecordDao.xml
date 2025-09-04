@@ -21,22 +21,23 @@
         u.biaoqian,
         u.username,
         u.agent,
-        u.agent_name,
         u.salesmanid,
-        u.salesman_name,
-        u.superior_name as supmobile
+        salesman_user.username as salesmanName,
+        u.superior_name as supmobile,
+        u.liebian
         FROM
         tb_investment_record ir
         LEFT JOIN tb_project tp ON ir.project_id = tp.invest_id
         LEFT JOIN tb_user u ON ir.user_id = u.id
+        LEFT JOIN sys_user salesman_user ON u.salesmanid = salesman_user.id
         <where>
             <!-- 基础字段查询 -->
             <if test="params.abbreviation != null and params.abbreviation != ''">
                 AND tp.abbreviation LIKE CONCAT('%', #{params.abbreviation}, '%')
             </if>
             
-            <if test="params.agent != null and params.agent != ''">
-                AND u.agent LIKE CONCAT('%', #{params.agent}, '%')
+            <if test="params.agent != null">
+                AND u.agent = #{params.agent}
             </if>
             
             <if test="params.salesmanid != null and params.salesmanid != ''">
@@ -45,10 +46,6 @@
             
             <if test="params.status != null">
                 AND ir.status = #{params.status}
-            </if>
-            
-            <if test="params.projectId != null">
-                AND ir.project_id = #{params.projectId}
             </if>
             
             <if test="params.userId != null">
@@ -80,19 +77,29 @@
                 </choose>
             </if>
             
-<!--            <if test="params.liebian != null">-->
-<!--                <choose>-->
-<!--                    <when test="params.liebian == 1">-->
-<!--                        AND u.biaoqian IS NOT NULL AND u.biaoqian != ''-->
-<!--                    </when>-->
-<!--                    <when test="params.liebian == 0">-->
-<!--                        AND (u.biaoqian IS NULL OR u.biaoqian = '')-->
-<!--                    </when>-->
-<!--                </choose>-->
-<!--            </if>-->
+            <if test="params.liebian != null">
+                <choose>
+                    <when test="params.liebian == 1">
+                        AND u.superior_name IS NOT NULL AND u.superior_name != ''
+                    </when>
+                    <when test="params.liebian == 0">
+                        AND (u.superior_name IS NULL OR u.superior_name = '')
+                    </when>
+                </choose>
+            </if>
             
             <if test="params.mobile != null and params.mobile != ''">
                 AND u.mobile LIKE CONCAT('%', #{params.mobile}, '%')
+            </if>
+            
+            <!-- 权限筛选 -->
+            <if test="params.currentUserId != null and params.currentUserId != ''">
+                <if test="params.currentUserType != null and params.currentUserType == 1">
+                    AND u.agent = #{params.currentUserId}
+                </if>
+                <if test="params.currentUserType != null and params.currentUserType == 2">
+                    AND u.salesmanid = #{params.currentUserId}
+                </if>
             </if>
         </where>
         

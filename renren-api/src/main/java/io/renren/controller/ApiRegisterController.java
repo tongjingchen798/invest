@@ -102,6 +102,7 @@ public class ApiRegisterController {
                 UserEntity userEntity=userDao.selectByInviteCode(dto.getInviteCode());
                 if (Objects.nonNull(userEntity)) {
                     user.setSuperiorName(userEntity.getMobile());
+                    user.setLiebian(1);
                     // 设置业务员信息
                     user.setSalesmanid(userEntity.getSalesmanid());
                     user.setSalesmanName(userEntity.getSalesmanName());

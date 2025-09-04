@@ -7,6 +7,8 @@ import io.renren.modules.order.dao.InvestmentRecordDao;
 import io.renren.modules.order.dto.InvestmentRecordDTO;
 import io.renren.modules.order.entity.InvestmentRecordEntity;
 import io.renren.modules.order.service.InvestmentRecordService;
+import io.renren.modules.security.user.SecurityUser;
+import io.renren.modules.security.user.UserDetail;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -46,6 +48,13 @@ public class InvestmentRecordServiceImpl extends ServiceImpl<InvestmentRecordDao
             } catch (NumberFormatException e) {
                 size = 10;
             }
+        }
+        
+        // 添加权限控制参数
+        UserDetail user = SecurityUser.getUser();
+        if (user != null) {
+            params.put("currentUserId", user.getId());
+            params.put("currentUserType", user.getType());
         }
         
         // 创建分页对象
