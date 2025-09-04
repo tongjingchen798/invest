@@ -714,10 +714,7 @@
             WHERE state IN (1, 2)
             GROUP BY user_id
         ) wo ON u.id = wo.user_id
-        WHERE u.agent IS NOT NULL
-        <if test="mobile != null and mobile != ''">
-            AND u.mobile = #{mobile}
-        </if>
+        WHERE u.mobile = #{mobile}
         ORDER BY u.create_date DESC
     </select>
 
@@ -750,9 +747,7 @@
             WHERE state IN (1, 2)
             GROUP BY user_id
         ) wo ON u.id = wo.user_id
-        WHERE u.agent = (
-            SELECT id FROM tb_user WHERE mobile = #{agentMobile}
-        )
+        WHERE u.superior_name =  #{agentMobile}
         ORDER BY u.create_date DESC
     </select>
 

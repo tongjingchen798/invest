@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
+import java.util.ArrayList;
 
 import io.renren.modules.finance.entity.UserBalanceDetailEntity;
 import io.renren.modules.finance.service.UserBalanceDetailService;
@@ -1092,7 +1093,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
         try {
             // 查询代理详情列表
             List<AgentDetailDTO> agentList = baseDao.selectAgentDetailList(mobile);
-            
+
             // 为每个代理查询下级列表
             for (AgentDetailDTO agent : agentList) {
                 List<AgentDetailDTO> subordinates = baseDao.selectAgentSubordinates(agent.getMobile());
