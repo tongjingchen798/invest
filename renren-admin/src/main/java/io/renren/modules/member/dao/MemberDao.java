@@ -47,4 +47,11 @@ public interface MemberDao extends BaseMapper<MemberEntity> {
      */
     IPage<FissionRewardDTO> selectMemberFissionRewardPage(Page<FissionRewardDTO> page, @Param("params") Map<String, Object> params);
 
+    /**
+     * 统计裂变佣金汇总数据
+     * @param params 查询参数
+     * @return 汇总数据
+     */
+    Map<String, Object> selectFissionRewardSummary(@Param("params") Map<String, Object> params);
+
 }

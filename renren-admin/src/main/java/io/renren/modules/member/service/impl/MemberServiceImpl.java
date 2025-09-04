@@ -845,10 +845,13 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             Map<String, Object> params = buildFissionRewardParamsMap(agent, biaoqian, biaoqianFlag, cce3Flag, endTime, gzFlag, llFlag, mobile, order, rewardFlag, salesmanid, startTime, xjFlag, ytrewardFlag, zcFlag);
             IPage<FissionRewardDTO> pageResult = baseDao.selectMemberFissionRewardPage(pageInfo, params);
             
-            // 创建分页数据对象
-            PageData<FissionRewardDTO> pageData = new PageData<>(pageResult.getRecords(), pageResult.getTotal());
+            // 统计汇总数据
+            Map<String, Object> summaryData = baseDao.selectFissionRewardSummary(params);
             
-            log.info("裂变佣金查询成功，共 {} 条记录", pageResult.getTotal());
+            // 创建分页数据对象（包含汇总数据）
+            PageData<FissionRewardDTO> pageData = new PageData<>(pageResult.getRecords(), pageResult.getTotal(), summaryData);
+            
+            log.info("裂变佣金查询成功，共 {} 条记录，汇总数据: {}", pageResult.getTotal(), summaryData);
             return pageData;
             
         } catch (Exception e) {
