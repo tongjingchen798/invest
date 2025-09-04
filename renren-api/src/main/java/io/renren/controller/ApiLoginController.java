@@ -13,11 +13,13 @@ import io.renren.dto.UpdatePasswordDTO;
 import io.renren.service.TokenService;
 import io.renren.service.UserService;
 import io.renren.service.CustomerServiceService;
+import io.renren.common.utils.IpUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
+import javax.servlet.http.HttpServletRequest;
 
 import java.util.List;
 import java.util.Map;
@@ -41,9 +43,18 @@ public class ApiLoginController {
 
     @PostMapping("login")
     @ApiOperation("登录")
-    public Result<Map<String, Object>> login(@RequestBody LoginDTO dto){
+    public Result<Map<String, Object>> login(@RequestBody LoginDTO dto, HttpServletRequest request){
         //表单校验
         ValidatorUtils.validateEntity(dto);
+
+        // 获取客户端IP地址
+        String clientIp = IpUtils.getIpAddr(request);
+        dto.setLoginIp(clientIp);
+        
+        // 如果没有设置设备类型，默认为未知
+        if (dto.getEquipment() == null) {
+            dto.setEquipment(4); // 4:未知
+        }
 
         //用户登录
         Map<String, Object> map = userService.login(dto);

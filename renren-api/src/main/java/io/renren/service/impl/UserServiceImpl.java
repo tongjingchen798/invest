@@ -7,12 +7,14 @@ import io.renren.common.exception.RenException;
 import io.renren.common.service.impl.BaseServiceImpl;
 import io.renren.common.validator.AssertUtils;
 import io.renren.dao.UserDao;
+import io.renren.dao.UserLogDao;
 import io.renren.entity.TokenEntity;
 import io.renren.entity.UserEntity;
 import io.renren.dto.LoginDTO;
 import io.renren.dto.UserInfoDTO;
 import io.renren.dto.SuperiorUserInfoDTO;
 import io.renren.dto.UserDataSummaryDTO;
+import io.renren.entity.UserLogEntity;
 import io.renren.service.TokenService;
 import io.renren.service.UserService;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -21,13 +23,18 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Date;
 
 @Service
 public class UserServiceImpl extends BaseServiceImpl<UserDao, UserEntity> implements UserService {
 	@Autowired
 	private TokenService tokenService;
+	
+	@Resource
+	private UserLogDao userLogDao;
 
 	@Override
 	public UserEntity getByMobile(String mobile) {
@@ -52,8 +59,13 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, UserEntity> implem
 		map.put("token", tokenEntity.getToken());
 		map.put("expire", tokenEntity.getExpireDate().getTime() - System.currentTimeMillis());
 
-		//TODO 记录登录日志
-
+		// 记录登录日志
+		try {
+			saveLoginLog(user, dto);
+		} catch (Exception e) {
+			// 登录日志记录失败不影响登录流程
+			e.printStackTrace();
+		}
 
 		return map;
 	}
@@ -252,6 +264,38 @@ public class UserServiceImpl extends BaseServiceImpl<UserDao, UserEntity> implem
 			return baseDao.checkMobileExists(mobile) > 0;
 		} catch (Exception e) {
 			return true;
+		}
+	}
+	
+	/**
+	 * 保存登录日志
+	 * @param user 用户信息
+	 * @param dto 登录DTO
+	 */
+	private void saveLoginLog(UserEntity user, LoginDTO dto) {
+		try {
+			UserLogEntity logEntity = new UserLogEntity();
+			logEntity.setUserId(user.getId());
+			logEntity.setMobile(user.getMobile());
+			logEntity.setLoginTime(new Date());
+			logEntity.setLoginIp(dto.getLoginIp());
+			logEntity.setEquipment(dto.getEquipment());
+			logEntity.setSalesmanid(user.getSalesmanid());
+			logEntity.setAgent(user.getAgent());
+			logEntity.setBiaoqian(user.getBiaoqian());
+			logEntity.setCreateTime(new Date());
+			logEntity.setUpdateTime(new Date());
+			
+			// 设置销售员姓名
+			if (user.getSalesmanName() != null) {
+				logEntity.setSalesmanName(user.getSalesmanName());
+			}
+
+			// 保存登录日志
+			userLogDao.insert(logEntity);
+		} catch (Exception e) {
+			// 记录错误日志但不抛出异常
+			e.printStackTrace();
 		}
 	}
 }

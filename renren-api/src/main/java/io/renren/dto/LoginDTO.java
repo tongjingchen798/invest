@@ -24,4 +24,10 @@ public class LoginDTO {
     @NotBlank(message="密码不能为空")
     private String password;
 
+    @ApiModelProperty(value = "登录IP地址")
+    private String loginIp;
+
+    @ApiModelProperty(value = "设备类型 1:PC 2:移动端 3:APP")
+    private Integer equipment;
+
 }
