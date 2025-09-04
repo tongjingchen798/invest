@@ -1,8 +1,14 @@
 package io.renren.modules.withdraw.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.renren.modules.withdraw.dto.ManualWithdrawDTO;
 import io.renren.modules.withdraw.entity.WithdrawOrderEntity;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.Map;
 
 /**
  * 提现订单Dao
@@ -14,4 +20,19 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface WithdrawOrderDao extends BaseMapper<WithdrawOrderEntity> {
 
+    /**
+     * 自定义分页查询手工提现记录（关联用户表）
+     * @param page 分页对象
+     * @param params 查询参数
+     * @return 分页结果
+     */
+    IPage<ManualWithdrawDTO> selectManualWithdrawPage(@Param("page") Page<ManualWithdrawDTO> page, 
+                                                      @Param("params") Map<String, Object> params);
+
+    /**
+     * 统计手工提现汇总数据
+     * @param params 查询参数
+     * @return 汇总数据
+     */
+    Map<String, Object> selectManualWithdrawSummary(@Param("params") Map<String, Object> params);
 }

@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.withdraw.dao.WithdrawOrderDao">
+
+    <!-- 自定义分页查询手工提现记录（关联用户表） -->
+    <select id="selectManualWithdrawPage" resultType="io.renren.modules.withdraw.dto.ManualWithdrawDTO">
+        SELECT
+        wo.id,
+        wo.user_id as userId,
+        u.mobile,
+        wo.username,
+        wo.channel,
+        wo.msg,
+        wo.withdraw_time as withdrawTime,
+        wo.amount,
+        wo.inputamount,
+        wo.rate,
+        wo.hand_fee as handFee,
+        wo.real_amount as realAmount,
+        wo.channel_amount as channelAmount,
+        wo.blank_code as blankCode,
+        wo.blank_name as blankName,
+        wo.pay_name as payName,
+        wo.pay_no as payNo,
+        wo.oper_code as operCode,
+        wo.remark,
+        wo.create_time as createTime,
+        wo.state_time as stateTime,
+        wo.state,
+        wo.withdraw_type as withdrawType,
+        wo.part_mon as partMon,
+        wo.orderno,
+        wo.threeorder_no as threeorderNo,
+        wo.sourcetype_name as sourcetypeName,
+        wo.info_ip as infoIp,
+        wo.ifsc,
+        wo.agent_name as agentName,
+        wo.agent,
+        wo.salesmanid,
+        wo.salesman_name as salesmanName,
+        wo.channelid,
+        wo.merchantid,
+        wo.merchantname,
+        wo.biaoqian,
+        wo.invite_code_status as inviteCodeStatus,
+        wo.liebian,
+        wo.ctc,
+        u.agent as userAgent,
+        u.salesmanid as userSalesmanid,
+        agent_user.username as agentUserName,
+        salesman_user.username as salesmanUserName
+        FROM tb_withdraw_order wo
+        LEFT JOIN tb_user u ON wo.user_id = u.id
+        LEFT JOIN sys_user agent_user ON u.agent = agent_user.id
+        LEFT JOIN sys_user salesman_user ON u.salesmanid = salesman_user.id
+        <where>
+            <!-- 时间范围筛选 -->
+            <if test="params.startTime != null">
+                AND wo.create_time >= FROM_UNIXTIME(#{params.startTime} / 1000)
+            </if>
+            
+            <if test="params.endTime != null">
+                AND wo.create_time &lt;= FROM_UNIXTIME(#{params.endTime} / 1000)
+            </if>
+            
+            <!-- 平台订单号筛选 -->
+            <if test="params.orderno != null and params.orderno != ''">
+                AND wo.orderno LIKE CONCAT('%', #{params.orderno}, '%')
+            </if>
+            
+            <!-- 卡号筛选 -->
+            <if test="params.pay_no != null and params.pay_no != ''">
+                AND wo.pay_no LIKE CONCAT('%', #{params.pay_no}, '%')
+            </if>
+            
+            <!-- 状态筛选 -->
+            <if test="params.state != null">
+                AND wo.state = #{params.state}
+            </if>
+            
+            <!-- 三方订单号筛选 -->
+            <if test="params.threeorder_no != null and params.threeorder_no != ''">
+                AND wo.threeorder_no LIKE CONCAT('%', #{params.threeorder_no}, '%')
+            </if>
+            
+            <!-- 提现类型筛选 -->
+            <if test="params.withdraw_type != null">
+                AND wo.withdraw_type = #{params.withdraw_type}
+            </if>
+            
+            <!-- 用户筛选 -->
+            <if test="params.mobile != null and params.mobile != ''">
+                AND wo.mobile LIKE CONCAT('%', #{params.mobile}, '%')
+            </if>
+            
+            <if test="params.username != null and params.username != ''">
+                AND wo.username LIKE CONCAT('%', #{params.username}, '%')
+            </if>
+            
+            <!-- 代理筛选 -->
+            <if test="params.agent != null">
+                AND u.agent = #{params.agent}
+            </if>
+            
+            <!-- 业务员筛选 -->
+            <if test="params.salesmanid != null">
+                AND u.salesmanid = #{params.salesmanid}
+            </if>
+            
+            <!-- 标签筛选 -->
+            <if test="params.biaoqian != null and params.biaoqian != ''">
+                AND wo.biaoqian LIKE CONCAT('%', #{params.biaoqian}, '%')
+            </if>
+            
+            <!-- 裂变筛选 -->
+            <if test="params.liebian != null">
+                <choose>
+                    <when test="params.liebian == 1">
+                        <!-- 是裂变 - 有上级 -->
+                        AND u.superior_name IS NOT NULL AND u.superior_name != ''
+                    </when>
+                    <when test="params.liebian == 0">
+                        <!-- 否裂变 - 无上级 -->
+                        AND (u.superior_name IS NULL OR u.superior_name = '')
+                    </when>
+                </choose>
+            </if>
+            
+            <!-- 权限筛选 -->
+            <if test="params.currentUserId != null and params.currentUserId != ''">
+                <if test="params.currentUserType != null and params.currentUserType == 1">
+                    AND u.agent = #{params.currentUserId}
+                </if>
+                <if test="params.currentUserType != null and params.currentUserType == 2">
+                    AND u.salesmanid = #{params.currentUserId}
+                </if>
+            </if>
+        </where>
+        
+        <!-- 排序 -->
+        <choose>
+            <when test="params.orderField != null and params.orderField != '' and params.order != null and params.order != ''">
+                ORDER BY wo.${params.orderField} ${params.order}
+            </when>
+            <otherwise>
+                ORDER BY wo.create_time DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 统计手工提现汇总数据 -->
+    <select id="selectManualWithdrawSummary" resultType="map">
+        SELECT
+        COALESCE(SUM(wo.inputamount), 0) AS totalInputAmount,
+        COALESCE(SUM(wo.real_amount), 0) AS totalRealAmount,
+        COALESCE(SUM(wo.hand_fee), 0) AS totalHandFee,
+        COUNT(*) AS totalCount
+        FROM tb_withdraw_order wo
+        LEFT JOIN tb_user u ON wo.user_id = u.id
+        LEFT JOIN sys_user agent_user ON u.agent = agent_user.id
+        LEFT JOIN sys_user salesman_user ON u.salesmanid = salesman_user.id
+        <where>
+            <!-- 时间范围筛选 -->
+            <if test="params.startTime != null">
+                AND wo.create_time >= FROM_UNIXTIME(#{params.startTime} / 1000)
+            </if>
+            
+            <if test="params.endTime != null">
+                AND wo.create_time &lt;= FROM_UNIXTIME(#{params.endTime} / 1000)
+            </if>
+            
+            <!-- 平台订单号筛选 -->
+            <if test="params.orderno != null and params.orderno != ''">
+                AND wo.orderno LIKE CONCAT('%', #{params.orderno}, '%')
+            </if>
+            
+            <!-- 卡号筛选 -->
+            <if test="params.pay_no != null and params.pay_no != ''">
+                AND wo.pay_no LIKE CONCAT('%', #{params.pay_no}, '%')
+            </if>
+            
+            <!-- 状态筛选 -->
+            <if test="params.state != null">
+                AND wo.state = #{params.state}
+            </if>
+            
+            <!-- 三方订单号筛选 -->
+            <if test="params.threeorder_no != null and params.threeorder_no != ''">
+                AND wo.threeorder_no LIKE CONCAT('%', #{params.threeorder_no}, '%')
+            </if>
+            
+            <!-- 提现类型筛选 -->
+            <if test="params.withdraw_type != null">
+                AND wo.withdraw_type = #{params.withdraw_type}
+            </if>
+            
+            <!-- 用户筛选 -->
+            <if test="params.mobile != null and params.mobile != ''">
+                AND wo.mobile LIKE CONCAT('%', #{params.mobile}, '%')
+            </if>
+            
+            <if test="params.username != null and params.username != ''">
+                AND wo.username LIKE CONCAT('%', #{params.username}, '%')
+            </if>
+            
+            <!-- 代理筛选 -->
+            <if test="params.agent != null">
+                AND u.agent = #{params.agent}
+            </if>
+            
+            <!-- 业务员筛选 -->
+            <if test="params.salesmanid != null">
+                AND u.salesmanid = #{params.salesmanid}
+            </if>
+            
+            <!-- 标签筛选 -->
+            <if test="params.biaoqian != null and params.biaoqian != ''">
+                AND wo.biaoqian LIKE CONCAT('%', #{params.biaoqian}, '%')
+            </if>
+            
+            <!-- 裂变筛选 -->
+            <if test="params.liebian != null">
+                <choose>
+                    <when test="params.liebian == 1">
+                        <!-- 是裂变 - 有上级 -->
+                        AND u.superior_name IS NOT NULL AND u.superior_name != ''
+                    </when>
+                    <when test="params.liebian == 0">
+                        <!-- 否裂变 - 无上级 -->
+                        AND (u.superior_name IS NULL OR u.superior_name = '')
+                    </when>
+                </choose>
+            </if>
+            
+            <!-- 权限筛选 -->
+            <if test="params.currentUserId != null and params.currentUserId != ''">
+                <if test="params.currentUserType != null and params.currentUserType == 1">
+                    AND u.agent = #{params.currentUserId}
+                </if>
+                <if test="params.currentUserType != null and params.currentUserType == 2">
+                    AND u.salesmanid = #{params.currentUserId}
+                </if>
+            </if>
+        </where>
+    </select>
+
+</mapper>

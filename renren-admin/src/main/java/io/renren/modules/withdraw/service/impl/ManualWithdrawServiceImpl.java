@@ -1,6 +1,7 @@
 package io.renren.modules.withdraw.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.renren.common.constant.Constant;
 import io.renren.common.service.impl.BaseServiceImpl;
@@ -9,6 +10,8 @@ import io.renren.modules.withdraw.dto.ManualWithdrawDTO;
 import io.renren.modules.withdraw.dto.ManualWithdrawPageData;
 import io.renren.modules.withdraw.entity.WithdrawOrderEntity;
 import io.renren.modules.withdraw.service.ManualWithdrawService;
+import io.renren.modules.security.user.SecurityUser;
+import io.renren.modules.security.user.UserDetail;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,80 +45,27 @@ public class ManualWithdrawServiceImpl extends BaseServiceImpl<WithdrawOrderDao,
             Integer page = Integer.parseInt(params.get(Constant.PAGE).toString());
             Integer limit = Integer.parseInt(params.get(Constant.LIMIT).toString());
             
+            // 添加权限控制参数
+            UserDetail user = SecurityUser.getUser();
+            if (user != null) {
+                params.put("currentUserId", user.getId());
+                params.put("currentUserType", user.getType());
+            }
+            
             // 创建分页对象
-            Page<WithdrawOrderEntity> pageParam = new Page<>(page, limit);
+            Page<ManualWithdrawDTO> pageParam = new Page<>(page, limit);
             
-            // 构建查询条件
-            QueryWrapper<WithdrawOrderEntity> queryWrapper = new QueryWrapper<>();
+            // 使用自定义分页查询
+            IPage<ManualWithdrawDTO> result = withdrawOrderDao.selectManualWithdrawPage(pageParam, params);
             
-            // 时间范围筛选
-            if (params.get("startTime") != null) {
-                Long startTime = Long.parseLong(params.get("startTime").toString());
-                queryWrapper.ge("create_time", new Date(startTime));
-            }
-            
-            if (params.get("endTime") != null) {
-                Long endTime = Long.parseLong(params.get("endTime").toString());
-                queryWrapper.le("create_time", new Date(endTime));
-            }
-            
-            // 平台订单号筛选
-            if (params.get("orderno") != null && StringUtils.isNotBlank(params.get("orderno").toString())) {
-                queryWrapper.like("orderno", params.get("orderno"));
-            }
-            
-            // 卡号筛选
-            if (params.get("pay_no") != null && StringUtils.isNotBlank(params.get("pay_no").toString())) {
-                queryWrapper.like("pay_no", params.get("pay_no"));
-            }
-            
-            // 状态筛选
-            if (params.get("state") != null) {
-                Integer state = Integer.parseInt(params.get("state").toString());
-                queryWrapper.eq("state", state);
-            }
-            
-            // 三方订单号筛选
-            if (params.get("threeorder_no") != null && StringUtils.isNotBlank(params.get("threeorder_no").toString())) {
-                queryWrapper.like("threeorder_no", params.get("threeorder_no"));
-            }
-            
-            // 提现类型筛选
-            if (params.get("withdraw_type") != null && StringUtils.isNotBlank(params.get("withdraw_type").toString())) {
-                Integer withdrawType = Integer.parseInt(params.get("withdraw_type").toString());
-                queryWrapper.eq("withdraw_type", withdrawType);
-            }
-            
-            // 排序处理
-            if (params.get(Constant.ORDER_FIELD) != null && params.get(Constant.ORDER) != null) {
-                String orderField = params.get(Constant.ORDER_FIELD).toString();
-                String order = params.get(Constant.ORDER).toString();
-                if ("desc".equalsIgnoreCase(order)) {
-                    queryWrapper.orderByDesc(orderField);
-                } else {
-                    queryWrapper.orderByAsc(orderField);
-                }
-            } else {
-                // 默认按创建时间倒序
-                queryWrapper.orderByDesc("create_time");
-            }
-            
-            // 执行分页查询
-            Page<WithdrawOrderEntity> result = withdrawOrderDao.selectPage(pageParam, queryWrapper);
-            
-            // 转换为DTO
-            List<ManualWithdrawDTO> dtoList = result.getRecords().stream()
-                    .map(this::convertToDTO)
-                    .collect(Collectors.toList());
-            
-            // 计算汇总数据
-            Map<String, Object> sum = calculateSum(result.getRecords());
+            // 统计汇总数据
+            Map<String, Object> summaryData = withdrawOrderDao.selectManualWithdrawSummary(params);
             
             // 构建分页数据
             ManualWithdrawPageData pageData = new ManualWithdrawPageData();
-            pageData.setList(dtoList);
+            pageData.setList(result.getRecords());
             pageData.setTotal((int) result.getTotal());
-            pageData.setSum(sum);
+            pageData.setSum(summaryData);
             
             return pageData;
             

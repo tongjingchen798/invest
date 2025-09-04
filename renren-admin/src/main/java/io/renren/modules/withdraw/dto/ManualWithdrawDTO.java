@@ -100,4 +100,55 @@ public class ManualWithdrawDTO implements Serializable {
 
     @ApiModelProperty(value = "手续费")
     private BigDecimal handFee;
+
+    @ApiModelProperty(value = "用户ID")
+    private String userId;
+
+    @ApiModelProperty(value = "用户名")
+    private String username;
+
+    @ApiModelProperty(value = "渠道")
+    private Long channel;
+
+    @ApiModelProperty(value = "输入金额")
+    private BigDecimal inputamount;
+
+    @ApiModelProperty(value = "汇率")
+    private Double rate;
+
+    @ApiModelProperty(value = "操作代码")
+    private String operCode;
+
+    @ApiModelProperty(value = "部分金额")
+    private Integer partMon;
+
+    @ApiModelProperty(value = "来源类型名称")
+    private String sourcetypeName;
+
+    @ApiModelProperty(value = "信息IP")
+    private String infoIp;
+
+    @ApiModelProperty(value = "标签")
+    private String biaoqian;
+
+    @ApiModelProperty(value = "邀请码状态")
+    private Integer inviteCodeStatus;
+
+    @ApiModelProperty(value = "是否裂变")
+    private Integer liebian;
+
+    @ApiModelProperty(value = "CTC")
+    private String ctc;
+
+    @ApiModelProperty(value = "用户代理ID")
+    private String userAgent;
+
+    @ApiModelProperty(value = "用户业务员ID")
+    private Long userSalesmanid;
+
+    @ApiModelProperty(value = "代理用户名")
+    private String agentUserName;
+
+    @ApiModelProperty(value = "业务员用户名")
+    private String salesmanUserName;
 }
