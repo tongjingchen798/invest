@@ -6,9 +6,11 @@ import io.renren.annotation.LoginUser;
 import io.renren.common.exception.ErrorCode;
 import io.renren.common.exception.RenException;
 import io.renren.common.utils.Result;
+import io.renren.dao.PayChannelDao;
 import io.renren.dto.ChargeOrderDetailDTO;
 import io.renren.dto.ChargePageData;
 import io.renren.dto.ChargeResponseDTO;
+import io.renren.entity.PayChannelEntity;
 import io.renren.entity.UserEntity;
 import io.renren.enums.ChargeTypeEnum;
 import io.renren.service.ChargeOrderService;
@@ -37,6 +39,8 @@ public class ApiChargeController {
 
     @Autowired
     private ChargeOrderService chargeOrderService;
+    @Autowired
+    private PayChannelDao payChannelDao;
 
     @Login
     @PostMapping("orderdetail")
@@ -105,7 +109,7 @@ public class ApiChargeController {
                         responseDTO.setURealAmount(BigDecimal.ZERO);
 
                         // 构建支付链接
-                        String payUrl = buildPayUrl(orderno, amount, String.valueOf(channelid));
+                        String payUrl = buildPayUrl(orderno, amount, channelid);
                         responseDTO.setBankCardInfo(payUrl);
 
                         // 生成商户号
@@ -153,7 +157,12 @@ public class ApiChargeController {
     /**
      * 构建支付链接
      */
-    private String buildPayUrl(String orderNo, Long amount, String channelid) {
+    private String buildPayUrl(String orderNo, Long amount, Long channelid) {
+       PayChannelEntity payChannelEntity= payChannelDao.selectById(channelid);
+        if(payChannelEntity==null){
+            return "";
+        }
+
         // 这里需要根据实际的支付网关配置来构建支付链接
         // 示例：https://pay-v2.bankkpay.com/cashier?orderId=订单号&amount=金额
         String baseUrl = "https://pay-v2.bankkpay.com/cashier";
