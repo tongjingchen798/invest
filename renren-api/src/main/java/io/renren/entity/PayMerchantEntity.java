@@ -25,15 +25,11 @@ public class PayMerchantEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 主键ID
-     */
-    @TableId
-    private Long id;
-
-    /**
      * 商户ID
      */
-    private String merchantid;
+    @TableId
+    private Long merchantid;
+
 
     /**
      * 商户号
