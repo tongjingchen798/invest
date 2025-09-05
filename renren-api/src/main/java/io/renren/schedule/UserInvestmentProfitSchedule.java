@@ -742,25 +742,25 @@ public class UserInvestmentProfitSchedule {
         log.info("开始重置用户今日收益、投资和充值字段...");
         
         try {
-            int result = userDao.resetTodayFields();
+            int result = userDao.resetTodayInvestmentAndProfit();
             log.info("用户今日字段重置完成，影响用户数: {}", result);
         } catch (Exception e) {
             log.error("重置用户今日字段失败", e);
         }
     }
     
-    /**
-     * 获取用户余额信息（用于调试和监控）
-     * 
-     * @param userId 用户ID
-     * @return 用户余额信息
-     */
-    public UserEntity getUserBalanceInfo(Long userId) {
-        try {
-            return userDao.getUserBalanceInfo(userId);
-        } catch (Exception e) {
-            log.error("获取用户 {} 余额信息失败", userId, e);
-            return null;
-        }
-    }
+//    /**
+//     * 获取用户余额信息（用于调试和监控）
+//     *
+//     * @param userId 用户ID
+//     * @return 用户余额信息
+//     */
+//    public UserEntity getUserBalanceInfo(Long userId) {
+//        try {
+//            return userDao.getUserBalanceInfo(userId);
+//        } catch (Exception e) {
+//            log.error("获取用户 {} 余额信息失败", userId, e);
+//            return null;
+//        }
+//    }
 }

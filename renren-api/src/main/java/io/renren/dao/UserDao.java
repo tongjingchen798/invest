@@ -109,32 +109,32 @@ public interface UserDao extends BaseDao<UserEntity> {
             "WHERE id = #{userId}")
     int updateInviteCodeProfitFields(@Param("userId") Long userId, @Param("amount") Long amount);
 
-    /**
-     * 更新用户佣金相关字段（综合更新）
-     * @param userId 用户ID
-     * @param amount 佣金金额（分）
-     * @return 影响行数
-     */
-    @Update("UPDATE tb_user SET " +
-            "commission_balance = commission_balance + #{amount}, " +
-            "history_commission_balance = history_commission_balance + #{amount} " +
-            "WHERE id = #{userId}")
-    int updateAllCommissionFields(@Param("userId") Long userId, @Param("amount") Long amount);
+//    /**
+//     * 更新用户佣金相关字段（综合更新）
+//     * @param userId 用户ID
+//     * @param amount 佣金金额（分）
+//     * @return 影响行数
+//     */
+//    @Update("UPDATE tb_user SET " +
+//            "commission_balance = commission_balance + #{amount}, " +
+//            "history_commission_balance = history_commission_balance + #{amount} " +
+//            "WHERE id = #{userId}")
+//    int updateAllCommissionFields(@Param("userId") Long userId, @Param("amount") Long amount);
 
     /**
      * 重置用户今日收益和充值字段（每日定时任务调用）
      * @return 影响行数
      */
     @Update("UPDATE tb_user SET today_profit = 0, today_investment = 0, today_recharge = 0, today_recharge_cnt = 0")
-    int resetTodayFields();
+    int resetTodayInvestmentAndProfit();
 
-    /**
-     * 获取用户当前余额信息
-     * @param userId 用户ID
-     * @return 用户余额信息
-     */
-    @Select("SELECT id, assets, balance, commission_balance, today_profit, history_profit, total_profit FROM tb_user WHERE id = #{userId}")
-    UserEntity getUserBalanceInfo(@Param("userId") Long userId);
+//    /**
+//     * 获取用户当前余额信息
+//     * @param userId 用户ID
+//     * @return 用户余额信息
+//     */
+//    @Select("SELECT id, assets, balance, commission_balance, today_profit, history_profit, total_profit FROM tb_user WHERE id = #{userId}")
+//    UserEntity getUserBalanceInfo(@Param("userId") Long userId);
 
 
     /**
