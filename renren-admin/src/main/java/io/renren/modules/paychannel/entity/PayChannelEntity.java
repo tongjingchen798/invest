@@ -56,7 +56,7 @@ public class PayChannelEntity {
     /**
      * 充提类型（1:充值,2:提现,3:充提）
      */
-	private BigDecimal chargeorwithdraw;
+	private Integer chargeorwithdraw;
     /**
      * 创建时间
      */

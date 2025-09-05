@@ -24,7 +24,7 @@ public class PayChannelDTO {
     private String channelType;
 
     @ApiModelProperty(value = "充值 1 或者提现 2")
-    private String chargeorwithdraw;
+    private Integer chargeorwithdraw;
 
     @ApiModelProperty(value = "商户主键")
     private Long merchantid;

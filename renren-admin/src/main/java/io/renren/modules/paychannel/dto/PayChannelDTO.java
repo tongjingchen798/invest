@@ -45,7 +45,7 @@ public class PayChannelDTO implements Serializable {
 	private BigDecimal usdtLocalCurrencyRate;
 
 	@ApiModelProperty(value = "充提类型（1:充值,2:提现,3:充提）")
-	private String chargeorwithdraw;
+	private Integer chargeorwithdraw;
 
 	@ApiModelProperty(value = "创建时间")
 	private Date createDate;
