@@ -6,7 +6,8 @@
     <!-- 查询所有上架的支付通道 -->
     <select id="selectAllActiveChannels" resultType="io.renren.entity.PayChannelEntity">
         SELECT * FROM tb_pay_channel 
-        WHERE status = 1 
+        WHERE status = 1
+        and chargeorwithdraw=1
         ORDER BY create_date DESC
     </select>
     

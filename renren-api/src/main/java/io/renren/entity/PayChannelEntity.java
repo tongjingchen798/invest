@@ -37,7 +37,7 @@ public class PayChannelEntity implements Serializable {
     /**
      * 充值 1 或者提现 2
      */
-    private Integer chargeorwithdraw;
+    private String chargeorwithdraw;
 
     /**
      * 商户主键
