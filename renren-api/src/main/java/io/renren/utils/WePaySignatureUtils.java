@@ -7,18 +7,13 @@ import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 /**
- * 签名工具类
- *
- * @author renren
- * @email renren@gmail.com
- * @date 2024-01-01 00:00:00
+ * WEPAY签名工具类
  */
 @Slf4j
-public class SignatureUtils {
+public class WePaySignatureUtils {
 
     /**
      * 生成签名
