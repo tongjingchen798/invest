@@ -19,6 +19,8 @@
         m.history_profit as historyProfit,
         m.commission_balance as commissionBalance,
         m.tgrs,
+        m.historywithdrawcnt,
+        m.historychargecnt,
         m.invite_code as inviteCode,
         m.upinvite_code as upinviteCode,
         m.agent,
