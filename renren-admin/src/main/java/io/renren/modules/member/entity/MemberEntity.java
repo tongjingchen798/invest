@@ -147,13 +147,13 @@ public class MemberEntity implements Serializable {
     private Long historyInvestment;
 
     /**
-     * 今日收益(分)
+     * 今日投资收益(分)
      */
     @TableField("today_profit")
     private Long todayProfit;
 
     /**
-     * 历史收益(分)
+     * 历史投资收益(分)
      */
     @TableField("history_profit")
     private Long historyProfit;
@@ -479,7 +479,7 @@ public class MemberEntity implements Serializable {
     private Long totalPrincipal;
 
     /**
-     * 总收益
+     * 投资总收益
      */
     private Long totalProfit;
 

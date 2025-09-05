@@ -104,7 +104,7 @@ public interface UserDao extends BaseDao<UserEntity> {
             "history_commission = history_commission + #{amount}, " +
             "today_commission = today_commission + #{amount}, " +
             "tgrs = tgrs + 1, " +
-            "commission_balance = commission_balance + #{amount}, " +
+            "commission_balance = commission_balance + #{amount} " +
             "total_profit = total_profit + #{amount} " +
             "WHERE id = #{userId}")
     int updateInviteCodeProfitFields(@Param("userId") Long userId, @Param("amount") Long amount);
