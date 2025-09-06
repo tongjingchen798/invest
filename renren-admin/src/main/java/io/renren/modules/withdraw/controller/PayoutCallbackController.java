@@ -6,6 +6,10 @@ import io.renren.modules.paymerchant.dao.PayMerchantDao;
 import io.renren.modules.paymerchant.entity.PayMerchantEntity;
 import io.renren.modules.withdraw.dao.WithdrawOrderDao;
 import io.renren.modules.withdraw.entity.WithdrawOrderEntity;
+import io.renren.modules.member.dao.MemberDao;
+import io.renren.modules.member.entity.MemberEntity;
+import io.renren.modules.finance.dao.UserBalanceDetailDao;
+import io.renren.modules.finance.entity.UserBalanceDetailEntity;
 import io.renren.common.utils.WePaySignatureUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,8 +38,14 @@ public class PayoutCallbackController {
     @Autowired
     private WithdrawOrderDao withdrawOrderDao;
     
+    @Autowired
+    private MemberDao memberDao;
+    
+//    @Autowired
+//    private UserBalanceDetailDao userBalanceDetailDao;
+    
     /**
-     * WePay代付回调接口 - 直接使用JSONObject
+     * WePay代付回调接口
      */
     @PostMapping(value = "/notify", consumes = "application/json")
     public String payoutNotify(@RequestBody String requestBody) {
@@ -67,7 +77,7 @@ public class PayoutCallbackController {
     }
     
     /**
-     * 解析WePay代付回调JSON数据 - 直接返回JSONObject
+     * 解析WePay代付回调JSON数据
      */
     private com.alibaba.fastjson.JSONObject parseWePayCallbackJson(String requestBody) {
         try {
@@ -85,7 +95,7 @@ public class PayoutCallbackController {
     }
     
     /**
-     * 验证WePay代付回调签名 - 直接使用JSONObject
+     * 验证WePay代付回调签名
      */
     private boolean verifyWePayCallbackSign(com.alibaba.fastjson.JSONObject jsonData) {
         try {
@@ -134,7 +144,7 @@ public class PayoutCallbackController {
     }
     
     /**
-     * 处理代付结果 - 直接使用JSONObject
+     * 处理代付结果
      */
     private boolean processPayoutResult(com.alibaba.fastjson.JSONObject jsonData) {
         try {
@@ -211,7 +221,7 @@ public class PayoutCallbackController {
     }
     
     /**
-     * 处理代付失败 - 直接使用JSONObject
+     * 处理代付失败
      */
     private boolean handlePayoutFailure(com.alibaba.fastjson.JSONObject jsonData) {
         try {
@@ -231,6 +241,20 @@ public class PayoutCallbackController {
                 return true;
             }
             
+            // 查询用户信息
+            MemberEntity user = memberDao.selectById(Long.valueOf(withdrawOrder.getUserId()));
+            if (user == null) {
+                logger.error("查询用户信息失败 - 用户ID: {}", withdrawOrder.getUserId());
+                return false;
+            }
+            
+            // 根据提现类型更新对应的钱包余额
+            boolean walletUpdated = updateWalletOnPayoutFailure(withdrawOrder, user);
+            if (!walletUpdated) {
+                logger.error("更新钱包余额失败 - 订单号: {}", orderNo);
+                return false;
+            }
+            
             // 更新订单状态为代付失败
             withdrawOrder.setState(2); // 2-代付失败
             withdrawOrder.setStateTime(new Date());
@@ -242,7 +266,8 @@ public class PayoutCallbackController {
                 return false;
             }
             
-            logger.info("代付失败处理完成 - 订单号: {}, 失败原因: {}", orderNo, remark);
+            logger.info("代付失败处理完成 - 订单号: {}, 失败原因: {}, 提现类型: {}", 
+                       orderNo, remark, withdrawOrder.getWithdrawType());
             return true;
             
         } catch (Exception e) {
@@ -250,4 +275,107 @@ public class PayoutCallbackController {
             return false;
         }
     }
+    
+    /**
+     * 代付失败时更新钱包余额
+     */
+    private boolean updateWalletOnPayoutFailure(WithdrawOrderEntity withdrawOrder, MemberEntity user) {
+        try {
+            Long amount = withdrawOrder.getAmount();
+            Integer withdrawType = withdrawOrder.getWithdrawType();
+            
+            logger.info("开始更新钱包余额 - 用户ID: {}, 金额: {}, 提现类型: {}", 
+                       user.getId(), amount, withdrawType);
+            
+            // 根据提现类型更新对应的钱包
+            switch (withdrawType) {
+                case 1: // 余额提现
+                    // 将冻结的余额提现金额返还到可提现余额
+                    user.setFreezeBalance(user.getFreezeBalance() - amount);
+                    user.setCashwithdrawable(user.getCashwithdrawable() + amount);
+                    logger.info("余额提现失败，返还到可提现余额 - 用户ID: {}, 金额: {}", user.getId(), amount);
+                    break;
+                    
+                case 2: // 佣金提现
+                    // 将冻结的佣金提现金额返还到佣金可提现余额
+                    user.setFreezeBalance(user.getFreezeBalance() - amount);
+                    user.setCommissionBalance(user.getCommissionBalance() + amount);
+                    logger.info("佣金提现失败，返还到佣金可提现余额 - 用户ID: {}, 金额: {}", user.getId(), amount);
+                    break;
+                    
+                default:
+                    logger.warn("未知的提现类型: {} - 订单号: {}", withdrawType, withdrawOrder.getOrderno());
+                    return false;
+            }
+            
+            // 更新用户信息
+            int updateResult = memberDao.updateById(user);
+            if (updateResult <= 0) {
+                logger.error("更新用户钱包余额失败 - 用户ID: {}", user.getId());
+                return false;
+            }
+            
+//            // 记录账变明细
+//            recordBalanceDetailOnPayoutFailure(withdrawOrder, user, amount, withdrawType);
+            
+            logger.info("钱包余额更新成功 - 用户ID: {}, 提现类型: {}, 金额: {}", 
+                       user.getId(), withdrawType, amount);
+            return true;
+            
+        } catch (Exception e) {
+            logger.error("更新钱包余额异常 - 订单号: {}, 用户ID: {}", 
+                        withdrawOrder.getOrderno(), user.getId(), e);
+            return false;
+        }
+    }
+    
+//    /**
+//     * 代付失败时记录账变明细
+//     */
+//    private void recordBalanceDetailOnPayoutFailure(WithdrawOrderEntity withdrawOrder, MemberEntity user,
+//                                                   Long amount, Integer withdrawType) {
+//        try {
+//            UserBalanceDetailEntity balanceDetail = new UserBalanceDetailEntity();
+//            balanceDetail.setUserId(Long.valueOf(withdrawOrder.getUserId()));
+//            balanceDetail.setTransactionDate(new java.util.Date());
+//            balanceDetail.setAgentId(user.getAgent());
+//            balanceDetail.setAgentName(user.getAgentName());
+//            balanceDetail.setChannel("1");
+//            balanceDetail.setOriginalAmount(amount);
+//            balanceDetail.setRemarks(getPayoutFailureRemark(withdrawType));
+//            balanceDetail.setSalesmanName(user.getSalesmanName());
+//            balanceDetail.setSalesmanId(user.getSalesmanid() != null ? Long.valueOf(user.getSalesmanid()) : null);
+//            balanceDetail.setStatus(1);
+//
+//            // 根据提现类型设置业务类型
+//            if (withdrawType == 1) {
+//                balanceDetail.setBusiType(13); // 13-余额提现失败退回
+//            } else if (withdrawType == 2) {
+//                balanceDetail.setBusiType(14); // 14-佣金提现失败退回
+//            }
+//
+//            userBalanceDetailDao.insert(balanceDetail);
+//
+//            logger.info("代付失败账变明细记录成功 - 用户ID: {}, 业务类型: {}, 金额: {}",
+//                       user.getId(), balanceDetail.getBusiType(), amount);
+//
+//        } catch (Exception e) {
+//            logger.error("记录代付失败账变明细异常 - 订单号: {}, 用户ID: {}",
+//                        withdrawOrder.getOrderno(), user.getId(), e);
+//        }
+//    }
+//
+//    /**
+//     * 获取代付失败备注
+//     */
+//    private String getPayoutFailureRemark(Integer withdrawType) {
+//        switch (withdrawType) {
+//            case 1:
+//                return "余额提现失败，资金退回";
+//            case 2:
+//                return "佣金提现失败，资金退回";
+//            default:
+//                return "提现失败，资金退回";
+//        }
+//    }
 }
