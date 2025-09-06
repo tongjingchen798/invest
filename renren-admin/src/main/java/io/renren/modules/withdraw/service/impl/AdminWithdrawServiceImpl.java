@@ -1,5 +1,6 @@
 package io.renren.modules.withdraw.service.impl;
 
+import io.renren.common.exception.RenException;
 import io.renren.modules.finance.dao.UserBalanceDetailDao;
 import io.renren.modules.finance.entity.UserBalanceDetailEntity;
 import io.renren.modules.member.dao.MemberDao;
@@ -40,12 +41,12 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
             // 查询提现订单
             WithdrawOrderEntity withdrawOrder = withdrawOrderDao.selectById(auditDTO.getId().toString());
             if (withdrawOrder == null) {
-                throw new RuntimeException("提现订单不存在");
+                throw new RenException("提现订单不存在");
             }
 
             // 检查订单状态是否允许审核
             if (!canAudit(withdrawOrder.getState())) {
-                throw new RuntimeException("当前订单状态不允许审核操作");
+                throw new RenException("当前订单状态不允许审核操作");
             }
 
             // 记录原始状态，用于后续处理
@@ -75,7 +76,7 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
             // 更新订单
             int updateResult = withdrawOrderDao.updateById(withdrawOrder);
             if (updateResult <= 0) {
-                throw new RuntimeException("更新提现订单失败");
+                throw new RenException("更新提现订单失败");
             }
 
             // 处理审核后的业务逻辑

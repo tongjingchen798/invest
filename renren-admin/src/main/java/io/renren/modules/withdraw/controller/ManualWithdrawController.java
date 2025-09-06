@@ -84,10 +84,10 @@ public class ManualWithdrawController {
                 return new Result<>().error("审核状态不能为空");
             }
 
-            // 验证状态值是否合法
-            if (!isValidState(auditDTO.getState())) {
-                return new Result<>().error("无效的审核状态值");
-            }
+//            // 验证状态值是否合法
+//            if (!isValidState(auditDTO.getState())) {
+//                return new Result<>().error("无效的审核状态值");
+//            }
 
             // 执行审核
             adminWithdrawService.auditWithdraw(auditDTO);
