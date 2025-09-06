@@ -5,11 +5,16 @@ import io.renren.common.exception.RenException;
 import io.renren.common.utils.Result;
 import io.renren.dao.ChargeOrderDao;
 import io.renren.dao.PayMerchantDao;
+import io.renren.dao.UserDao;
+import io.renren.dao.UserBalanceDetailDao;
 import io.renren.dto.PaymentResponseDTO;
 import io.renren.dto.WePayCallbackDTO;
 import io.renren.entity.ChargeOrderEntity;
 import io.renren.entity.PayMerchantEntity;
+import io.renren.entity.UserEntity;
+import io.renren.entity.UserBalanceDetailEntity;
 import io.renren.service.WePayPaymentService;
+import io.renren.service.PaymentCallbackService;
 import io.renren.utils.WePaySignatureUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -20,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -45,6 +51,15 @@ public class PaymentCallbackController {
 
     @Autowired
     private ChargeOrderDao chargeOrderDao;
+    
+    @Autowired
+    private UserDao userDao;
+    
+    @Autowired
+    private UserBalanceDetailDao userBalanceDetailDao;
+    
+    @Autowired
+    private PaymentCallbackService paymentCallbackService;
     
     @PostMapping("/notify")
     @ApiOperation("WePay支付结果异步通知")
@@ -275,48 +290,34 @@ public class PaymentCallbackController {
                 case 0:
                     // 订单生成
                     logger.info("订单生成 - 订单号: {}", orderNo);
-                    break;
+                    return paymentCallbackService.handleOrderCreated(callbackData);
                     
                 case 1:
                     // 支付成功
                     logger.info("支付成功 - 订单号: {}, 实际支付金额: {}, 手续费: {}", 
                                orderNo, callbackData.getAmount(), callbackData.getCharge());
-                    
-                    // TODO: 实现支付成功处理逻辑
-                    // 1. 根据订单号查询本地订单
-                    // 2. 更新订单状态为已支付
-                    // 3. 更新用户余额
-                    // 4. 记录支付日志
-                    // 5. 发送支付成功通知
-                    break;
+                    return paymentCallbackService.handlePaymentSuccess(callbackData);
                     
                 case 2:
                     // 支付失败
                     logger.warn("支付失败 - 订单号: {}, 失败原因: {}", orderNo, callbackData.getRemark());
-                    
-                    // TODO: 实现支付失败处理逻辑
-                    // 1. 根据订单号查询本地订单
-                    // 2. 更新订单状态为支付失败
-                    // 3. 记录失败原因
-                    // 4. 发送支付失败通知
-                    break;
+                    return paymentCallbackService.handlePaymentFailure(callbackData);
                     
                 default:
                     logger.warn("未知支付状态 - 订单号: {}, 状态: {}", orderNo, payStatus);
                     return false;
             }
             
-            // 处理反转订单
-            if (callbackData.getReverse() != null && callbackData.getReverse()) {
-                logger.warn("订单被反转 - 订单号: {}", orderNo);
-                // TODO: 实现订单反转处理逻辑
-            }
-            
-            return true;
-            
+//            // 处理反转订单
+//            if (callbackData.getReverse() != null && callbackData.getReverse()) {
+//                logger.warn("订单被反转 - 订单号: {}", orderNo);
+//                // TODO: 实现订单反转处理逻辑
+//            }
+
         } catch (Exception e) {
             logger.error("处理WePay支付结果失败: {}", e.getMessage(), e);
             return false;
         }
     }
+    
 }
