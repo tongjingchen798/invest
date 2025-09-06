@@ -50,20 +50,8 @@ public class ApiWithdrawController {
     public Result<WithdrawPageData> getWithdrawPage(
             @ApiParam(value = "每页显示记录数", required = true) @RequestParam Integer limit,
             @ApiParam(value = "当前页码，从1开始", required = true) @RequestParam Integer page,
-            @ApiParam(value = "登录用户id", required = true) @RequestParam Long userId,
-            @ApiParam(value = "排序方式，可选值(asc、desc)") @RequestParam(required = false) String order,
-            @ApiParam(value = "排序字段") @RequestParam(required = false) String orderField,
-            @ApiParam(value = "第三方订单号") @RequestParam(required = false) String orderno,
-            @ApiParam(value = "卡号") @RequestParam(required = false) String payNo,
-            @ApiParam(value = "状态 0 待审核 1审核通过  2 审核失败") @RequestParam(required = false) Integer state,
-            @ApiParam(value = "我方订单号") @RequestParam(required = false) String transNo,
             @LoginUser UserEntity user) {
         try {
-            // 验证用户权限
-            if (!user.getId().equals(userId)) {
-                return new Result<WithdrawPageData>().error("无权限查询其他用户的提现记录");
-            }
-
             // 参数验证
             if (page == null || page < 1) {
                 return new Result<WithdrawPageData>().error("页码必须大于0");
@@ -76,13 +64,7 @@ public class ApiWithdrawController {
             WithdrawQueryDTO queryDTO = new WithdrawQueryDTO();
             queryDTO.setLimit(limit);
             queryDTO.setPage(page);
-            queryDTO.setUserId(userId);
-            queryDTO.setOrder(order);
-            queryDTO.setOrderField(orderField);
-            queryDTO.setOrderno(orderno);
-            queryDTO.setPayNo(payNo);
-            queryDTO.setState(state);
-            queryDTO.setTransNo(transNo);
+            queryDTO.setUserId(user.getId());
 
             // 执行查询
             WithdrawPageData pageData = withdrawService.getWithdrawPageData(queryDTO);

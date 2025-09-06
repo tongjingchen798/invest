@@ -276,8 +276,7 @@ public class WithdrawServiceImpl implements WithdrawService {
             }
 
             // 检查余额是否足够
-            if (user.getAssets() == null || user.getAssets() < requestDTO.getAmount() || 
-                user.getCashwithdrawable() == null || user.getCashwithdrawable() < requestDTO.getAmount()) {
+            if (user.getCashwithdrawable() == null || user.getCashwithdrawable() < requestDTO.getAmount()) {
                 throw new RenException("Insufficient cash withdrawal balance");
             }
 
@@ -333,8 +332,8 @@ public class WithdrawServiceImpl implements WithdrawService {
             user.setFreezeBalance(oldFreezeBalance + requestDTO.getAmount());
             userDao.updateById(user);
             
-            // 扣除用户可提现余额
-            userDao.reduceCashWithdrawableBalance(userId, amount.longValue());
+//            // 扣除用户可提现余额
+//            userDao.reduceCashWithdrawableBalance(userId, amount.longValue());
             
             logger.info("余额提现申请处理完成 - 用户ID: {}, 订单号: {}, 提现金额: {}, 可提现余额: {}, 冻结余额: {}", 
                        userId, orderNo, requestDTO.getAmount(), user.getCashwithdrawable(), user.getFreezeBalance());
@@ -417,25 +416,25 @@ public class WithdrawServiceImpl implements WithdrawService {
         // 用户ID条件
         queryWrapper.eq("user_id", queryDTO.getUserId().toString());
         
-        // 第三方订单号条件
-        if (StringUtils.hasText(queryDTO.getOrderno())) {
-            queryWrapper.eq("threeorder_no", queryDTO.getOrderno());
-        }
-        
-        // 卡号条件
-        if (StringUtils.hasText(queryDTO.getPayNo())) {
-            queryWrapper.eq("pay_no", queryDTO.getPayNo());
-        }
-        
-        // 状态条件
-        if (queryDTO.getState() != null) {
-            queryWrapper.eq("state", queryDTO.getState());
-        }
-        
-        // 我方订单号条件
-        if (StringUtils.hasText(queryDTO.getTransNo())) {
-            queryWrapper.eq("orderno", queryDTO.getTransNo());
-        }
+//        // 第三方订单号条件
+//        if (StringUtils.hasText(queryDTO.getOrderno())) {
+//            queryWrapper.eq("threeorder_no", queryDTO.getOrderno());
+//        }
+//
+//        // 卡号条件
+//        if (StringUtils.hasText(queryDTO.getPayNo())) {
+//            queryWrapper.eq("pay_no", queryDTO.getPayNo());
+//        }
+//
+//        // 状态条件
+//        if (queryDTO.getState() != null) {
+//            queryWrapper.eq("state", queryDTO.getState());
+//        }
+//
+//        // 我方订单号条件
+//        if (StringUtils.hasText(queryDTO.getTransNo())) {
+//            queryWrapper.eq("orderno", queryDTO.getTransNo());
+//        }
         
         // 排序
         if (StringUtils.hasText(queryDTO.getOrderField())) {

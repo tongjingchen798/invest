@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.charge.dao.ChargeOrderDao">
+
+    <!-- 自定义分页查询充值订单详情 -->
+    <select id="selectAdminChargePage" resultType="io.renren.modules.charge.dto.ChargeOrderDetailDTO">
+        SELECT 
+            co.charge_id as chargeId,
+            co.user_id as userId,
+            co.mobile as mobile,
+            co.channel as channel,
+            co.platform as platform,
+            '' as sourcetypeName,
+            co.orderno as orderno,
+            co.threeorder_no as threeorderNo,
+            co.amount as amount,
+            co.real_amount as realAmount,
+            co.state as state,
+            DATE_FORMAT(co.create_time, '%Y-%m-%d %H:%i:%s') as chargeTime,
+            DATE_FORMAT(co.create_time, '%Y-%m-%d %H:%i:%s') as createTime,
+            co.oper_code as operCode,
+            co.remark as remark,
+            co.info_ip as infoIp,
+            agent_user.username as agentName,
+            co.agent as agent,
+            co.salesmanid as salesmanid,
+            salesman_user.username as salesmanName,
+            u.invite_code_status as inviteCodeStatus,
+            u.liebian as liebian,
+            DATE_FORMAT(u.create_date, '%Y-%m-%d %H:%i:%s') as usercreateTime,
+            CASE WHEN co.state = 1 THEN CAST(co.amount AS CHAR) ELSE '0' END as successcz,
+            CASE WHEN co.state = 1 THEN '1' ELSE '0' END as successcnt,
+            co.channelid as channelid,
+            co.merchantid as merchantid,
+            co.merchantname as merchantname,
+            co.uamout as uamout,
+            co.uprice as uprice,
+            co.channel_type as channelType,
+            co.u_real_amout as uRealAmout,
+            co.wallet_id as walletId,
+            co.wallet_addr as walletAddr
+        FROM tb_charge_order co
+        LEFT JOIN tb_user u ON co.user_id = u.id
+        LEFT JOIN tb_user agent_user ON u.agent = agent_user.id
+        LEFT JOIN tb_user salesman_user ON u.salesmanid = salesman_user.id
+        <where>
+            <!-- 权限筛选：根据当前用户类型限制查询范围 -->
+            <if test="params.currentUserId != null and params.currentUserId != ''">
+                <if test="params.currentUserType != null and params.currentUserType == 1">
+                    <!-- 代理用户：只能查看自己代理的用户充值数据 -->
+                    AND u.agent = #{params.currentUserId}
+                </if>
+                <if test="params.currentUserType != null and params.currentUserType == 2">
+                    <!-- 业务员用户：只能查看自己负责的用户充值数据 -->
+                    AND u.salesmanid = #{params.currentUserId}
+                </if>
+                <!-- type=0是系统管理员，可以查看所有数据，不需要添加权限限制 -->
+            </if>
+            
+            <!-- 标签筛选 -->
+            <if test="params.biaoqian != null and params.biaoqian != ''">
+                AND u.biaoqian = #{params.biaoqian}
+            </if>
+            
+            <!-- 标签筛选标志 -->
+            <if test="params.biaoqianFlag != null">
+                <if test="params.biaoqianFlag == 1">
+                    AND co.biaoqian IS NOT NULL
+                </if>
+                <if test="params.biaoqianFlag == 0">
+                    AND co.biaoqian IS NULL
+                </if>
+            </if>
+            
+            <!-- 时间范围筛选 -->
+            <if test="params.createstarttime != null">
+                AND co.create_time >= FROM_UNIXTIME(#{params.createstarttime}/1000)
+            </if>
+            
+            <if test="params.createendtime != null">
+                AND co.create_time &lt;= FROM_UNIXTIME(#{params.createendtime}/1000)
+            </if>
+            
+            <if test="params.startTime != null">
+                AND co.create_time >= FROM_UNIXTIME(#{params.startTime}/1000)
+            </if>
+            
+            <if test="params.endTime != null">
+                AND co.create_time &lt;= FROM_UNIXTIME(#{params.endTime}/1000)
+            </if>
+            
+            <!-- 订单号筛选 -->
+            <if test="params.orderno != null and params.orderno != ''">
+                AND co.orderno = #{params.orderno}
+            </if>
+            
+            <!-- 用户账号筛选 -->
+            <if test="params.mobile != null and params.mobile != ''">
+                AND co.mobile LIKE CONCAT('%', #{params.mobile}, '%')
+            </if>
+            
+            <!-- 状态筛选 -->
+            <if test="params.state != null">
+                AND co.state = #{params.state}
+            </if>
+            
+            <!-- 三方订单号筛选 -->
+            <if test="params.threeorder_no != null and params.threeorder_no != ''">
+                AND co.threeorder_no LIKE CONCAT('%', #{params.threeorder_no}, '%')
+            </if>
+        </where>
+        
+        <!-- 排序处理 -->
+        <choose>
+            <when test="params.orderField != null and params.order != null">
+                <if test="params.order == 'desc'">
+                    ORDER BY ${params.orderField} DESC
+                </if>
+                <if test="params.order == 'asc'">
+                    ORDER BY ${params.orderField} ASC
+                </if>
+            </when>
+            <otherwise>
+                <!-- 默认按创建时间倒序 -->
+                ORDER BY co.create_time DESC
+            </otherwise>
+        </choose>
+    </select>
+
+</mapper>

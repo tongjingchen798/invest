@@ -26,7 +26,7 @@ public class ChargeOrderDetailDTO implements Serializable {
     private String agentName;
 
     @ApiModelProperty(value = "充值金币(分)")
-    private BigDecimal amount;
+    private Long amount;
 
     @ApiModelProperty(value = "标签")
     private String biaoqian;
@@ -77,7 +77,7 @@ public class ChargeOrderDetailDTO implements Serializable {
     private String platform;
 
     @ApiModelProperty(value = "真实充值额(分)")
-    private BigDecimal realAmount;
+    private Long realAmount;
 
     @ApiModelProperty(value = "备注")
     private String remark;
@@ -95,10 +95,10 @@ public class ChargeOrderDetailDTO implements Serializable {
     private Integer state;
 
     @ApiModelProperty(value = "成功次数")
-    private Integer successcnt;
+    private String successcnt;
 
     @ApiModelProperty(value = "成功充值")
-    private Integer successcz;
+    private String successcz;
 
     @ApiModelProperty(value = "第三方订单号")
     private String threeorderNo;
