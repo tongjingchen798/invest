@@ -98,8 +98,6 @@ public class ApiChargeController {
 
             // 创建充值订单
             String orderno = chargeOrderService.createChargeOrder(user.getId(), amount, charge_type, channelid);
-            //分转换为元
-            amount=amount/100;
             // 构建充值响应数据
             ChargeResponseDTO responseDTO = new ChargeResponseDTO();
             responseDTO.setOrderNo(orderno);
@@ -131,9 +129,9 @@ public class ApiChargeController {
                         responseDTO.setUprice(BigDecimal.ZERO);
                         responseDTO.setURealAmount(BigDecimal.ZERO);
 
-                        // 调用WePay支付服务创建支付订单
+                        // 调用WePay支付服务创建支付订单 分转换为元
                         PaymentResponseDTO paymentResponse = wePayPaymentService.createPaymentOrder(
-                                user, amount, orderno, payChannelEntity, payMerchantEntity);
+                                user, amount/100, orderno, payChannelEntity, payMerchantEntity);
 
                         // 设置支付地址
                         String payUrl = "";
