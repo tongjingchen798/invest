@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.renren.common.exception.ErrorCode;
 import io.renren.common.exception.RenException;
 import io.renren.common.utils.Result;
+import io.renren.config.WithdrawConfig;
 import io.renren.dao.UserDao;
 import io.renren.dao.WithdrawOrderDao;
 import io.renren.dto.RewardWithdrawRequestDTO;
@@ -49,6 +50,9 @@ public class WithdrawServiceImpl implements WithdrawService {
 
     @Autowired
     private WithdrawRuleValidator withdrawRuleValidator;
+
+    @Autowired
+    private WithdrawConfig withdrawConfig;
 
     // 订单号生成器
     private static final AtomicLong orderNoGenerator = new AtomicLong(System.currentTimeMillis());
@@ -154,22 +158,23 @@ public class WithdrawServiceImpl implements WithdrawService {
                 throw new RenException(30001);
             }
 
-//            // 验证支付密码
-//            if (!validatePayPassword(user, requestDTO.getPayPassword())) {
-//                throw new RuntimeException("支付密码错误");
-//            }
-
             // 检查佣金余额
             if (user.getCommissionBalance() == null || user.getCommissionBalance() < requestDTO.getAmount()) {
-                throw new RuntimeException("佣金余额不足");
+                throw new RenException(500,"佣金余额不足");
             }
-            
-            // 验证提现规则
-            ValidationResult ruleResult = withdrawRuleValidator.validateAllRules(userId, new BigDecimal(requestDTO.getAmount()));
-            if (!ruleResult.isValid()) {
-                throw new RuntimeException(ruleResult.getErrorMessage());
+
+            // 验证提现金额
+            BigDecimal amountTotal=new BigDecimal(requestDTO.getAmount());
+            // 检查最低提现额度
+            if (amountTotal.compareTo(withdrawConfig.getMinAmount()) < 0) {
+                throw new RenException(500,"Minimum single withdrawal amount: "+withdrawConfig.getMinAmount().divide(new BigDecimal(100))+" RS");
             }
-            
+
+            // 检查最高提现额度
+            if (amountTotal.compareTo(withdrawConfig.getMaxAmount()) > 0) {
+                throw new RenException(500,"maximum amount: "+withdrawConfig.getMaxAmount().divide(new BigDecimal(100))+" RS");
+            }
+
             // 生成订单号
             String orderNo = generateOrderNo();
             
@@ -231,20 +236,21 @@ public class WithdrawServiceImpl implements WithdrawService {
                 throw new RenException(30001);
             }
 
-//            // 验证支付密码
-//            if (!validatePayPassword(user, requestDTO.getPayPassword())) {
-//                throw new RuntimeException("支付密码错误");
-//            }
-
             // 检查佣金余额
             if (user.getAssets() == null || user.getAssets() < requestDTO.getAmount() || user.getCashwithdrawable() < requestDTO.getAmount() ) {
                 throw new RuntimeException("余额不足");
             }
 
-            // 验证提现规则
-            ValidationResult ruleResult = withdrawRuleValidator.validateAllRules(userId, new BigDecimal(requestDTO.getAmount()));
-            if (!ruleResult.isValid()) {
-                throw new RuntimeException(ruleResult.getErrorMessage());
+            // 验证提现金额
+            BigDecimal amountTotal=new BigDecimal(requestDTO.getAmount());
+            // 检查最低提现额度
+            if (amountTotal.compareTo(withdrawConfig.getMinAmount()) < 0) {
+                throw new RenException(500,"Minimum single withdrawal amount: "+withdrawConfig.getMinAmount().divide(new BigDecimal(100))+" RS");
+            }
+
+            // 检查最高提现额度
+            if (amountTotal.compareTo(withdrawConfig.getMaxAmount()) > 0) {
+                throw new RenException(500,"maximum amount: "+withdrawConfig.getMaxAmount().divide(new BigDecimal(100))+" RS");
             }
 
             // 生成订单号
@@ -277,8 +283,13 @@ public class WithdrawServiceImpl implements WithdrawService {
             // 保存提现订单
             withdrawOrderDao.insert(withdrawOrder);
 
-            // 扣除用户可提现余额
+            // 扣除用户可提现余额 cashwithdrawable
             userDao.reduceUserBalance(userId,amount.longValue());
+
+            // 冻结用户可提现余额
+            user.setCashwithdrawable(user.getCashwithdrawable() - requestDTO.getAmount());
+            user.setFreezeBalance(user.getFreezeBalance() + requestDTO.getAmount());
+            userDao.updateById(user);
 
             // 构建返回结果
             Map<String, Object> result = new HashMap<>();

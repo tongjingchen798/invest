@@ -90,7 +90,7 @@ public class WithdrawRuleValidator {
 
     
     /**
-     * 综合验证提现规则
+     * 验证提现金额
      * 
      * @param userId 用户ID
      * @param amount 提现金额（卢比）
