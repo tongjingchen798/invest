@@ -8,8 +8,6 @@ import io.renren.modules.withdraw.dao.WithdrawOrderDao;
 import io.renren.modules.withdraw.entity.WithdrawOrderEntity;
 import io.renren.modules.member.dao.MemberDao;
 import io.renren.modules.member.entity.MemberEntity;
-import io.renren.modules.finance.dao.UserBalanceDetailDao;
-import io.renren.modules.finance.entity.UserBalanceDetailEntity;
 import io.renren.common.utils.WePaySignatureUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,9 +38,6 @@ public class PayoutCallbackController {
     
     @Autowired
     private MemberDao memberDao;
-    
-//    @Autowired
-//    private UserBalanceDetailDao userBalanceDetailDao;
     
     /**
      * WePay代付回调接口
@@ -200,7 +195,7 @@ public class PayoutCallbackController {
             }
             
             // 更新订单状态为代付成功
-            withdrawOrder.setState(1); // 1-代付成功
+            withdrawOrder.setState(2);
             withdrawOrder.setThreeorderNo(tradeNo); // 第三方订单号
             withdrawOrder.setStateTime(new Date());
             withdrawOrder.setRemark("WePay代付成功");
@@ -256,7 +251,7 @@ public class PayoutCallbackController {
             }
             
             // 更新订单状态为代付失败
-            withdrawOrder.setState(2); // 2-代付失败
+            withdrawOrder.setState(4);
             withdrawOrder.setStateTime(new Date());
             withdrawOrder.setRemark("WePay代付失败: " + (remark != null ? remark : "未知原因"));
             

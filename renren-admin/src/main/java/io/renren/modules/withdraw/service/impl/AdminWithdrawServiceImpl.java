@@ -246,7 +246,7 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
             memberDao.updateById(user);
 
             // 更新订单状态
-            order.setState(2); // 审核拒绝
+            order.setState(3); // 审核拒绝
             order.setRemark("审核拒绝");
             withdrawOrderDao.updateById(order);
 
