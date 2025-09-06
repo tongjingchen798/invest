@@ -16,7 +16,6 @@ import io.renren.entity.UserEntity;
 import io.renren.enums.ChargeTypeEnum;
 import io.renren.service.ChargeOrderService;
 import io.renren.service.WePayPaymentService;
-import io.renren.utils.OkHttpUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -24,11 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
 
 /**
  * 充值订单接口
@@ -50,8 +44,6 @@ public class ApiChargeController {
     @Autowired
     private PayMerchantDao payMerchantDao;
 
-    @Autowired
-    private OkHttpUtil okHttpUtil;
     
     @Autowired
     private WePayPaymentService wePayPaymentService;
@@ -178,51 +170,5 @@ public class ApiChargeController {
         }
     }
 
-
-    /**
-     * 生成商户号
-     */
-    private String generateMerchantNo() {
-        // 生成商户号逻辑，格式：R + 年月日时分秒 + 4位随机数
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
-        String timestamp = sdf.format(new Date());
-        String random = String.format("%04d", new Random().nextInt(10000));
-        return "R" + timestamp + random;
-    }
-
-    /**
-     * 生成参数签名
-     * 
-     * @param params 请求参数
-     * @param secretKey 商户密钥
-     * @return 签名字符串
-     */
-    private String generateSign(Map<String, Object> params, String secretKey) {
-        try {
-            // 移除sign参数
-            Map<String, Object> signParams = new HashMap<>(params);
-            signParams.remove("sign");
-            
-            // 按参数名排序
-            StringBuilder sb = new StringBuilder();
-            signParams.entrySet().stream()
-                    .sorted(Map.Entry.comparingByKey())
-                    .forEach(entry -> {
-                        if (entry.getValue() != null && !entry.getValue().toString().isEmpty()) {
-                            sb.append(entry.getKey()).append("=").append(entry.getValue()).append("&");
-                        }
-                    });
-            
-            // 添加密钥
-            sb.append("key=").append(secretKey);
-            
-            // 生成MD5签名
-            String signStr = sb.toString();
-            return org.apache.commons.codec.digest.DigestUtils.md5Hex(signStr).toUpperCase();
-            
-        } catch (Exception e) {
-            throw new RenException(500, "签名生成失败: " + e.getMessage());
-        }
-    }
 
 }

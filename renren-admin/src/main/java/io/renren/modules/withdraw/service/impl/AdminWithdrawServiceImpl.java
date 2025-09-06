@@ -302,7 +302,7 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
                 balanceDetail.setBusiType(33);
             }
 
-            balanceDetail.setChannel("WePay");
+            balanceDetail.setChannel("1");
             balanceDetail.setOriginalAmount(user.getAssets() != null ? user.getAssets() - amountInCents : 0L);
             balanceDetail.setTransactionAmount(user.getAssets() != null ? user.getAssets() : amountInCents);
             balanceDetail.setUseAmount(amountInCents);

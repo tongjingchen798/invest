@@ -212,6 +212,7 @@ public class WithdrawServiceImpl implements WithdrawService {
             withdrawOrder.setInputamount(requestDTO.getAmount());
             withdrawOrder.setHandFee(handFee.longValue());
             withdrawOrder.setRealAmount(realAmount.longValue());
+            withdrawOrder.setChannel(user.getChannel());
             withdrawOrder.setPayNo(requestDTO.getPayNo());
             withdrawOrder.setPayName(user.getUsername());
             withdrawOrder.setStateTime(new Date());

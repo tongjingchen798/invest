@@ -270,7 +270,7 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
         try {
             // 生成订单号
             String orderno = generateOrderNo();
-            
+            UserEntity user=userDao.selectById(userId);
             // 创建充值订单实体
             ChargeOrderEntity chargeOrder = new ChargeOrderEntity();
             chargeOrder.setUserId(userId);
@@ -282,10 +282,10 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
             chargeOrder.setUpdateTime(new Date());
             chargeOrder.setChargeTime(new Date());
             chargeOrder.setChannelid(channelid);
+            chargeOrder.setSalesmanid(user.getSalesmanid());
             PayChannelEntity channelEntity=payChannelDao.selectById(channelid);
             chargeOrder.setMerchantid(channelEntity.getMerchantid());
             chargeOrder.setChannelType(channelEntity.getChannelType());
-            UserEntity user=userDao.selectById(userId);
             chargeOrder.setMobile(user.getMobile());
             chargeOrder.setAgent(user.getAgent());
             chargeOrder.setSalesmanid(user.getSalesmanid());

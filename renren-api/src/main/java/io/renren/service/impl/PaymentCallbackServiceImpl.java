@@ -182,7 +182,7 @@ public class PaymentCallbackServiceImpl implements PaymentCallbackService {
             balanceDetail.setAgentId(user.getAgent());
             balanceDetail.setAgentName(user.getAgentName());
             balanceDetail.setBusiType(11); // 11-线上充值
-            balanceDetail.setChannel("WePay");
+            balanceDetail.setChannel("1");
             balanceDetail.setOriginalAmount(user.getAssets() != null ? user.getAssets() - amountInCents : 0L);
             balanceDetail.setTransactionAmount(user.getAssets() != null ? user.getAssets() : amountInCents);
             balanceDetail.setUseAmount(amountInCents);
