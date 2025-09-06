@@ -29,4 +29,11 @@ public interface ChargeOrderDao extends BaseMapper<ChargeOrderEntity> {
     IPage<ChargeOrderDetailDTO> selectAdminChargePage(@Param("page") Page<ChargeOrderDetailDTO> page, 
                                                       @Param("params") Map<String, Object> params);
 
+    /**
+     * 统计充值订单汇总数据
+     * @param params 查询参数
+     * @return 汇总数据
+     */
+    Map<String, Object> selectAdminChargeSummary(@Param("params") Map<String, Object> params);
+
 }

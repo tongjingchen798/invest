@@ -42,8 +42,8 @@
             co.wallet_addr as walletAddr
         FROM tb_charge_order co
         LEFT JOIN tb_user u ON co.user_id = u.id
-        LEFT JOIN tb_user agent_user ON u.agent = agent_user.id
-        LEFT JOIN tb_user salesman_user ON u.salesmanid = salesman_user.id
+        LEFT JOIN sys_user agent_user ON u.agent = agent_user.id
+        LEFT JOIN sys_user salesman_user ON u.salesmanid = salesman_user.id
         <where>
             <!-- 权限筛选：根据当前用户类型限制查询范围 -->
             <if test="params.currentUserId != null and params.currentUserId != ''">
@@ -126,6 +126,85 @@
                 ORDER BY co.create_time DESC
             </otherwise>
         </choose>
+    </select>
+
+    <!-- 统计充值订单汇总数据 -->
+    <select id="selectAdminChargeSummary" resultType="map">
+        SELECT 
+            COALESCE(SUM(CASE WHEN co.state = 1 THEN co.amount ELSE 0 END), 0) as amount,
+            COALESCE(SUM(CASE WHEN co.state = 1 THEN co.real_amount ELSE 0 END), 0) as realAmount,
+            COUNT(*) as totalCount,
+            COUNT(CASE WHEN co.state = 1 THEN 1 END) as successCount
+        FROM tb_charge_order co
+        LEFT JOIN tb_user u ON co.user_id = u.id
+        LEFT JOIN sys_user agent_user ON u.agent = agent_user.id
+        LEFT JOIN sys_user salesman_user ON u.salesmanid = salesman_user.id
+        <where>
+            <!-- 权限筛选：根据当前用户类型限制查询范围 -->
+            <if test="params.currentUserId != null and params.currentUserId != ''">
+                <if test="params.currentUserType != null and params.currentUserType == 1">
+                    <!-- 代理用户：只能查看自己代理的用户充值数据 -->
+                    AND u.agent = #{params.currentUserId}
+                </if>
+                <if test="params.currentUserType != null and params.currentUserType == 2">
+                    <!-- 业务员用户：只能查看自己负责的用户充值数据 -->
+                    AND u.salesmanid = #{params.currentUserId}
+                </if>
+                <!-- type=0是系统管理员，可以查看所有数据，不需要添加权限限制 -->
+            </if>
+            
+            <!-- 标签筛选 -->
+            <if test="params.biaoqian != null and params.biaoqian != ''">
+                AND u.biaoqian = #{params.biaoqian}
+            </if>
+            
+            <!-- 标签筛选标志 -->
+            <if test="params.biaoqianFlag != null">
+                <if test="params.biaoqianFlag == 1">
+                    AND u.biaoqian IS NOT NULL
+                </if>
+                <if test="params.biaoqianFlag == 0">
+                    AND u.biaoqian IS NULL
+                </if>
+            </if>
+            
+            <!-- 时间范围筛选 -->
+            <if test="params.createstarttime != null">
+                AND co.create_time &gt;= FROM_UNIXTIME(#{params.createstarttime}/1000)
+            </if>
+            
+            <if test="params.createendtime != null">
+                AND co.create_time &lt;= FROM_UNIXTIME(#{params.createendtime}/1000)
+            </if>
+            
+            <if test="params.startTime != null">
+                AND co.create_time  &gt;= FROM_UNIXTIME(#{params.startTime}/1000)
+            </if>
+            
+            <if test="params.endTime != null">
+                AND co.create_time &lt;= FROM_UNIXTIME(#{params.endTime}/1000)
+            </if>
+            
+            <!-- 订单号筛选 -->
+            <if test="params.orderno != null and params.orderno != ''">
+                AND co.orderno = #{params.orderno}
+            </if>
+            
+            <!-- 用户账号筛选 -->
+            <if test="params.mobile != null and params.mobile != ''">
+                AND co.mobile LIKE CONCAT('%', #{params.mobile}, '%')
+            </if>
+            
+            <!-- 状态筛选 -->
+            <if test="params.state != null">
+                AND co.state = #{params.state}
+            </if>
+            
+            <!-- 三方订单号筛选 -->
+            <if test="params.threeorder_no != null and params.threeorder_no != ''">
+                AND co.threeorder_no LIKE CONCAT('%', #{params.threeorder_no}, '%')
+            </if>
+        </where>
     </select>
 
 </mapper>

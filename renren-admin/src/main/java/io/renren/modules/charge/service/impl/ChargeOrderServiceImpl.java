@@ -65,21 +65,8 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
             // 调用自定义的XML查询方法
             IPage<ChargeOrderDetailDTO> pageResult = chargeOrderDao.selectAdminChargePage(page, params);
             
-            // 构建充值统计数据
-            Map<String, Object> sumData = new HashMap<>();
-            
-            // 统计总充值金额（amount字段，充值金币）
-            Long totalAmount = pageResult.getRecords().stream()
-                    .mapToLong(order -> order.getAmount() != null ? order.getAmount() : 0L)
-                    .sum();
-            
-            // 统计真实充值金额（realAmount字段，真实充值额）
-            Long totalRealAmount = pageResult.getRecords().stream()
-                    .mapToLong(order -> order.getRealAmount() != null ? order.getRealAmount() : 0L)
-                    .sum();
-            
-            sumData.put("amount", totalAmount);
-            sumData.put("realAmount", totalRealAmount);
+            // 统计所有符合条件的数据（不分页）
+            Map<String, Object> sumData = chargeOrderDao.selectAdminChargeSummary(params);
             
             // 构建分页数据
             ChargePageData pageData = new ChargePageData();
