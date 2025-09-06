@@ -277,7 +277,7 @@ public class WithdrawServiceImpl implements WithdrawService {
             // 保存提现订单
             withdrawOrderDao.insert(withdrawOrder);
 
-            // 扣除用户可用余额 TODO 是否记录账变
+            // 扣除用户可提现余额
             userDao.reduceUserBalance(userId,amount.longValue());
 
             // 构建返回结果

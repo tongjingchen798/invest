@@ -181,7 +181,7 @@ public class ApiWithdrawController {
             requestDTO.setPayNo(payNo);
             requestDTO.setPayPassword(payPassword);
 
-            // 执行佣金提现
+            // 执行盈利提现
             Map<String, Object> result = withdrawService.submitWithdraw(user.getId(), requestDTO);
             return new Result<Map<String, Object>>().ok(result);
 

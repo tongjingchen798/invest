@@ -7,6 +7,7 @@ import io.renren.modules.withdraw.dto.ManualWithdrawDTO;
 import io.renren.modules.withdraw.entity.WithdrawOrderEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.Map;
 
@@ -35,4 +36,8 @@ public interface WithdrawOrderDao extends BaseMapper<WithdrawOrderEntity> {
      * @return 汇总数据
      */
     Map<String, Object> selectManualWithdrawSummary(@Param("params") Map<String, Object> params);
+
+    @Select("select * from tb_withdraw_order where  orderno=#{orderno}")
+    WithdrawOrderEntity selectByOrderno(@Param("orderno") String orderno);
+
 }

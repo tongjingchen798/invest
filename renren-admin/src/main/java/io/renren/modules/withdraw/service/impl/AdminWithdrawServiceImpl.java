@@ -1,6 +1,9 @@
 package io.renren.modules.withdraw.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import io.renren.modules.finance.dao.UserBalanceDetailDao;
+import io.renren.modules.finance.entity.UserBalanceDetailEntity;
+import io.renren.modules.member.dao.MemberDao;
+import io.renren.modules.member.entity.MemberEntity;
 import io.renren.modules.withdraw.dao.WithdrawOrderDao;
 import io.renren.modules.withdraw.dto.WithdrawAuditDTO;
 import io.renren.modules.withdraw.entity.WithdrawOrderEntity;
@@ -12,14 +15,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.Date;
-import java.math.BigDecimal;
 
 /**
  * 管理员提现服务实现类
  *
- * @author renren
- * @email renren@gmail.com
- * @date 2024-01-01 00:00:00
+ * @author nico
  */
 @Slf4j
 @Service("adminWithdrawService")
@@ -27,6 +27,11 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
 
     @Autowired
     private WithdrawOrderDao withdrawOrderDao;
+    @Autowired
+    private MemberDao memberDao;
+
+    @Autowired
+    private UserBalanceDetailDao userBalanceDetailDao;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -97,6 +102,20 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
                     case 1: // 审核通过
                         log.info("提现审核通过，订单ID: {}, 金额: {}", withdrawOrder.getId(), withdrawAmount);
                         // 审核通过不需要额外处理，资金已经在前端提现时扣除
+                        WithdrawOrderEntity order = withdrawOrderDao.selectByOrderno(withdrawOrder.getOrderno());
+                        MemberEntity user = memberDao.selectById(Long.valueOf(order.getUserId()));
+
+                        // 从冻结余额中真正扣减
+                        user.setFreezeBalance(user.getFreezeBalance() - order.getAmount());
+                        memberDao.updateById(user);
+
+                        // 更新订单状态
+                        order.setState(1); // 审核通过
+                        withdrawOrderDao.updateById(order);
+
+                        // 记录账变明细（提现成功）
+                        recordBalanceDetail(order, user,order.getAmount(),"佣金提现"); // 2-余额提现流水
+
                         break;
                         
                     case 2: // 手动转款
@@ -131,17 +150,29 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
      */
     private void handleWithdrawRejection(WithdrawOrderEntity withdrawOrder, Long withdrawAmount) {
         try {
-            // 这里可以添加将资金退回给用户的逻辑
-            // 由于前端提现时已经扣除了用户余额，驳回时需要退回
-            // 具体实现需要根据业务需求来决定
-            
             log.info("提现驳回，需要将资金 {} 退回给用户 {}", withdrawAmount, withdrawOrder.getUserId());
-            
-            // TODO: 实现资金退回逻辑
-            // 1. 更新用户余额
-            // 2. 记录账变明细
-            // 3. 发送通知等
-            
+
+            WithdrawOrderEntity order = withdrawOrderDao.selectByOrderno(withdrawOrder.getOrderno());
+            MemberEntity user = memberDao.selectById(Long.valueOf(order.getUserId()));
+
+            // 解冻资金，返还到可用余额
+            user.setFreezeBalance(user.getFreezeBalance() - order.getAmount());
+            //提现类型 1余额提现 2佣金提现
+            if(withdrawOrder.getWithdrawType()==1){
+                user.setCashwithdrawable(user.getCashwithdrawable() + order.getAmount());
+            }else {
+                user.setCommissionBalance(user.getCommissionBalance() + order.getAmount());
+            }
+            memberDao.updateById(user);
+
+            // 更新订单状态
+            order.setState(2); // 审核拒绝
+            order.setRemark("审核拒绝");
+            withdrawOrderDao.updateById(order);
+
+            // 记录账变明细（解冻记录）
+//            recordBalanceDetail(Long.valueOf(order.getUserId()), order.getAmount(), "佣金提现解冻", 6); // 6-解冻金额
+
         } catch (Exception e) {
             log.error("处理提现驳回失败，订单ID: {}, 错误信息: {}", withdrawOrder.getId(), e.getMessage(), e);
             throw new RuntimeException("处理提现驳回失败: " + e.getMessage());
@@ -171,6 +202,43 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
                 return "再次提交";
             default:
                 return null;
+        }
+    }
+
+    /**
+     * 记录余额明细
+     */
+    private void recordBalanceDetail(WithdrawOrderEntity withdrawOrder, MemberEntity user, Long amountInCents,String remark) {
+        try {
+            UserBalanceDetailEntity balanceDetail = new UserBalanceDetailEntity();
+            balanceDetail.setUserId(Long.valueOf(withdrawOrder.getUserId()));
+            balanceDetail.setTransactionDate(new Date());
+            balanceDetail.setAgentId(user.getAgent());
+            balanceDetail.setAgentName(user.getAgentName());
+            //2 余额提现 33佣金提现
+            if(withdrawOrder.getWithdrawType()==1){
+                balanceDetail.setBusiType(2);
+            }else {
+                balanceDetail.setBusiType(33);
+            }
+
+            balanceDetail.setChannel("WePay");
+            balanceDetail.setOriginalAmount(user.getAssets() != null ? user.getAssets() - amountInCents : 0L);
+            balanceDetail.setTransactionAmount(user.getAssets() != null ? user.getAssets() : amountInCents);
+            balanceDetail.setUseAmount(amountInCents);
+            balanceDetail.setRemarks(remark);
+            balanceDetail.setSalesmanName(user.getSalesmanName());
+            balanceDetail.setSalesmanId(user.getSalesmanid());
+            balanceDetail.setStatus(1); // 1-正常
+            balanceDetail.setStreamId(withdrawOrder.getThreeorderNo());
+            balanceDetail.setCreateDate(new Date());
+            balanceDetail.setUpdateDate(new Date());
+
+            userBalanceDetailDao.insert(balanceDetail);
+
+        } catch (Exception e) {
+            log.error("记录余额明细失败 - 用户ID: {}, 金额: {} 分", withdrawOrder.getUserId(), amountInCents, e);
+            throw e;
         }
     }
 }
