@@ -157,19 +157,12 @@ public class WithdrawServiceImpl implements WithdrawService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Map<String, Object> submitRewardWithdraw(Long userId, RewardWithdrawRequestDTO requestDTO) {
+    public Map<String, Object> submitRewardWithdraw(Long userId, RewardWithdrawRequestDTO requestDTO) throws Exception {
         // 使用分布式锁确保并发安全
         String lockKey = "withdraw_lock:reward:" + userId;
-        
-        try {
             return redisDistributedLock.executeWithLock(lockKey, 5000, 30, () -> {
                 return doSubmitRewardWithdraw(userId, requestDTO);
             });
-        } catch (Exception e) {
-            logger.error("佣金提现申请失败 - 用户ID: {}, 金额: {}, 错误: {}", 
-                        userId, requestDTO.getAmount(), e.getMessage(), e);
-            throw new RuntimeException("提交佣金提现申请失败: " + e.getMessage());
-        }
     }
     
     /**
