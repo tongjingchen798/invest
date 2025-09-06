@@ -142,7 +142,7 @@ public class ApiChargeController {
                         }
                         responseDTO.setBankCardInfo(payUrl);
                         responseDTO.setPOrderNo(paymentResponse.getData().getTradeNo());
-                        responseDTO.setErrorCode(paymentResponse.getCode());
+                        responseDTO.setErrorCode(0);
                         break;
                 }
             }
