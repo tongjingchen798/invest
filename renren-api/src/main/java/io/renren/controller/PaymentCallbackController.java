@@ -1,9 +1,14 @@
 package io.renren.controller;
 
 import com.alibaba.fastjson.JSON;
+import io.renren.common.exception.RenException;
 import io.renren.common.utils.Result;
+import io.renren.dao.ChargeOrderDao;
+import io.renren.dao.PayMerchantDao;
 import io.renren.dto.PaymentResponseDTO;
 import io.renren.dto.WePayCallbackDTO;
+import io.renren.entity.ChargeOrderEntity;
+import io.renren.entity.PayMerchantEntity;
 import io.renren.service.WePayPaymentService;
 import io.renren.utils.WePaySignatureUtils;
 import io.swagger.annotations.Api;
@@ -34,6 +39,12 @@ public class PaymentCallbackController {
     
     @Autowired
     private WePayPaymentService wePayPaymentService;
+
+    @Autowired
+    private PayMerchantDao payMerchantDao;
+
+    @Autowired
+    private ChargeOrderDao chargeOrderDao;
     
     @PostMapping("/notify")
     @ApiOperation("WePay支付结果异步通知")
@@ -218,9 +229,16 @@ public class PaymentCallbackController {
             if (callbackData.getRemark() != null && !callbackData.getRemark().isEmpty()) {
                 signParams.put("remark", callbackData.getRemark());
             }
-            
-            // TODO: 获取商户密钥进行签名验证
-            String secretKey = "YOUR_SECRET_KEY"; // 从数据库或配置中获取
+
+            ChargeOrderEntity chargeOrder= chargeOrderDao.selectByOrderno(callbackData.getOrderNo());
+            if (chargeOrder == null) {
+                return false;
+            }
+            PayMerchantEntity payMerchantEntity = payMerchantDao.selectById(chargeOrder.getMerchantid());
+            if (payMerchantEntity == null) {
+                return false;
+            }
+            String secretKey = payMerchantEntity.getChannelkey();
             
             // 生成签名
             String expectedSign = WePaySignatureUtils.generateSign(signParams, secretKey);
