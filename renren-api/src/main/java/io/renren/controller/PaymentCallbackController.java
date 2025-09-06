@@ -256,12 +256,7 @@ public class PaymentCallbackController {
                     logger.warn("未知支付状态 - 订单号: {}, 状态: {}", orderNo, payStatus);
                     return false;
             }
-            
-//            // 处理反转订单
-//            if (callbackData.getReverse() != null && callbackData.getReverse()) {
-//                logger.warn("订单被反转 - 订单号: {}", orderNo);
-//                // TODO: 实现订单反转处理逻辑
-//            }
+
 
         } catch (Exception e) {
             logger.error("处理WePay支付结果失败: {}", e.getMessage(), e);
