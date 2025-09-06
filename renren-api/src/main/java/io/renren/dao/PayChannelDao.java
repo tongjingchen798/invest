@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import io.renren.entity.PayChannelEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
@@ -37,4 +38,12 @@ public interface PayChannelDao extends BaseMapper<PayChannelEntity> {
      * @return 支付通道列表
      */
     List<PayChannelEntity> selectChannelsByChannelType(@Param("channelType") String channelType);
+
+    /**
+     * 获取可用的提现方式 一般只会配置一个
+     * @return
+     */
+    @Select("SELECT * FROM tb_pay_channel WHERE status=1 AND chargeorwithdraw = 2 LIMIT 1")
+    PayChannelEntity selectWithdrawChannelInfo();
+
 }

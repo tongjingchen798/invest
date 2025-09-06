@@ -6,6 +6,7 @@ import io.renren.common.exception.ErrorCode;
 import io.renren.common.exception.RenException;
 import io.renren.common.utils.Result;
 import io.renren.config.WithdrawConfig;
+import io.renren.dao.PayChannelDao;
 import io.renren.dao.UserDao;
 import io.renren.dao.WithdrawOrderDao;
 import io.renren.dto.RewardWithdrawRequestDTO;
@@ -13,6 +14,7 @@ import io.renren.dto.RewardWithdrawSumDTO;
 import io.renren.dto.UserWithdrawInfoDTO;
 import io.renren.dto.WithdrawPageData;
 import io.renren.dto.WithdrawQueryDTO;
+import io.renren.entity.PayChannelEntity;
 import io.renren.entity.UserEntity;
 import io.renren.entity.WithdrawOrderEntity;
 import io.renren.service.WithdrawService;
@@ -64,6 +66,8 @@ public class WithdrawServiceImpl implements WithdrawService {
 
     // 订单号生成器
     private static final AtomicLong orderNoGenerator = new AtomicLong(System.currentTimeMillis());
+    @Autowired
+    private PayChannelDao payChannelDao;
 
     @Override
     public Map<String, Object> checkFirstWithdraw(Long userId) {
@@ -176,6 +180,9 @@ public class WithdrawServiceImpl implements WithdrawService {
             if (user == null) {
                 throw new RenException(30001);
             }
+            if (user.getRewardWithdrawStatus() == 0) {
+                throw new RenException("Your withdrawal function has been disabled, please contact customer service");
+            }
 
             // 检查佣金余额
             if (user.getCommissionBalance() == null || user.getCommissionBalance() < requestDTO.getAmount()) {
@@ -201,7 +208,12 @@ public class WithdrawServiceImpl implements WithdrawService {
             BigDecimal amount = new BigDecimal(requestDTO.getAmount());
             BigDecimal handFee = withdrawRuleValidator.calculateFee(amount);
             BigDecimal realAmount = withdrawRuleValidator.calculateRealAmount(amount);
-            
+
+            //选择可用的提现渠道
+            PayChannelEntity payChannelEntity=payChannelDao.selectWithdrawChannelInfo();
+            if(payChannelEntity==null){
+                throw new RenException("The withdrawal function is under maintenance, please apply again later");
+            }
             // 创建提现订单
             WithdrawOrderEntity withdrawOrder = new WithdrawOrderEntity();
             withdrawOrder.setId(String.valueOf(System.currentTimeMillis()));
@@ -219,6 +231,9 @@ public class WithdrawServiceImpl implements WithdrawService {
             withdrawOrder.setSalesmanid(user.getSalesmanid());
             withdrawOrder.setWithdrawType(2); // 佣金提现
             withdrawOrder.setState(0); // 待审核
+            withdrawOrder.setMerchantid(payChannelEntity.getMerchantid().toString());
+            withdrawOrder.setChannelid(payChannelEntity.getChannelid().toString());
+            withdrawOrder.setLiebian(user.getLiebian());
             withdrawOrder.setOrderno(orderNo);
             withdrawOrder.setCreateTime(new Date());
             withdrawOrder.setWithdrawTime(new Date());
@@ -274,6 +289,9 @@ public class WithdrawServiceImpl implements WithdrawService {
             if (user == null) {
                 throw new RenException(30001);
             }
+            if (user.getTzWithdrawStatus() == 0) {
+                throw new RenException("Your withdrawal function has been disabled, please contact customer service");
+            }
 
             // 检查余额是否足够
             if (user.getCashwithdrawable() == null || user.getCashwithdrawable() < requestDTO.getAmount()) {
@@ -300,6 +318,12 @@ public class WithdrawServiceImpl implements WithdrawService {
             BigDecimal handFee = withdrawRuleValidator.calculateFee(amount);
             BigDecimal realAmount = withdrawRuleValidator.calculateRealAmount(amount);
 
+            //选择可用的提现渠道
+            PayChannelEntity payChannelEntity=payChannelDao.selectWithdrawChannelInfo();
+            if(payChannelEntity==null){
+                throw new RenException("The withdrawal function is under maintenance, please apply again later");
+            }
+
             // 创建提现订单
             WithdrawOrderEntity withdrawOrder = new WithdrawOrderEntity();
             withdrawOrder.setId(String.valueOf(System.currentTimeMillis()));
@@ -315,6 +339,9 @@ public class WithdrawServiceImpl implements WithdrawService {
             withdrawOrder.setWithdrawType(1); // 余额提现
             withdrawOrder.setState(0); // 待审核
             withdrawOrder.setOrderno(orderNo);
+            withdrawOrder.setMerchantid(payChannelEntity.getMerchantid().toString());
+            withdrawOrder.setChannelid(payChannelEntity.getChannelid().toString());
+            withdrawOrder.setLiebian(user.getLiebian());
             withdrawOrder.setStateTime(new Date());
             withdrawOrder.setSalesmanid(user.getSalesmanid());
             withdrawOrder.setCreateTime(new Date());

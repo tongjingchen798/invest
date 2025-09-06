@@ -37,10 +37,10 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
 
     @Autowired
     private UserBalanceDetailDao userBalanceDetailDao;
-    
+
     @Autowired
     private WePayPayoutService wePayPayoutService;
-    
+
     @Autowired
     private PayMerchantDao payMerchantDao;
 
@@ -58,7 +58,7 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
             if (!canAudit(withdrawOrder.getState())) {
                 throw new RenException("当前订单状态不允许审核操作");
             }
-            
+
 
             // 记录原始状态，用于后续处理
             Integer originalState = withdrawOrder.getState();
@@ -66,15 +66,15 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
 
             // 更新订单状态
             withdrawOrder.setState(auditDTO.getState());
-            
+
             // 设置审核时间
             withdrawOrder.setStateTime(new Date());
-            
+
             // 设置审核备注
             if (StringUtils.hasText(auditDTO.getRemark())) {
                 withdrawOrder.setRemark(auditDTO.getRemark());
             }
-            
+
             // 设置操作人ID
             withdrawOrder.setOperCode(auditDTO.getSysUpdateUserId().toString());
 
@@ -93,7 +93,7 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
             // 处理审核后的业务逻辑
             handlePostAuditBusinessLogic(withdrawOrder, originalState, auditDTO.getState(), withdrawAmount);
 
-            log.info("提现审核成功，订单ID: {}, 状态: {}, 操作人: {}", 
+            log.info("提现审核成功，订单ID: {}, 状态: {}, 操作人: {}",
                     auditDTO.getId(), auditDTO.getState(), auditDTO.getSysUpdateUserId());
 
         } catch (Exception e) {
@@ -105,33 +105,34 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
     /**
      * 处理审核后的业务逻辑
      */
-    private void handlePostAuditBusinessLogic(WithdrawOrderEntity withdrawOrder, Integer originalState, 
-                                           Integer newState, Long withdrawAmount) {
+    private void handlePostAuditBusinessLogic(WithdrawOrderEntity withdrawOrder, Integer originalState,
+                                              Integer newState, Long withdrawAmount) {
         try {
             // 如果是从待审核状态变为其他状态，需要处理余额相关逻辑
             if (originalState == 0) {
                 switch (newState) {
-                    case 1: // 审核通过
+                    case 1:
+                        // 审核通过
                         log.info("提现审核通过，订单ID: {}, 金额: {}", withdrawOrder.getId(), withdrawAmount);
                         handleWithdrawApproval(withdrawOrder, withdrawAmount);
                         break;
-                        
+
                     case 2: // 手动转款
                         log.info("提现手动转款，订单ID: {}, 金额: {}", withdrawOrder.getId(), withdrawAmount);
                         // 手动转款不需要额外处理
                         break;
-                        
+
                     case 3: // 审核驳回
                         log.info("提现审核驳回，订单ID: {}, 金额: {}", withdrawOrder.getId(), withdrawAmount);
                         // 审核驳回需要将资金退回给用户
                         handleWithdrawRejection(withdrawOrder, withdrawAmount);
                         break;
-                        
+
                     case 5: // 再次提交
                         log.info("提现再次提交，订单ID: {}, 金额: {}", withdrawOrder.getId(), withdrawAmount);
                         // 再次提交不需要额外处理
                         break;
-                        
+
                     default:
                         log.warn("未知的审核状态: {}, 订单ID: {}", newState, withdrawOrder.getId());
                         break;
@@ -142,34 +143,45 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
             throw new RuntimeException("处理审核后业务逻辑失败: " + e.getMessage());
         }
     }
-    
+
     /**
      * 处理提现审核通过
      */
     private void handleWithdrawApproval(WithdrawOrderEntity withdrawOrder, Long withdrawAmount) {
         try {
             log.info("开始处理提现审核通过 - 订单号: {}, 金额: {}", withdrawOrder.getOrderno(), withdrawAmount);
-            
+
             // 1. 查询订单和用户信息
             WithdrawOrderEntity order = withdrawOrderDao.selectByOrderno(withdrawOrder.getOrderno());
-            MemberEntity user = memberDao.selectById(Long.valueOf(order.getUserId()));
-            
-            if (order == null || user == null) {
-                throw new RenException("查询订单或用户信息失败");
+            if (order == null) {
+                throw new RenException("订单不存在,请刷新页面");
             }
-            
+            MemberEntity user = memberDao.selectById(Long.valueOf(order.getUserId()));
+            if (user == null) {
+                throw new RenException("用户已停用");
+            }
+            // 1余额提现 2佣金提现
+            if (order.getWithdrawType() == 1) {
+                if (user.getTzWithdrawStatus() == 0) {
+                    throw new RenException("该用户余额提现功能已禁用");
+                }
+            } else if (order.getWithdrawType() == 2) {
+                if (user.getRewardWithdrawStatus() == 0) {
+                    throw new RenException("该用户佣金提现功能已禁用");
+                }
+            }
             // 2. 从冻结余额中真正扣减
             user.setFreezeBalance(user.getFreezeBalance() - order.getAmount());
             memberDao.updateById(user);
-            
+
             // 3. 更新订单状态
             order.setState(1); // 审核通过
             order.setStateTime(new Date());
             withdrawOrderDao.updateById(order);
-            
+
             // 4. 记录账变明细（提现成功）
             recordBalanceDetail(order, user, order.getAmount(), "佣金提现");
-            
+
             // 5. 调用WePay代付接口
             try {
                 callWePayPayout(order);
@@ -179,49 +191,42 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
                 order.setRemark(order.getRemark() + " | 代付调用失败: " + e.getMessage());
                 withdrawOrderDao.updateById(order);
             }
-            
+
             log.info("提现审核通过处理完成 - 订单号: {}", order.getOrderno());
-            
+
         } catch (Exception e) {
             log.error("处理提现审核通过失败 - 订单号: {}", withdrawOrder.getOrderno(), e);
             throw new RuntimeException("处理提现审核通过失败: " + e.getMessage());
         }
     }
-    
+
     /**
      * 调用WePay代付接口
      */
     private void callWePayPayout(WithdrawOrderEntity withdrawOrder) {
-        try {
-            log.info("开始调用WePay代付接口 - 订单号: {}", withdrawOrder.getOrderno());
-            
-            // 1. 查询支付商户信息
-            PayMerchantEntity payMerchant = payMerchantDao.selectById(withdrawOrder.getMerchantid());
-            if (payMerchant == null) {
-                throw new RuntimeException("查询支付商户信息失败 - 商户ID: " + withdrawOrder.getMerchantid());
-            }
-            
-            // 2. 调用代付接口
-            PayoutResponseDTO payoutResponse = wePayPayoutService.createPayoutOrder(withdrawOrder, payMerchant);
-            
-            if (payoutResponse != null && payoutResponse.getSuccess() != null && payoutResponse.getSuccess()) {
-                log.info("WePay代付接口调用成功 - 订单号: {}, 系统订单号: {}", 
-                        withdrawOrder.getOrderno(), payoutResponse.getData().getId());
-                
-                // 更新订单的第三方订单号
-                withdrawOrder.setThreeorderNo(payoutResponse.getData().getId());
-                withdrawOrder.setRemark(withdrawOrder.getRemark() + " |【WePay】代付已提交");
-                withdrawOrderDao.updateById(withdrawOrder);
-                
-            } else {
-                String errorMsg = payoutResponse != null ? 
+        log.info("开始调用WePay代付接口 - 订单号: {}", withdrawOrder.getOrderno());
+        // 1. 查询支付商户信息
+        PayMerchantEntity payMerchant = payMerchantDao.selectById(withdrawOrder.getMerchantid());
+        if (payMerchant == null) {
+            throw new RenException("查询支付商户信息失败 - 商户ID: " + withdrawOrder.getMerchantid());
+        }
+
+        // 2. 调用代付接口
+        PayoutResponseDTO payoutResponse = wePayPayoutService.createPayoutOrder(withdrawOrder, payMerchant);
+
+        if (payoutResponse != null && payoutResponse.getSuccess() != null && payoutResponse.getSuccess()) {
+            log.info("WePay代付接口调用成功 - 订单号: {}, 系统订单号: {}",
+                    withdrawOrder.getOrderno(), payoutResponse.getData().getId());
+
+            // 更新订单的第三方订单号
+            withdrawOrder.setThreeorderNo(payoutResponse.getData().getId());
+            withdrawOrder.setRemark(withdrawOrder.getRemark() + " |【WePay】代付已提交");
+            withdrawOrderDao.updateById(withdrawOrder);
+
+        } else {
+            String errorMsg = payoutResponse != null ?
                     (payoutResponse.getDesc() != null ? payoutResponse.getDesc() : "未知错误") : "响应为空";
-                throw new RuntimeException("WePay代付接口调用失败: " + errorMsg);
-            }
-            
-        } catch (Exception e) {
-            log.error("调用WePay代付接口异常 - 订单号: {}", withdrawOrder.getOrderno(), e);
-            throw e;
+            throw new RenException("WePay代付接口调用失败: " + errorMsg);
         }
     }
 
@@ -238,9 +243,9 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
             // 解冻资金，返还到可用余额
             user.setFreezeBalance(user.getFreezeBalance() - order.getAmount());
             //提现类型 1余额提现 2佣金提现
-            if(withdrawOrder.getWithdrawType()==1){
+            if (withdrawOrder.getWithdrawType() == 1) {
                 user.setCashwithdrawable(user.getCashwithdrawable() + order.getAmount());
-            }else {
+            } else {
                 user.setCommissionBalance(user.getCommissionBalance() + order.getAmount());
             }
             memberDao.updateById(user);
@@ -288,7 +293,7 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
     /**
      * 记录余额明细
      */
-    private void recordBalanceDetail(WithdrawOrderEntity withdrawOrder, MemberEntity user, Long amountInCents,String remark) {
+    private void recordBalanceDetail(WithdrawOrderEntity withdrawOrder, MemberEntity user, Long amountInCents, String remark) {
         try {
             UserBalanceDetailEntity balanceDetail = new UserBalanceDetailEntity();
             balanceDetail.setUserId(Long.valueOf(withdrawOrder.getUserId()));
@@ -296,9 +301,9 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
             balanceDetail.setAgentId(user.getAgent());
             balanceDetail.setAgentName(user.getAgentName());
             //2 余额提现 33佣金提现
-            if(withdrawOrder.getWithdrawType()==1){
+            if (withdrawOrder.getWithdrawType() == 1) {
                 balanceDetail.setBusiType(2);
-            }else {
+            } else {
                 balanceDetail.setBusiType(33);
             }
 
