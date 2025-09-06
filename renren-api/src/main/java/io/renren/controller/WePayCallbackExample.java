@@ -15,7 +15,74 @@ import java.math.BigDecimal;
 public class WePayCallbackExample {
     
     /**
-     * WePay回调参数示例
+     * WePay回调JSON数据示例
+     */
+    public void callbackJsonExample() {
+        // 模拟WePay回调JSON数据
+        String jsonCallbackData = """
+            {
+                "tradeNo": "TRADE123456789",
+                "orderNo": "ORDER123456789", 
+                "orderAmount": 100.00,
+                "amount": 100.00,
+                "payStatus": 1,
+                "payTime": "2024-01-01 12:00:00",
+                "charge": 2.00,
+                "otherData": "charge_order_id:123",
+                "reverse": false,
+                "remark": "支付成功",
+                "sign": "ABC123DEF456..."
+            }
+            """;
+        
+        System.out.println("WePay回调JSON数据示例:");
+        System.out.println(jsonCallbackData);
+        
+        // 解析JSON数据
+        WePayCallbackDTO callbackData = parseJsonCallback(jsonCallbackData);
+        
+        // 处理回调数据
+        processCallbackData(callbackData);
+    }
+    
+    /**
+     * 解析JSON回调数据（推荐方式：直接使用JSON对象）
+     */
+    private WePayCallbackDTO parseJsonCallback(String jsonData) {
+        // 使用FastJSON解析
+        com.alibaba.fastjson.JSONObject jsonObject = com.alibaba.fastjson.JSON.parseObject(jsonData);
+        
+        WePayCallbackDTO callbackData = new WePayCallbackDTO();
+        
+        // 直接使用JSON对象的方法，避免字符串转换
+        callbackData.setTradeNo(jsonObject.getString("tradeNo"));
+        callbackData.setOrderNo(jsonObject.getString("orderNo"));
+        callbackData.setOrderAmount(jsonObject.getBigDecimal("orderAmount"));  // 直接获取BigDecimal
+        callbackData.setAmount(jsonObject.getBigDecimal("amount"));            // 直接获取BigDecimal
+        callbackData.setPayStatus(jsonObject.getInteger("payStatus"));         // 直接获取Integer
+        callbackData.setPayTime(jsonObject.getString("payTime"));
+        callbackData.setCharge(jsonObject.getBigDecimal("charge"));            // 直接获取BigDecimal
+        callbackData.setOtherData(jsonObject.getString("otherData"));
+        callbackData.setReverse(jsonObject.getBoolean("reverse"));             // 直接获取Boolean
+        callbackData.setRemark(jsonObject.getString("remark"));
+        callbackData.setSign(jsonObject.getString("sign"));
+        
+        return callbackData;
+    }
+    
+    /**
+     * 处理回调数据
+     */
+    private void processCallbackData(WePayCallbackDTO callbackData) {
+        System.out.println("处理回调数据:");
+        System.out.println("订单号: " + callbackData.getOrderNo());
+        System.out.println("系统单号: " + callbackData.getTradeNo());
+        System.out.println("支付状态: " + callbackData.getPayStatus());
+        System.out.println("支付金额: " + callbackData.getAmount());
+    }
+    
+    /**
+     * WePay回调参数示例（兼容旧版本）
      */
     public void callbackParameterExample() {
         // 模拟WePay回调参数

@@ -9,6 +9,10 @@ import io.renren.modules.withdraw.dao.WithdrawOrderDao;
 import io.renren.modules.withdraw.dto.WithdrawAuditDTO;
 import io.renren.modules.withdraw.entity.WithdrawOrderEntity;
 import io.renren.modules.withdraw.service.AdminWithdrawService;
+import io.renren.modules.withdraw.service.WePayPayoutService;
+import io.renren.modules.withdraw.dto.PayoutResponseDTO;
+import io.renren.modules.paymerchant.entity.PayMerchantEntity;
+import io.renren.modules.paymerchant.dao.PayMerchantDao;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,6 +37,12 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
 
     @Autowired
     private UserBalanceDetailDao userBalanceDetailDao;
+    
+    @Autowired
+    private WePayPayoutService wePayPayoutService;
+    
+    @Autowired
+    private PayMerchantDao payMerchantDao;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -48,6 +58,7 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
             if (!canAudit(withdrawOrder.getState())) {
                 throw new RenException("当前订单状态不允许审核操作");
             }
+            
 
             // 记录原始状态，用于后续处理
             Integer originalState = withdrawOrder.getState();
@@ -102,21 +113,7 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
                 switch (newState) {
                     case 1: // 审核通过
                         log.info("提现审核通过，订单ID: {}, 金额: {}", withdrawOrder.getId(), withdrawAmount);
-                        // 审核通过不需要额外处理，资金已经在前端提现时扣除
-                        WithdrawOrderEntity order = withdrawOrderDao.selectByOrderno(withdrawOrder.getOrderno());
-                        MemberEntity user = memberDao.selectById(Long.valueOf(order.getUserId()));
-
-                        // 从冻结余额中真正扣减
-                        user.setFreezeBalance(user.getFreezeBalance() - order.getAmount());
-                        memberDao.updateById(user);
-
-                        // 更新订单状态
-                        order.setState(1); // 审核通过
-                        withdrawOrderDao.updateById(order);
-
-                        // 记录账变明细（提现成功）
-                        recordBalanceDetail(order, user,order.getAmount(),"佣金提现"); // 2-余额提现流水
-
+                        handleWithdrawApproval(withdrawOrder, withdrawAmount);
                         break;
                         
                     case 2: // 手动转款
@@ -143,6 +140,88 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
         } catch (Exception e) {
             log.error("处理审核后业务逻辑失败，订单ID: {}, 错误信息: {}", withdrawOrder.getId(), e.getMessage(), e);
             throw new RuntimeException("处理审核后业务逻辑失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 处理提现审核通过
+     */
+    private void handleWithdrawApproval(WithdrawOrderEntity withdrawOrder, Long withdrawAmount) {
+        try {
+            log.info("开始处理提现审核通过 - 订单号: {}, 金额: {}", withdrawOrder.getOrderno(), withdrawAmount);
+            
+            // 1. 查询订单和用户信息
+            WithdrawOrderEntity order = withdrawOrderDao.selectByOrderno(withdrawOrder.getOrderno());
+            MemberEntity user = memberDao.selectById(Long.valueOf(order.getUserId()));
+            
+            if (order == null || user == null) {
+                throw new RenException("查询订单或用户信息失败");
+            }
+            
+            // 2. 从冻结余额中真正扣减
+            user.setFreezeBalance(user.getFreezeBalance() - order.getAmount());
+            memberDao.updateById(user);
+            
+            // 3. 更新订单状态
+            order.setState(1); // 审核通过
+            order.setStateTime(new Date());
+            withdrawOrderDao.updateById(order);
+            
+            // 4. 记录账变明细（提现成功）
+            recordBalanceDetail(order, user, order.getAmount(), "佣金提现");
+            
+            // 5. 调用WePay代付接口
+            try {
+                callWePayPayout(order);
+            } catch (Exception e) {
+                log.error("调用WePay代付接口失败 - 订单号: {}", order.getOrderno(), e);
+                // 代付失败不影响审核通过，但需要记录错误
+                order.setRemark(order.getRemark() + " | 代付调用失败: " + e.getMessage());
+                withdrawOrderDao.updateById(order);
+            }
+            
+            log.info("提现审核通过处理完成 - 订单号: {}", order.getOrderno());
+            
+        } catch (Exception e) {
+            log.error("处理提现审核通过失败 - 订单号: {}", withdrawOrder.getOrderno(), e);
+            throw new RuntimeException("处理提现审核通过失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 调用WePay代付接口
+     */
+    private void callWePayPayout(WithdrawOrderEntity withdrawOrder) {
+        try {
+            log.info("开始调用WePay代付接口 - 订单号: {}", withdrawOrder.getOrderno());
+            
+            // 1. 查询支付商户信息
+            PayMerchantEntity payMerchant = payMerchantDao.selectById(withdrawOrder.getMerchantid());
+            if (payMerchant == null) {
+                throw new RuntimeException("查询支付商户信息失败 - 商户ID: " + withdrawOrder.getMerchantid());
+            }
+            
+            // 2. 调用代付接口
+            PayoutResponseDTO payoutResponse = wePayPayoutService.createPayoutOrder(withdrawOrder, payMerchant);
+            
+            if (payoutResponse != null && payoutResponse.getSuccess() != null && payoutResponse.getSuccess()) {
+                log.info("WePay代付接口调用成功 - 订单号: {}, 系统订单号: {}", 
+                        withdrawOrder.getOrderno(), payoutResponse.getData().getId());
+                
+                // 更新订单的第三方订单号
+                withdrawOrder.setThreeorderNo(payoutResponse.getData().getId());
+                withdrawOrder.setRemark(withdrawOrder.getRemark() + " |【WePay】代付已提交");
+                withdrawOrderDao.updateById(withdrawOrder);
+                
+            } else {
+                String errorMsg = payoutResponse != null ? 
+                    (payoutResponse.getDesc() != null ? payoutResponse.getDesc() : "未知错误") : "响应为空";
+                throw new RuntimeException("WePay代付接口调用失败: " + errorMsg);
+            }
+            
+        } catch (Exception e) {
+            log.error("调用WePay代付接口异常 - 订单号: {}", withdrawOrder.getOrderno(), e);
+            throw e;
         }
     }
 

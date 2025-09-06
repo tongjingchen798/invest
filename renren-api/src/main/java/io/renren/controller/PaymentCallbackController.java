@@ -23,10 +23,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -61,24 +59,23 @@ public class PaymentCallbackController {
     @Autowired
     private PaymentCallbackService paymentCallbackService;
     
-    @PostMapping("/notify")
+    @PostMapping(value = "/notify", consumes = "application/json")
     @ApiOperation("WePay支付结果异步通知")
-    public String paymentNotify(HttpServletRequest request) {
+    public String paymentNotify(@RequestBody String requestBody) {
         try {
-            // 获取所有请求参数
-            Map<String, String> params = getAllRequestParams(request);
-            logger.info("收到WePay支付回调通知: {}", JSON.toJSONString(params));
+            logger.info("收到WePay支付回调通知");
+            logger.info("支付回调JSON数据: {}", requestBody);
             
-            // 解析WePay回调数据
-            WePayCallbackDTO callbackData = parseWePayCallbackData(params);
+            // 解析WePay回调JSON数据
+            WePayCallbackDTO callbackData = parseWePayCallbackJson(requestBody);
             
             if (callbackData == null) {
-                logger.error("WePay支付回调数据解析失败");
+                logger.error("WePay支付回调JSON数据解析失败");
                 return "fail";
             }
             
             // 验证WePay签名
-            boolean isValid = verifyWePayCallbackSign(callbackData, params);
+            boolean isValid = verifyWePayCallbackSign(callbackData);
             if (!isValid) {
                 logger.error("WePay支付回调签名验证失败 - 订单号: {}", callbackData.getOrderNo());
                 return "fail";
@@ -121,51 +118,32 @@ public class PaymentCallbackController {
     }
     
     /**
-     * 获取所有请求参数
+     * 解析WePay支付回调JSON数据
      */
-    private Map<String, String> getAllRequestParams(HttpServletRequest request) {
-        Map<String, String> params = new HashMap<>();
-        Enumeration<String> parameterNames = request.getParameterNames();
-        
-        while (parameterNames.hasMoreElements()) {
-            String paramName = parameterNames.nextElement();
-            String paramValue = request.getParameter(paramName);
-            params.put(paramName, paramValue);
-        }
-        
-        return params;
-    }
-    
-    /**
-     * 解析WePay回调数据
-     */
-    private WePayCallbackDTO parseWePayCallbackData(Map<String, String> params) {
+    private WePayCallbackDTO parseWePayCallbackJson(String requestBody) {
         try {
+            // 使用FastJSON解析JSON数据
+            com.alibaba.fastjson.JSONObject jsonObject = com.alibaba.fastjson.JSON.parseObject(requestBody);
+            
             WePayCallbackDTO callbackData = new WePayCallbackDTO();
             
-            // 设置基本参数
-            callbackData.setTradeNo(params.get("tradeNo"));
-            callbackData.setOrderNo(params.get("orderNo"));
-            callbackData.setOrderAmount(parseBigDecimal(params.get("orderAmount")));
-            callbackData.setAmount(parseBigDecimal(params.get("amount")));
-            callbackData.setPayStatus(parseInteger(params.get("payStatus")));
-            callbackData.setPayTime(params.get("payTime"));
-            callbackData.setCharge(parseBigDecimal(params.get("charge")));
-            callbackData.setOtherData(params.get("otherData"));
-            callbackData.setRemark(params.get("remark"));
-            callbackData.setSign(params.get("sign"));
+            // 直接使用JSON对象，避免字符串转换
+            callbackData.setTradeNo(jsonObject.getString("tradeNo"));
+            callbackData.setOrderNo(jsonObject.getString("orderNo"));
+            callbackData.setOrderAmount(jsonObject.getBigDecimal("orderAmount"));
+            callbackData.setAmount(jsonObject.getBigDecimal("amount"));
+            callbackData.setPayStatus(jsonObject.getInteger("payStatus"));
+            callbackData.setPayTime(jsonObject.getString("payTime"));
+            callbackData.setCharge(jsonObject.getBigDecimal("charge"));
+            callbackData.setOtherData(jsonObject.getString("otherData"));
+            callbackData.setRemark(jsonObject.getString("remark"));
+            callbackData.setSign(jsonObject.getString("sign"));
             
-            // 处理reverse字段的特殊转换
-            String reverseStr = params.get("reverse");
-            if (reverseStr != null) {
-                if ("".equals(reverseStr)) {
-                    callbackData.setReverse(false);
-                } else if ("1".equals(reverseStr)) {
-                    callbackData.setReverse(true);
-                } else {
-                    callbackData.setReverse(Boolean.parseBoolean(reverseStr));
-                }
-            }
+            // 直接获取Boolean值，FastJSON会自动处理类型转换
+            callbackData.setReverse(jsonObject.getBoolean("reverse"));
+            
+            logger.info("解析支付回调数据成功 - 订单号: {}, 支付状态: {}", 
+                       callbackData.getOrderNo(), callbackData.getPayStatus());
             
             return callbackData;
             
@@ -175,40 +153,11 @@ public class PaymentCallbackController {
         }
     }
     
-    /**
-     * 解析BigDecimal
-     */
-    private BigDecimal parseBigDecimal(String value) {
-        if (value == null || value.trim().isEmpty()) {
-            return null;
-        }
-        try {
-            return new BigDecimal(value);
-        } catch (NumberFormatException e) {
-            logger.warn("解析BigDecimal失败: {}", value);
-            return null;
-        }
-    }
-    
-    /**
-     * 解析Integer
-     */
-    private Integer parseInteger(String value) {
-        if (value == null || value.trim().isEmpty()) {
-            return null;
-        }
-        try {
-            return Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            logger.warn("解析Integer失败: {}", value);
-            return null;
-        }
-    }
     
     /**
      * 验证WePay回调签名
      */
-    private boolean verifyWePayCallbackSign(WePayCallbackDTO callbackData, Map<String, String> params) {
+    private boolean verifyWePayCallbackSign(WePayCallbackDTO callbackData) {
         try {
             // 构建签名参数（排除空参数和sign参数）
             Map<String, Object> signParams = new HashMap<>();
