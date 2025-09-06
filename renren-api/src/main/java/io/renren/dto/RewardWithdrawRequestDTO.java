@@ -30,7 +30,7 @@ public class RewardWithdrawRequestDTO implements Serializable {
     @ApiModelProperty(value = "收款人卡号", required = true)
     private String payNo;
 
-    @NotBlank(message = "支付密码不能为空")
-    @ApiModelProperty(value = "支付密码", required = true)
+//    @NotBlank(message = "支付密码不能为空")
+    @ApiModelProperty(value = "支付密码")
     private String payPassword;
 }

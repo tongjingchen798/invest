@@ -24,42 +24,6 @@ public class WithdrawRuleValidator {
 
     
     /**
-     * 验证提现金额是否符合规则
-     * 
-     * @param amount 提现金额（卢比）
-     * @return 验证结果
-     */
-    public ValidationResult validateAmount(BigDecimal amount) {
-        ValidationResult result = new ValidationResult();
-        
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            result.setValid(false);
-            result.setErrorMessage("提现金额必须大于0");
-            return result;
-        }
-        
-        // 检查最低提现额度
-        if (amount.compareTo(withdrawConfig.getMinAmount()) < 0) {
-            result.setValid(false);
-            result.setErrorMessage("提现金额不能少于 " + withdrawConfig.getMinAmount() + " RS");
-            return result;
-        }
-        
-        // 检查最高提现额度
-        if (amount.compareTo(withdrawConfig.getMaxAmount()) > 0) {
-            result.setValid(false);
-            result.setErrorMessage("提现金额不能超过 " + withdrawConfig.getMaxAmount() + " RS");
-            return result;
-        }
-        
-        result.setValid(true);
-        result.setErrorMessage(null);
-        return result;
-    }
-    
-
-    
-    /**
      * 计算提现手续费
      * 
      * @param amount 提现金额（卢比）
@@ -89,27 +53,7 @@ public class WithdrawRuleValidator {
     
 
     
-    /**
-     * 验证提现金额
-     * 
-     * @param userId 用户ID
-     * @param amount 提现金额（卢比）
-     * @return 验证结果
-     */
-    public ValidationResult validateAllRules(Long userId, BigDecimal amount) {
-        ValidationResult result = new ValidationResult();
-        
-        // 1. 验证提现金额
-        ValidationResult amountResult = validateAmount(amount);
-        if (!amountResult.isValid()) {
-            return amountResult;
-        }
-        
-        result.setValid(true);
-        result.setErrorMessage(null);
-        return result;
-    }
-    
+
     /**
      * 验证结果内部类
      */

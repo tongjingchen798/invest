@@ -55,7 +55,7 @@ public interface WithdrawService {
      * @param requestDTO
      * @return
      */
-    Map<String, Object> submitWithdraw(Long userId, RewardWithdrawRequestDTO requestDTO);
+    Map<String, Object> submitWithdraw(Long userId, RewardWithdrawRequestDTO requestDTO) throws Exception;
 
     /**
      * 获取用户佣金提现统计

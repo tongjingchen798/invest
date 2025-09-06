@@ -148,14 +148,12 @@ public class ApiWithdrawController {
     public Result<Map<String, Object>> submitRewardWithdraw(
             @ApiParam(value = "提现金额（分）", required = true) @RequestParam Long amount,
             @ApiParam(value = "收款人卡号", required = true) @RequestParam String payNo,
-            @ApiParam(value = "支付密码", required = true) @RequestParam String payPassword,
             @LoginUser UserEntity user) {
         try {
             // 构建请求DTO
             RewardWithdrawRequestDTO requestDTO = new RewardWithdrawRequestDTO();
             requestDTO.setAmount(amount);
             requestDTO.setPayNo(payNo);
-            requestDTO.setPayPassword(payPassword);
 
             // 执行佣金提现
             Map<String, Object> result = withdrawService.submitRewardWithdraw(user.getId(), requestDTO);
@@ -172,22 +170,15 @@ public class ApiWithdrawController {
     public Result<Map<String, Object>> submitWithdraw(
             @ApiParam(value = "提现金额（分）", required = true) @RequestParam Long amount,
             @ApiParam(value = "收款人卡号", required = true) @RequestParam String payNo,
-            @ApiParam(value = "支付密码", required = true) @RequestParam String payPassword,
-            @LoginUser UserEntity user) {
-        try {
+            @LoginUser UserEntity user) throws Exception {
             // 构建请求DTO
             RewardWithdrawRequestDTO requestDTO = new RewardWithdrawRequestDTO();
             requestDTO.setAmount(amount);
             requestDTO.setPayNo(payNo);
-            requestDTO.setPayPassword(payPassword);
 
             // 执行盈利提现
             Map<String, Object> result = withdrawService.submitWithdraw(user.getId(), requestDTO);
             return new Result<Map<String, Object>>().ok(result);
-
-        } catch (Exception e) {
-            return new Result<Map<String, Object>>().error("提交佣金提现申请失败: " + e.getMessage());
-        }
     }
 
     @Login

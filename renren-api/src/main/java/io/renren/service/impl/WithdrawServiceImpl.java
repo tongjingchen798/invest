@@ -16,8 +16,11 @@ import io.renren.dto.WithdrawQueryDTO;
 import io.renren.entity.UserEntity;
 import io.renren.entity.WithdrawOrderEntity;
 import io.renren.service.WithdrawService;
+import io.renren.utils.RedisDistributedLock;
 import io.renren.utils.WithdrawRuleValidator;
 import io.renren.utils.WithdrawRuleValidator.ValidationResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,12 +44,17 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Service
 public class WithdrawServiceImpl implements WithdrawService {
+    
+    private static final Logger logger = LoggerFactory.getLogger(WithdrawServiceImpl.class);
 
     @Autowired
     private WithdrawOrderDao withdrawOrderDao;
 
     @Autowired
     private UserDao userDao;
+    
+    @Autowired
+    private RedisDistributedLock redisDistributedLock;
 
     @Autowired
     private WithdrawRuleValidator withdrawRuleValidator;
@@ -150,8 +158,26 @@ public class WithdrawServiceImpl implements WithdrawService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Map<String, Object> submitRewardWithdraw(Long userId, RewardWithdrawRequestDTO requestDTO) {
+        // 使用分布式锁确保并发安全
+        String lockKey = "withdraw_lock:reward:" + userId;
+        
         try {
-
+            return redisDistributedLock.executeWithLock(lockKey, 5000, 30, () -> {
+                return doSubmitRewardWithdraw(userId, requestDTO);
+            });
+        } catch (Exception e) {
+            logger.error("佣金提现申请失败 - 用户ID: {}, 金额: {}, 错误: {}", 
+                        userId, requestDTO.getAmount(), e.getMessage(), e);
+            throw new RuntimeException("提交佣金提现申请失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 执行佣金提现业务逻辑（在分布式锁保护下）
+     */
+    private Map<String, Object> doSubmitRewardWithdraw(Long userId, RewardWithdrawRequestDTO requestDTO) {
+            logger.info("开始处理佣金提现申请 - 用户ID: {}, 金额: {}", userId, requestDTO.getAmount());
+            
             // 查询用户信息
             UserEntity user = userDao.selectById(userId);
             if (user == null) {
@@ -160,19 +186,19 @@ public class WithdrawServiceImpl implements WithdrawService {
 
             // 检查佣金余额
             if (user.getCommissionBalance() == null || user.getCommissionBalance() < requestDTO.getAmount()) {
-                throw new RenException(500,"佣金余额不足");
+                throw new RenException("Insufficient cash withdrawal balance");
             }
 
             // 验证提现金额
-            BigDecimal amountTotal=new BigDecimal(requestDTO.getAmount());
+            BigDecimal amountTotal = new BigDecimal(requestDTO.getAmount());
             // 检查最低提现额度
             if (amountTotal.compareTo(withdrawConfig.getMinAmount()) < 0) {
-                throw new RenException(500,"Minimum single withdrawal amount: "+withdrawConfig.getMinAmount().divide(new BigDecimal(100))+" RS");
+                throw new RenException("Withdrawal amount cannot be less than 200 RS");
             }
 
             // 检查最高提现额度
             if (amountTotal.compareTo(withdrawConfig.getMaxAmount()) > 0) {
-                throw new RenException(500,"maximum amount: "+withdrawConfig.getMaxAmount().divide(new BigDecimal(100))+" RS");
+                throw new RenException("The withdrawal amount cannot be greater than 100000");
             }
 
             // 生成订单号
@@ -195,6 +221,8 @@ public class WithdrawServiceImpl implements WithdrawService {
             withdrawOrder.setRealAmount(realAmount.longValue());
             withdrawOrder.setPayNo(requestDTO.getPayNo());
             withdrawOrder.setPayName(user.getUsername());
+            withdrawOrder.setStateTime(new Date());
+            withdrawOrder.setSalesmanid(user.getSalesmanid());
             withdrawOrder.setWithdrawType(2); // 佣金提现
             withdrawOrder.setState(0); // 待审核
             withdrawOrder.setOrderno(orderNo);
@@ -205,10 +233,16 @@ public class WithdrawServiceImpl implements WithdrawService {
             // 保存提现订单
             withdrawOrderDao.insert(withdrawOrder);
             
-            // 冻结用户佣金余额
-            user.setCommissionBalance(user.getCommissionBalance() - requestDTO.getAmount());
-            user.setFreezeBalance(user.getFreezeBalance() + requestDTO.getAmount());
+            // 冻结用户佣金余额（原子性操作）
+            Long oldCommissionBalance = user.getCommissionBalance();
+            Long oldFreezeBalance = user.getFreezeBalance() != null ? user.getFreezeBalance() : 0L;
+            
+            user.setCommissionBalance(oldCommissionBalance - requestDTO.getAmount());
+            user.setFreezeBalance(oldFreezeBalance + requestDTO.getAmount());
             userDao.updateById(user);
+            
+            logger.info("佣金提现申请处理完成 - 用户ID: {}, 订单号: {}, 提现金额: {}, 冻结后佣金余额: {}, 冻结余额: {}", 
+                       userId, orderNo, requestDTO.getAmount(), user.getCommissionBalance(), user.getFreezeBalance());
             
             // 构建返回结果
             Map<String, Object> result = new HashMap<>();
@@ -221,36 +255,48 @@ public class WithdrawServiceImpl implements WithdrawService {
             
             return result;
             
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("提交佣金提现申请失败: " + e.getMessage());
-        }
+
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Map<String, Object> submitWithdraw(Long userId, RewardWithdrawRequestDTO requestDTO) {
-        try {
+    public Map<String, Object> submitWithdraw(Long userId, RewardWithdrawRequestDTO requestDTO) throws Exception {
+        // 使用分布式锁确保并发安全
+        String lockKey = "withdraw_lock:balance:" + userId;
+
+            return redisDistributedLock.executeWithLock(lockKey, 3000, 30, () -> {
+                return doSubmitWithdraw(userId, requestDTO);
+            });
+
+    }
+    
+    /**
+     * 执行余额提现业务逻辑（在分布式锁保护下）
+     */
+    private Map<String, Object> doSubmitWithdraw(Long userId, RewardWithdrawRequestDTO requestDTO) {
+            logger.info("开始处理余额提现申请 - 用户ID: {}, 金额: {}", userId, requestDTO.getAmount());
+            
             UserEntity user = userDao.selectById(userId);
             if (user == null) {
                 throw new RenException(30001);
             }
 
-            // 检查佣金余额
-            if (user.getAssets() == null || user.getAssets() < requestDTO.getAmount() || user.getCashwithdrawable() < requestDTO.getAmount() ) {
-                throw new RuntimeException("余额不足");
+            // 检查余额是否足够
+            if (user.getAssets() == null || user.getAssets() < requestDTO.getAmount() || 
+                user.getCashwithdrawable() == null || user.getCashwithdrawable() < requestDTO.getAmount()) {
+                throw new RenException("Insufficient cash withdrawal balance");
             }
 
             // 验证提现金额
-            BigDecimal amountTotal=new BigDecimal(requestDTO.getAmount());
+            BigDecimal amountTotal = new BigDecimal(requestDTO.getAmount());
             // 检查最低提现额度
             if (amountTotal.compareTo(withdrawConfig.getMinAmount()) < 0) {
-                throw new RenException(500,"Minimum single withdrawal amount: "+withdrawConfig.getMinAmount().divide(new BigDecimal(100))+" RS");
+                throw new RenException("Withdrawal amount cannot be less than 200 RS");
             }
 
             // 检查最高提现额度
             if (amountTotal.compareTo(withdrawConfig.getMaxAmount()) > 0) {
-                throw new RenException(500,"maximum amount: "+withdrawConfig.getMaxAmount().divide(new BigDecimal(100))+" RS");
+                throw new RenException("The withdrawal amount cannot be greater than 100000");
             }
 
             // 生成订单号
@@ -273,9 +319,11 @@ public class WithdrawServiceImpl implements WithdrawService {
             withdrawOrder.setRealAmount(realAmount.longValue());
             withdrawOrder.setPayNo(requestDTO.getPayNo());
             withdrawOrder.setPayName(user.getUsername());
-            withdrawOrder.setWithdrawType(1);
-            withdrawOrder.setState(0);
+            withdrawOrder.setWithdrawType(1); // 余额提现
+            withdrawOrder.setState(0); // 待审核
             withdrawOrder.setOrderno(orderNo);
+            withdrawOrder.setStateTime(new Date());
+            withdrawOrder.setSalesmanid(user.getSalesmanid());
             withdrawOrder.setCreateTime(new Date());
             withdrawOrder.setWithdrawTime(new Date());
             withdrawOrder.setRemark("余额提现申请");
@@ -283,13 +331,19 @@ public class WithdrawServiceImpl implements WithdrawService {
             // 保存提现订单
             withdrawOrderDao.insert(withdrawOrder);
 
-            // 扣除用户可提现余额 cashwithdrawable
-            userDao.reduceUserBalance(userId,amount.longValue());
-
-            // 冻结用户可提现余额
-            user.setCashwithdrawable(user.getCashwithdrawable() - requestDTO.getAmount());
-            user.setFreezeBalance(user.getFreezeBalance() + requestDTO.getAmount());
+            // 扣除用户可提现余额（原子性操作）
+            Long oldCashWithdrawable = user.getCashwithdrawable();
+            Long oldFreezeBalance = user.getFreezeBalance() != null ? user.getFreezeBalance() : 0L;
+            
+            user.setCashwithdrawable(oldCashWithdrawable - requestDTO.getAmount());
+            user.setFreezeBalance(oldFreezeBalance + requestDTO.getAmount());
             userDao.updateById(user);
+            
+            // 扣除用户可提现余额
+            userDao.reduceCashWithdrawableBalance(userId, amount.longValue());
+            
+            logger.info("余额提现申请处理完成 - 用户ID: {}, 订单号: {}, 提现金额: {}, 可提现余额: {}, 冻结余额: {}", 
+                       userId, orderNo, requestDTO.getAmount(), user.getCashwithdrawable(), user.getFreezeBalance());
 
             // 构建返回结果
             Map<String, Object> result = new HashMap<>();
@@ -301,11 +355,6 @@ public class WithdrawServiceImpl implements WithdrawService {
             result.put("message", "提现申请提交成功");
 
             return result;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("提交佣金提现申请失败: " + e.getMessage());
-        }
     }
 
     @Override

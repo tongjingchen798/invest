@@ -76,6 +76,15 @@ public interface UserDao extends BaseDao<UserEntity> {
 
 
     /**
+     * 减少用户可提现余额
+     * @param userId 用户ID
+     * @param amount 收益金额（分）
+     * @return 影响行数
+     */
+    @Update("UPDATE tb_user SET cashwithdrawable = cashwithdrawable - #{amount} WHERE id = #{userId}")
+    int reduceCashWithdrawableBalance(@Param("userId") Long userId, @Param("amount") Long amount);
+
+    /**
      * 更新用户收益相关字段（综合更新）
      * @param userId 用户ID
      * @param amount 收益金额（分）
