@@ -36,7 +36,7 @@
     <!-- 获取提现订单统计 -->
     <select id="getWithdrawOrderStats" resultType="map">
         SELECT 
-            COALESCE(SUM(CASE WHEN wo.state = 1 THEN wo.amount ELSE 0 END), 0) as withdrawOrderAmount,
+            COALESCE(SUM(CASE WHEN wo.state = 2 THEN wo.amount ELSE 0 END), 0) as withdrawOrderAmount,
             COUNT(*) as withdraw_order_cnt
         FROM tb_withdraw_order wo
         LEFT JOIN tb_user u ON wo.user_id = u.id

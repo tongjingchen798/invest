@@ -121,7 +121,7 @@ public class ChargeOrderEntity implements Serializable {
     private String walletAddr;
 
     /**
-     * 状态 0 待审核  1 审核通过  2 失败
+     * 状态 0待处理  1 成功  2 失败
      */
     private Integer state;
 
