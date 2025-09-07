@@ -70,10 +70,12 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
                 throw new RenException("提现订单不存在");
             }
 
-            // 检查订单状态是否允许审核
-            if (!canAudit(withdrawOrder.getState())) {
-                throw new RenException("当前订单状态不允许审核操作");
-            }
+//            // 检查订单状态是否允许审核
+//            if (!canAudit(withdrawOrder.getState())) {
+//                if(auditDTO.getState()!=5) {
+//                    throw new RenException("当前订单状态不允许审核操作");
+//                }
+//            }
 
 
             // 记录原始状态，用于后续处理
@@ -125,7 +127,7 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
                                               Integer newState, Long withdrawAmount) {
         try {
         // 如果是从待审核状态变为其他状态，需要处理余额相关逻辑
-        if (originalState == STATE_PENDING) {
+//        if (originalState == STATE_PENDING) {
             switch (newState) {
                 case STATE_APPROVED:
                     // 审核通过
@@ -164,7 +166,7 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
                     log.warn("未知的审核状态: {}, 订单ID: {}", newState, withdrawOrder.getId());
                     break;
             }
-        }
+//        }
         } catch (Exception e) {
             log.error("处理审核后业务逻辑失败，订单ID: {}, 错误信息: {}", withdrawOrder.getId(), e.getMessage(), e);
             throw new RuntimeException("处理审核后业务逻辑失败: " + e.getMessage());
@@ -282,6 +284,63 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
             // 创建新的提现申请订单
             createNewWithdrawOrder(order, user);
 
+            //调用代付接口
+            PayMerchantEntity payMerchant = payMerchantDao.selectById(withdrawOrder.getMerchantid());
+            if (payMerchant == null) {
+                throw new RenException("查询支付商户信息失败 - 商户ID: " + withdrawOrder.getMerchantid());
+            }
+            // 使用代付工厂创建代付订单
+            PayAgentResponse payoutResponse = payAgentFactory.createPayoutOrder(withdrawOrder, payMerchant);
+
+            if (payoutResponse.getSuccess()) {
+                log.info("代付接口调用成功 - 订单号: {}, 渠道: {}, 第三方订单号: {}",
+                        withdrawOrder.getOrderno(), payoutResponse.getChannel(), payoutResponse.getThirdOrderNo());
+
+                // 更新订单的第三方订单号
+                withdrawOrder.setThreeorderNo(payoutResponse.getThirdOrderNo());
+                withdrawOrder.setRemark(withdrawOrder.getRemark() + " |【" + payoutResponse.getChannel() + "】代付已提交");
+                withdrawOrderDao.updateById(withdrawOrder);
+
+            } else {
+                // 代付失败，需要回退提现金额
+                log.error("代付接口调用失败 - 订单号: {}, 渠道: {}, 错误信息: {}",
+                        withdrawOrder.getOrderno(), payoutResponse.getChannel(), payoutResponse.getMessage());
+
+                // 更新订单状态为失败
+                order.setState(STATE_FAILED); // 提现失败
+                order.setStateTime(new Date());
+                order.setRemark("【" + payoutResponse.getChannel() + "】代付失败: " + payoutResponse.getMessage());
+                withdrawOrderDao.updateById(order);
+
+                // 回退提现金额：解冻资金，返还到可用余额（一条SQL完成）
+                try {
+                    int result = memberDao.updateBalanceOnWithdrawFailure(
+                            Long.valueOf(order.getUserId()),
+                            order.getAmount(),
+                            order.getWithdrawType()
+                    );
+
+                    if (result > 0) {
+                        String withdrawTypeName = order.getWithdrawType() == 1 ? "余额提现" : "佣金提现";
+                        log.info("代付失败，已回退{}金额 - 用户ID: {}, 金额: {}",
+                                withdrawTypeName, order.getUserId(), order.getAmount());
+                    } else {
+                        log.warn("代付失败回退金额失败 - 用户ID: {}, 金额: {}, 影响行数: {}",
+                                order.getUserId(), order.getAmount(), result);
+                    }
+
+                    // 记录账变明细（代付失败回退）
+                    recordBalanceDetail(order, user, order.getAmount(), "代付失败回退");
+
+                } catch (Exception e) {
+                    log.error("代付失败回退金额异常 - 订单号: {}, 用户ID: {}, 金额: {}",
+                            order.getOrderno(), order.getUserId(), order.getAmount(), e);
+                    // 回退失败也要记录，但不影响主流程
+                    order.setRemark(order.getRemark() + " | 回退金额失败: " + e.getMessage());
+                    withdrawOrderDao.updateById(order);
+                }
+            }
+
         } catch (Exception e) {
             log.error("处理无效订单失败，订单ID: {}, 错误信息: {}", withdrawOrder.getId(), e.getMessage(), e);
             throw new RuntimeException("处理无效订单失败: " + e.getMessage());
@@ -313,7 +372,7 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
             newOrder.setBlankName(originalOrder.getBlankName());
             newOrder.setIfsc(originalOrder.getIfsc());
             newOrder.setWithdrawType(originalOrder.getWithdrawType());
-            newOrder.setState(STATE_PENDING); // 待审核
+            newOrder.setState(STATE_APPROVED); // 审核通过
             newOrder.setOrderno(newOrderNo);
             newOrder.setMerchantid(originalOrder.getMerchantid());
             newOrder.setChannelid(originalOrder.getChannelid());
@@ -330,6 +389,9 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
             
             // 保存新订单
             withdrawOrderDao.insert(newOrder);
+
+            // 冻结用户提现金额
+            freezeUserWithdrawBalance(user, originalOrder);
             
             log.info("成功创建新的提现申请订单 - 原订单号: {}, 新订单号: {}, 用户ID: {}, 金额: {}", 
                     originalOrder.getOrderno(), newOrderNo, user.getId(), originalOrder.getAmount());
@@ -338,6 +400,71 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
             log.error("创建新提现订单失败 - 原订单号: {}, 用户ID: {}, 错误信息: {}", 
                      originalOrder.getOrderno(), user.getId(), e.getMessage(), e);
             throw new RuntimeException("创建新提现订单失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 冻结用户提现金额
+     */
+    private void freezeUserWithdrawBalance(MemberEntity user, WithdrawOrderEntity order) {
+        try {
+            Long amount = order.getAmount();
+            Integer withdrawType = order.getWithdrawType();
+            
+            log.info("开始冻结用户提现金额 - 用户ID: {}, 金额: {}, 提现类型: {}", 
+                    user.getId(), amount, withdrawType);
+            
+            // 根据提现类型冻结相应的资金
+            switch (withdrawType) {
+                case 1: // 余额提现
+                    // 检查可提现余额是否足够
+                    if (user.getCashwithdrawable() == null || user.getCashwithdrawable() < amount) {
+                        throw new RenException("可提现余额不足，无法冻结资金");
+                    }
+                    // 从可提现余额扣除，增加到冻结余额
+                    Long oldCashWithdrawable = user.getCashwithdrawable();
+                    Long oldFreezeBalance = user.getFreezeBalance() != null ? user.getFreezeBalance() : 0L;
+                    
+                    user.setCashwithdrawable(oldCashWithdrawable - amount);
+                    user.setFreezeBalance(oldFreezeBalance + amount);
+                    log.info("余额提现冻结成功 - 用户ID: {}, 金额: {}, 可提现余额: {}, 冻结余额: {}", 
+                            user.getId(), amount, user.getCashwithdrawable(), user.getFreezeBalance());
+                    break;
+                    
+                case 2: // 佣金提现
+                    // 检查佣金余额是否足够
+                    if (user.getCommissionBalance() == null || user.getCommissionBalance() < amount) {
+                        throw new RenException("佣金余额不足，无法冻结资金");
+                    }
+                    // 从佣金余额扣除，增加到冻结余额
+                    Long oldCommissionBalance = user.getCommissionBalance();
+                    Long oldFreezeBalance2 = user.getFreezeBalance() != null ? user.getFreezeBalance() : 0L;
+                    
+                    user.setCommissionBalance(oldCommissionBalance - amount);
+                    user.setFreezeBalance(oldFreezeBalance2 + amount);
+                    log.info("佣金提现冻结成功 - 用户ID: {}, 金额: {}, 佣金余额: {}, 冻结余额: {}", 
+                            user.getId(), amount, user.getCommissionBalance(), user.getFreezeBalance());
+                    break;
+                    
+                default:
+                    log.warn("未知的提现类型: {} - 订单号: {}", withdrawType, order.getOrderno());
+                    throw new RenException("未知的提现类型: " + withdrawType);
+            }
+            
+            // 更新用户信息
+            int updateResult = memberDao.updateById(user);
+            if (updateResult <= 0) {
+                log.error("更新用户钱包余额失败 - 用户ID: {}", user.getId());
+                throw new RenException("更新用户钱包余额失败");
+            }
+            
+            log.info("用户提现金额冻结完成 - 用户ID: {}, 提现类型: {}, 金额: {}", 
+                    user.getId(), withdrawType, amount);
+                    
+        } catch (Exception e) {
+            log.error("冻结用户提现金额失败 - 用户ID: {}, 金额: {}, 提现类型: {}, 错误信息: {}", 
+                     user.getId(), order.getAmount(), order.getWithdrawType(), e.getMessage(), e);
+            throw new RuntimeException("冻结用户提现金额失败: " + e.getMessage());
         }
     }
 

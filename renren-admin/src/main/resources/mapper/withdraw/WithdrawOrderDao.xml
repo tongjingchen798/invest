@@ -10,7 +10,7 @@
         wo.user_id as userId,
         u.mobile,
         wo.username,
-        wo.channel,
+        u.channel,
         wo.msg,
         wo.withdraw_time as withdrawTime,
         wo.amount,
@@ -41,19 +41,18 @@
         wo.salesman_name as salesmanName,
         wo.channelid,
         wo.merchantid,
-        wo.merchantname,
+        pm.merchantname,
         wo.biaoqian,
         wo.invite_code_status as inviteCodeStatus,
         wo.liebian,
         wo.ctc,
         u.agent as userAgent,
         u.salesmanid as userSalesmanid,
-        agent_user.username as agentUserName,
-        salesman_user.username as salesmanUserName
+        salesman_user.username as salesmanName
         FROM tb_withdraw_order wo
         LEFT JOIN tb_user u ON wo.user_id = u.id
-        LEFT JOIN sys_user agent_user ON u.agent = agent_user.id
         LEFT JOIN sys_user salesman_user ON u.salesmanid = salesman_user.id
+        LEFT JOIN pay_merchant pm ON pm.merchantid=wo.merchantid
         <where>
             <!-- 时间范围筛选 -->
             <if test="params.startTime != null">
@@ -152,9 +151,10 @@
     <!-- 统计手工提现汇总数据 -->
     <select id="selectManualWithdrawSummary" resultType="map">
         SELECT
-        COALESCE(SUM(wo.inputamount), 0) AS totalInputAmount,
-        COALESCE(SUM(wo.real_amount), 0) AS totalRealAmount,
-        COALESCE(SUM(wo.hand_fee), 0) AS totalHandFee,
+        COALESCE(SUM(wo.inputamount), 0) AS amount,
+        COALESCE(SUM(wo.real_amount), 0) AS realAmount,
+        COALESCE(SUM(wo.channel_amount), 0) AS channelAmount,
+        COALESCE(SUM(wo.hand_fee), 0) AS handFee,
         COUNT(*) AS totalCount
         FROM tb_withdraw_order wo
         LEFT JOIN tb_user u ON wo.user_id = u.id

@@ -4,6 +4,7 @@ import io.renren.common.dao.BaseDao;
 import io.renren.entity.WithdrawOrderEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.Date;
 
@@ -41,4 +42,7 @@ public interface WithdrawOrderDao extends BaseDao<WithdrawOrderEntity> {
      * @return 提现总额
      */
     Long selectWithdrawAmountByUserIdAndDate(@Param("userId") Long userId, @Param("date") Date date);
+
+    @Select("select * from tb_withdraw_order where  orderno=#{orderno}")
+    WithdrawOrderEntity selectByOrderno(@Param("orderno") String orderno);
 }

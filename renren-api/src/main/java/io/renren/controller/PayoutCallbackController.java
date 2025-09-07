@@ -1,20 +1,25 @@
-package io.renren.modules.withdraw.controller;
+package io.renren.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import io.renren.modules.finance.dao.UserBalanceDetailDao;
-import io.renren.modules.finance.entity.UserBalanceDetailEntity;
-import io.renren.modules.paymerchant.dao.PayMerchantDao;
-import io.renren.modules.paymerchant.entity.PayMerchantEntity;
-import io.renren.modules.withdraw.dao.WithdrawOrderDao;
-import io.renren.modules.withdraw.entity.WithdrawOrderEntity;
-import io.renren.modules.member.dao.MemberDao;
-import io.renren.modules.member.entity.MemberEntity;
-import io.renren.common.utils.WePaySignatureUtils;
+
+import io.renren.dao.PayMerchantDao;
+import io.renren.dao.UserBalanceDetailDao;
+import io.renren.dao.UserDao;
+import io.renren.dao.WithdrawOrderDao;
+import io.renren.entity.PayMerchantEntity;
+import io.renren.entity.UserBalanceDetailEntity;
+import io.renren.entity.UserEntity;
+import io.renren.entity.WithdrawOrderEntity;
+import io.renren.utils.WePaySignatureUtils;
+import org.apache.catalina.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -39,7 +44,7 @@ public class PayoutCallbackController {
     private WithdrawOrderDao withdrawOrderDao;
     
     @Autowired
-    private MemberDao memberDao;
+    private UserDao userDao;
 
     @Autowired
     private UserBalanceDetailDao userBalanceDetailDao;
@@ -79,7 +84,7 @@ public class PayoutCallbackController {
     /**
      * 解析WePay代付回调JSON数据
      */
-    private com.alibaba.fastjson.JSONObject parseWePayCallbackJson(String requestBody) {
+    private JSONObject parseWePayCallbackJson(String requestBody) {
         try {
             JSONObject jsonObject = JSON.parseObject(requestBody);
             
@@ -97,7 +102,7 @@ public class PayoutCallbackController {
     /**
      * 验证WePay代付回调签名
      */
-    private boolean verifyWePayCallbackSign(com.alibaba.fastjson.JSONObject jsonData) {
+    private boolean verifyWePayCallbackSign(JSONObject jsonData) {
         try {
             String orderNo = jsonData.getString("orderNo");
             
@@ -146,7 +151,7 @@ public class PayoutCallbackController {
     /**
      * 处理代付结果
      */
-    private boolean processPayoutResult(com.alibaba.fastjson.JSONObject jsonData) {
+    private boolean processPayoutResult(JSONObject jsonData) {
         try {
             String orderNo = jsonData.getString("orderNo");
             Integer payStatus = jsonData.getInteger("payStatus");
@@ -181,7 +186,7 @@ public class PayoutCallbackController {
     /**
      * 处理代付成功 - 直接使用JSONObject
      */
-    private boolean handlePayoutSuccess(com.alibaba.fastjson.JSONObject jsonData) {
+    private boolean handlePayoutSuccess(JSONObject jsonData) {
         try {
             String orderNo = jsonData.getString("orderNo");
             String tradeNo = jsonData.getString("tradeNo");
@@ -194,7 +199,7 @@ public class PayoutCallbackController {
             }
             
             // 检查订单状态，避免重复处理
-            if (withdrawOrder.getState() != null && withdrawOrder.getState() == 1) {
+            if (withdrawOrder.getState() != null && withdrawOrder.getState() == 2) {
                 logger.warn("代付订单已处理过 - 订单号: {}, 当前状态: {}", orderNo, withdrawOrder.getState());
                 return true;
             }
@@ -210,10 +215,10 @@ public class PayoutCallbackController {
                 logger.error("更新代付订单状态失败 - 订单号: {}", orderNo);
                 return false;
             }
-            MemberEntity user=memberDao.selectById(withdrawOrder.getUserId());
+            UserEntity user=userDao.selectById(withdrawOrder.getUserId());
             //从冻结余额中真正扣减
             user.setFreezeBalance(user.getFreezeBalance() - withdrawOrder.getAmount());
-            memberDao.updateById(user);
+            userDao.updateById(user);
 
             //记录账变明细
             recordBalanceDetail(withdrawOrder, user, withdrawOrder.getAmount());
@@ -230,7 +235,7 @@ public class PayoutCallbackController {
     /**
      * 处理代付失败
      */
-    private boolean handlePayoutFailure(com.alibaba.fastjson.JSONObject jsonData) {
+    private boolean handlePayoutFailure(JSONObject jsonData) {
         try {
             String orderNo = jsonData.getString("orderNo");
             String remark = jsonData.getString("remark");
@@ -249,7 +254,7 @@ public class PayoutCallbackController {
             }
             
             // 查询用户信息
-            MemberEntity user = memberDao.selectById(Long.valueOf(withdrawOrder.getUserId()));
+            UserEntity user = userDao.selectById(Long.valueOf(withdrawOrder.getUserId()));
             if (user == null) {
                 logger.error("查询用户信息失败 - 用户ID: {}", withdrawOrder.getUserId());
                 return false;
@@ -286,7 +291,7 @@ public class PayoutCallbackController {
     /**
      * 代付失败时更新钱包余额
      */
-    private boolean updateWalletOnPayoutFailure(WithdrawOrderEntity withdrawOrder, MemberEntity user) {
+    private boolean updateWalletOnPayoutFailure(WithdrawOrderEntity withdrawOrder, UserEntity user) {
         try {
             Long amount = withdrawOrder.getAmount();
             Integer withdrawType = withdrawOrder.getWithdrawType();
@@ -316,7 +321,7 @@ public class PayoutCallbackController {
             }
             
             // 更新用户信息
-            int updateResult = memberDao.updateById(user);
+            int updateResult = userDao.updateById(user);
             if (updateResult <= 0) {
                 logger.error("更新用户钱包余额失败 - 用户ID: {}", user.getId());
                 return false;
@@ -335,61 +340,12 @@ public class PayoutCallbackController {
             return false;
         }
     }
-    
-//    /**
-//     * 代付失败时记录账变明细
-//     */
-//    private void recordBalanceDetailOnPayoutFailure(WithdrawOrderEntity withdrawOrder, MemberEntity user,
-//                                                   Long amount, Integer withdrawType) {
-//        try {
-//            UserBalanceDetailEntity balanceDetail = new UserBalanceDetailEntity();
-//            balanceDetail.setUserId(Long.valueOf(withdrawOrder.getUserId()));
-//            balanceDetail.setTransactionDate(new java.util.Date());
-//            balanceDetail.setAgentId(user.getAgent());
-//            balanceDetail.setAgentName(user.getAgentName());
-//            balanceDetail.setChannel("1");
-//            balanceDetail.setOriginalAmount(amount);
-//            balanceDetail.setRemarks(getPayoutFailureRemark(withdrawType));
-//            balanceDetail.setSalesmanName(user.getSalesmanName());
-//            balanceDetail.setSalesmanId(user.getSalesmanid() != null ? Long.valueOf(user.getSalesmanid()) : null);
-//            balanceDetail.setStatus(1);
-//
-//            // 根据提现类型设置业务类型
-//            if (withdrawType == 1) {
-//                balanceDetail.setBusiType(13); // 13-余额提现失败退回
-//            } else if (withdrawType == 2) {
-//                balanceDetail.setBusiType(14); // 14-佣金提现失败退回
-//            }
-//
-//            userBalanceDetailDao.insert(balanceDetail);
-//
-//            logger.info("代付失败账变明细记录成功 - 用户ID: {}, 业务类型: {}, 金额: {}",
-//                       user.getId(), balanceDetail.getBusiType(), amount);
-//
-//        } catch (Exception e) {
-//            logger.error("记录代付失败账变明细异常 - 订单号: {}, 用户ID: {}",
-//                        withdrawOrder.getOrderno(), user.getId(), e);
-//        }
-//    }
-//
-//    /**
-//     * 获取代付失败备注
-//     */
-//    private String getPayoutFailureRemark(Integer withdrawType) {
-//        switch (withdrawType) {
-//            case 1:
-//                return "余额提现失败，资金退回";
-//            case 2:
-//                return "佣金提现失败，资金退回";
-//            default:
-//                return "提现失败，资金退回";
-//        }
-//    }
+
 
     /**
      * 记录余额明细
      */
-    private void recordBalanceDetail(WithdrawOrderEntity withdrawOrder, MemberEntity user, Long amountInCents) {
+    private void recordBalanceDetail(WithdrawOrderEntity withdrawOrder, UserEntity user, Long amountInCents) {
         try {
             UserBalanceDetailEntity balanceDetail = new UserBalanceDetailEntity();
             balanceDetail.setUserId(Long.valueOf(withdrawOrder.getUserId()));
