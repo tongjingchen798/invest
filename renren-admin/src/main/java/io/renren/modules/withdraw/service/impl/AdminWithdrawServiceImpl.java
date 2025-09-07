@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 管理员提现服务实现类
@@ -53,6 +54,11 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
 
     @Autowired
     private PayMerchantDao payMerchantDao;
+
+    /**
+     * 订单号生成器
+     */
+    private static final AtomicLong orderNoGenerator = new AtomicLong(System.currentTimeMillis());
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -140,18 +146,18 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
                     handleWithdrawRejection(withdrawOrder, withdrawAmount);
                     break;
 
-                case STATE_FAILED:
-                    // 提现失败
-                    log.info("提现失败，订单ID: {}, 金额: {}", withdrawOrder.getId(), withdrawAmount);
-                    // 提现失败需要将资金退回给用户
-                    handleWithdrawRejection(withdrawOrder, withdrawAmount);
-                    break;
+                 case STATE_FAILED:
+                     // 提现失败
+                     log.info("提现失败，订单ID: {}, 金额: {}", withdrawOrder.getId(), withdrawAmount);
+                     // 提现失败需要将资金退回给用户
+                     handleWithdrawRejection(withdrawOrder, withdrawAmount);
+                     break;
 
                 case STATE_INVALID:
-                    // 无效订单
+                    // 重新发起提现
                     log.info("无效订单，订单ID: {}, 金额: {}", withdrawOrder.getId(), withdrawAmount);
-                    // 无效订单需要将资金退回给用户
-                    handleWithdrawRejection(withdrawOrder, withdrawAmount);
+                    // 无效订单需要将资金退回给用户，并创建新订单
+                    handleWithdrawInvalid(withdrawOrder, withdrawAmount);
                     break;
 
                 default:
@@ -239,6 +245,109 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
                 withdrawOrderDao.updateById(order);
             }
         }
+    }
+
+    /**
+     * 处理无效订单逻辑
+     */
+    private void handleWithdrawInvalid(WithdrawOrderEntity withdrawOrder, Long withdrawAmount) {
+        try {
+            log.info("处理无效订单，需要将资金 {} 退回给用户 {} 并创建新订单", withdrawAmount, withdrawOrder.getUserId());
+
+            WithdrawOrderEntity order = withdrawOrderDao.selectByOrderno(withdrawOrder.getOrderno());
+            MemberEntity user = memberDao.selectById(Long.valueOf(order.getUserId()));
+
+//            // 解冻资金，返还到可用余额（一条SQL完成）
+//            int result = memberDao.updateBalanceOnWithdrawFailure(
+//                Long.valueOf(order.getUserId()),
+//                order.getAmount(),
+//                order.getWithdrawType()
+//            );
+//
+//            if (result > 0) {
+//                String withdrawTypeName = order.getWithdrawType() == 1 ? "余额提现" : "佣金提现";
+//                log.info("无效订单，已回退{}金额 - 用户ID: {}, 金额: {}",
+//                        withdrawTypeName, order.getUserId(), order.getAmount());
+//            } else {
+//                log.warn("无效订单回退金额失败 - 用户ID: {}, 金额: {}, 影响行数: {}",
+//                        order.getUserId(), order.getAmount(), result);
+//            }
+
+            // 更新订单状态为无效订单
+            order.setState(STATE_INVALID); // 无效订单
+            order.setRemark("将当前这笔单改成无效，然后新增一笔");
+            order.setStateTime(new Date());
+            withdrawOrderDao.updateById(order);
+
+            // 创建新的提现申请订单
+            createNewWithdrawOrder(order, user);
+
+        } catch (Exception e) {
+            log.error("处理无效订单失败，订单ID: {}, 错误信息: {}", withdrawOrder.getId(), e.getMessage(), e);
+            throw new RuntimeException("处理无效订单失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 创建新的提现申请订单
+     */
+    private void createNewWithdrawOrder(WithdrawOrderEntity originalOrder, MemberEntity user) {
+        try {
+            // 生成新的订单号
+            String newOrderNo = generateOrderNo();
+            
+            // 创建新的提现订单
+            WithdrawOrderEntity newOrder = new WithdrawOrderEntity();
+            newOrder.setId(String.valueOf(System.currentTimeMillis()));
+            newOrder.setUserId(originalOrder.getUserId());
+            newOrder.setMobile(originalOrder.getMobile());
+            newOrder.setUsername(originalOrder.getUsername());
+            newOrder.setAmount(originalOrder.getAmount());
+            newOrder.setInputamount(originalOrder.getInputamount());
+            newOrder.setHandFee(originalOrder.getHandFee());
+            newOrder.setRealAmount(originalOrder.getRealAmount());
+            newOrder.setChannel(originalOrder.getChannel());
+            newOrder.setPayNo(originalOrder.getPayNo());
+            newOrder.setPayName(originalOrder.getPayName());
+            newOrder.setBlankCode(originalOrder.getBlankCode());
+            newOrder.setBlankName(originalOrder.getBlankName());
+            newOrder.setIfsc(originalOrder.getIfsc());
+            newOrder.setWithdrawType(originalOrder.getWithdrawType());
+            newOrder.setState(STATE_PENDING); // 待审核
+            newOrder.setOrderno(newOrderNo);
+            newOrder.setMerchantid(originalOrder.getMerchantid());
+            newOrder.setChannelid(originalOrder.getChannelid());
+            newOrder.setAgent(originalOrder.getAgent());
+            newOrder.setAgentName(originalOrder.getAgentName());
+            newOrder.setSalesmanid(originalOrder.getSalesmanid());
+            newOrder.setSalesmanName(originalOrder.getSalesmanName());
+            newOrder.setLiebian(originalOrder.getLiebian());
+            newOrder.setCreateTime(new Date());
+            newOrder.setWithdrawTime(new Date());
+            newOrder.setStateTime(new Date());
+            newOrder.setRemark("重新申请提现");
+            newOrder.setOperCode(originalOrder.getOperCode());
+            
+            // 保存新订单
+            withdrawOrderDao.insert(newOrder);
+            
+            log.info("成功创建新的提现申请订单 - 原订单号: {}, 新订单号: {}, 用户ID: {}, 金额: {}", 
+                    originalOrder.getOrderno(), newOrderNo, user.getId(), originalOrder.getAmount());
+                    
+        } catch (Exception e) {
+            log.error("创建新提现订单失败 - 原订单号: {}, 用户ID: {}, 错误信息: {}", 
+                     originalOrder.getOrderno(), user.getId(), e.getMessage(), e);
+            throw new RuntimeException("创建新提现订单失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 生成订单号
+     */
+    private String generateOrderNo() {
+        long timestamp = System.currentTimeMillis();
+        long sequence = orderNoGenerator.incrementAndGet();
+        return "RW" + timestamp + String.format("%04d", sequence % 10000);
     }
 
     /**

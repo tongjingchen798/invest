@@ -2,6 +2,8 @@ package io.renren.modules.withdraw.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import io.renren.modules.finance.dao.UserBalanceDetailDao;
+import io.renren.modules.finance.entity.UserBalanceDetailEntity;
 import io.renren.modules.paymerchant.dao.PayMerchantDao;
 import io.renren.modules.paymerchant.entity.PayMerchantEntity;
 import io.renren.modules.withdraw.dao.WithdrawOrderDao;
@@ -38,6 +40,9 @@ public class PayoutCallbackController {
     
     @Autowired
     private MemberDao memberDao;
+
+    @Autowired
+    private UserBalanceDetailDao userBalanceDetailDao;
     
     /**
      * WePay代付回调接口
@@ -205,7 +210,14 @@ public class PayoutCallbackController {
                 logger.error("更新代付订单状态失败 - 订单号: {}", orderNo);
                 return false;
             }
-            
+            MemberEntity user=memberDao.selectById(withdrawOrder.getUserId());
+            //从冻结余额中真正扣减
+            user.setFreezeBalance(user.getFreezeBalance() - withdrawOrder.getAmount());
+            memberDao.updateById(user);
+
+            //记录账变明细
+            recordBalanceDetail(withdrawOrder, user, withdrawOrder.getAmount());
+
             logger.info("代付成功处理完成 - 订单号: {}, 系统单号: {}", orderNo, tradeNo);
             return true;
             
@@ -373,4 +385,42 @@ public class PayoutCallbackController {
 //                return "提现失败，资金退回";
 //        }
 //    }
+
+    /**
+     * 记录余额明细
+     */
+    private void recordBalanceDetail(WithdrawOrderEntity withdrawOrder, MemberEntity user, Long amountInCents) {
+        try {
+            UserBalanceDetailEntity balanceDetail = new UserBalanceDetailEntity();
+            balanceDetail.setUserId(Long.valueOf(withdrawOrder.getUserId()));
+            balanceDetail.setTransactionDate(new Date());
+            balanceDetail.setAgentId(user.getAgent());
+            balanceDetail.setAgentName(user.getAgentName());
+            //2 余额提现 33佣金提现
+            if (withdrawOrder.getWithdrawType() == 1) {
+                balanceDetail.setBusiType(2);
+                balanceDetail.setRemarks("余额提现");
+            } else {
+                balanceDetail.setBusiType(33);
+                balanceDetail.setRemarks("佣金提现");
+            }
+
+            balanceDetail.setChannel("1");
+            balanceDetail.setOriginalAmount(user.getAssets() != null ? user.getAssets() - amountInCents : 0L);
+            balanceDetail.setTransactionAmount(user.getAssets() != null ? user.getAssets() : amountInCents);
+            balanceDetail.setUseAmount(amountInCents);
+            balanceDetail.setSalesmanName(user.getSalesmanName());
+            balanceDetail.setSalesmanId(user.getSalesmanid());
+            balanceDetail.setStatus(1); // 1-正常
+            balanceDetail.setStreamId(withdrawOrder.getThreeorderNo());
+            balanceDetail.setCreateDate(new Date());
+            balanceDetail.setUpdateDate(new Date());
+
+            userBalanceDetailDao.insert(balanceDetail);
+
+        } catch (Exception e) {
+            logger.error("记录余额明细失败 - 用户ID: {}, 金额: {} 分", withdrawOrder.getUserId(), amountInCents, e);
+            throw e;
+        }
+    }
 }
