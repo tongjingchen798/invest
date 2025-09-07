@@ -127,43 +127,43 @@ public class ManualWithdrawServiceImpl extends BaseServiceImpl<WithdrawOrderDao,
                 .sum();
     }
 
-    /**
-     * 转换为DTO
-     */
-    private ManualWithdrawDTO convertToDTO(WithdrawOrderEntity entity) {
-        ManualWithdrawDTO dto = new ManualWithdrawDTO();
-        
-        dto.setAgent(entity.getAgent());
-        dto.setAgentName(entity.getAgentName());
-        dto.setAmount(entity.getAmount() != null ? new java.math.BigDecimal(entity.getAmount()) : null);
-        dto.setBlankCode(entity.getBlankCode());
-        dto.setBlankName(entity.getBlankName());
-        dto.setChannelid(entity.getChannelid() != null ? Long.parseLong(entity.getChannelid()) : null);
-        dto.setCreateTime(formatDate(entity.getCreateTime()));
-        dto.setId(Long.parseLong(entity.getId()));
-        dto.setIfsc(entity.getIfsc());
-        dto.setMerchantid(entity.getMerchantid() != null ? Long.parseLong(entity.getMerchantid()) : null);
-        dto.setMerchantname(entity.getMerchantname());
-        dto.setMsg(entity.getMsg());
-        dto.setOrderno(entity.getOrderno());
-        dto.setPayName(entity.getPayName());
-        dto.setPayNo(entity.getPayNo());
-        dto.setRemark(entity.getRemark());
-        dto.setSalesmanName(entity.getSalesmanName());
-        dto.setSalesmanid(entity.getSalesmanid());
-        dto.setState(entity.getState());
-        dto.setStateTime(formatDate(entity.getStateTime()));
-        dto.setThreeorderNo(entity.getThreeorderNo());
-        dto.setWithdrawTime(formatDate(entity.getWithdrawTime()));
-        dto.setWithdrawType(entity.getWithdrawType());
-        
-        // 设置汇总相关字段
-        dto.setChannelAmount(entity.getChannelAmount() != null ? new java.math.BigDecimal(entity.getChannelAmount()) : null);
-        dto.setRealAmount(entity.getRealAmount() != null ? new java.math.BigDecimal(entity.getRealAmount()) : null);
-        dto.setHandFee(entity.getHandFee() != null ? new java.math.BigDecimal(entity.getHandFee()) : null);
-        
-        return dto;
-    }
+//    /**
+//     * 转换为DTO
+//     */
+//    private ManualWithdrawDTO convertToDTO(WithdrawOrderEntity entity) {
+//        ManualWithdrawDTO dto = new ManualWithdrawDTO();
+//
+//        dto.setAgent(entity.getAgent());
+//        dto.setAgentName(entity.getAgentName());
+//        dto.setAmount(entity.getAmount() != null ? new java.math.BigDecimal(entity.getAmount()) : null);
+//        dto.setBlankCode(entity.getBlankCode());
+//        dto.setBlankName(entity.getBlankName());
+//        dto.setChannelid(entity.getChannelid() != null ? Long.parseLong(entity.getChannelid()) : null);
+//        dto.setCreateTime(formatDate(entity.getCreateTime()));
+//        dto.setId(Long.parseLong(entity.getId()));
+//        dto.setIfsc(entity.getIfsc());
+//        dto.setMerchantid(entity.getMerchantid() != null ? Long.parseLong(entity.getMerchantid()) : null);
+//        dto.setMerchantname(entity.getMerchantname());
+//        dto.setMsg(entity.getMsg());
+//        dto.setOrderno(entity.getOrderno());
+//        dto.setPayName(entity.getPayName());
+//        dto.setPayNo(entity.getPayNo());
+//        dto.setRemark(entity.getRemark());
+//        dto.setSalesmanName(entity.getSalesmanName());
+//        dto.setSalesmanid(entity.getSalesmanid());
+//        dto.setState(entity.getState());
+//        dto.setStateTime(formatDate(entity.getStateTime()));
+//        dto.setThreeorderNo(entity.getThreeorderNo());
+//        dto.setWithdrawTime(formatDate(entity.getWithdrawTime()));
+//        dto.setWithdrawType(entity.getWithdrawType());
+//
+//        // 设置汇总相关字段
+//        dto.setChannelAmount(entity.getChannelAmount() != null ? new java.math.BigDecimal(entity.getChannelAmount()) : null);
+//        dto.setRealAmount(entity.getRealAmount() != null ? new java.math.BigDecimal(entity.getRealAmount()) : null);
+//        dto.setHandFee(entity.getHandFee() != null ? new java.math.BigDecimal(entity.getHandFee()) : null);
+//
+//        return dto;
+//    }
 
     /**
      * 计算汇总数据

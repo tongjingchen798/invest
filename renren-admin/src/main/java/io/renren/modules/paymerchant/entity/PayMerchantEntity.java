@@ -27,6 +27,11 @@ public class PayMerchantEntity {
      * 商户号
      */
 	private String merchantno;
+
+    /**
+     * 唯一商户编码
+     */
+    private String merchantCode;
     /**
      * 商户名
      */

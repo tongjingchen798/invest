@@ -7,6 +7,7 @@ import io.renren.common.exception.RenException;
 import io.renren.common.utils.Result;
 import io.renren.config.WithdrawConfig;
 import io.renren.dao.PayChannelDao;
+import io.renren.dao.PayInfoDao;
 import io.renren.dao.UserDao;
 import io.renren.dao.WithdrawOrderDao;
 import io.renren.dto.RewardWithdrawRequestDTO;
@@ -68,6 +69,8 @@ public class WithdrawServiceImpl implements WithdrawService {
     private static final AtomicLong orderNoGenerator = new AtomicLong(System.currentTimeMillis());
     @Autowired
     private PayChannelDao payChannelDao;
+    @Autowired
+    private PayInfoDao payInfoDao;
 
     @Override
     public Map<String, Object> checkFirstWithdraw(Long userId) {
@@ -214,6 +217,10 @@ public class WithdrawServiceImpl implements WithdrawService {
             if(payChannelEntity==null){
                 throw new RenException("The withdrawal function is under maintenance, please apply again later");
             }
+            String payName=payInfoDao.selectPayNameByCardNo(requestDTO.getPayNo());
+            if(!StringUtils.hasText(payName)){
+                throw new RenException("Card No can't be empty");
+            }
             // 创建提现订单
             WithdrawOrderEntity withdrawOrder = new WithdrawOrderEntity();
             withdrawOrder.setId(String.valueOf(System.currentTimeMillis()));
@@ -226,7 +233,7 @@ public class WithdrawServiceImpl implements WithdrawService {
             withdrawOrder.setRealAmount(realAmount.longValue());
             withdrawOrder.setChannel(user.getChannel());
             withdrawOrder.setPayNo(requestDTO.getPayNo());
-            withdrawOrder.setPayName(user.getUsername());
+            withdrawOrder.setPayName(payName);
             withdrawOrder.setStateTime(new Date());
             withdrawOrder.setSalesmanid(user.getSalesmanid());
             withdrawOrder.setWithdrawType(2); // 佣金提现
@@ -312,7 +319,6 @@ public class WithdrawServiceImpl implements WithdrawService {
 
             // 生成订单号
             String orderNo = generateOrderNo();
-
             // 计算手续费和实际到账金额（5%手续费）
             BigDecimal amount = new BigDecimal(requestDTO.getAmount());
             BigDecimal handFee = withdrawRuleValidator.calculateFee(amount);
@@ -323,7 +329,11 @@ public class WithdrawServiceImpl implements WithdrawService {
             if(payChannelEntity==null){
                 throw new RenException("The withdrawal function is under maintenance, please apply again later");
             }
-
+            //获取银行卡
+            String payName=payInfoDao.selectPayNameByCardNo(requestDTO.getPayNo());
+            if(!StringUtils.hasText(payName)){
+                throw new RenException("Card No can't be empty");
+            }
             // 创建提现订单
             WithdrawOrderEntity withdrawOrder = new WithdrawOrderEntity();
             withdrawOrder.setId(String.valueOf(System.currentTimeMillis()));
@@ -335,7 +345,7 @@ public class WithdrawServiceImpl implements WithdrawService {
             withdrawOrder.setHandFee(handFee.longValue());
             withdrawOrder.setRealAmount(realAmount.longValue());
             withdrawOrder.setPayNo(requestDTO.getPayNo());
-            withdrawOrder.setPayName(user.getUsername());
+            withdrawOrder.setPayName(payName);
             withdrawOrder.setWithdrawType(1); // 余额提现
             withdrawOrder.setState(0); // 待审核
             withdrawOrder.setOrderno(orderNo);
@@ -347,7 +357,6 @@ public class WithdrawServiceImpl implements WithdrawService {
             withdrawOrder.setCreateTime(new Date());
             withdrawOrder.setWithdrawTime(new Date());
             withdrawOrder.setRemark("余额提现申请");
-
             // 保存提现订单
             withdrawOrderDao.insert(withdrawOrder);
 
@@ -359,10 +368,7 @@ public class WithdrawServiceImpl implements WithdrawService {
             user.setFreezeBalance(oldFreezeBalance + requestDTO.getAmount());
             userDao.updateById(user);
             
-//            // 扣除用户可提现余额
-//            userDao.reduceCashWithdrawableBalance(userId, amount.longValue());
-            
-            logger.info("余额提现申请处理完成 - 用户ID: {}, 订单号: {}, 提现金额: {}, 可提现余额: {}, 冻结余额: {}", 
+            logger.info("余额提现申请处理完成 - 用户ID: {}, 订单号: {}, 提现金额: {}, 可提现余额: {}, 冻结余额: {}",
                        userId, orderNo, requestDTO.getAmount(), user.getCashwithdrawable(), user.getFreezeBalance());
 
             // 构建返回结果

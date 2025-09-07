@@ -37,7 +37,7 @@ public class PayoutRequestDTO {
     private String email;
     
     @ApiModelProperty(value = "金额(元)", required = true)
-    private Double amount;
+    private Long amount;
     
     @ApiModelProperty(value = "商户回调地址", required = true)
     private String notifyUrl;
@@ -113,11 +113,11 @@ public class PayoutRequestDTO {
         this.email = email;
     }
     
-    public Double getAmount() {
+    public Long getAmount() {
         return amount;
     }
     
-    public void setAmount(Double amount) {
+    public void setAmount(Long amount) {
         this.amount = amount;
     }
     
