@@ -149,64 +149,26 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
      * 处理提现审核通过
      */
     private void handleWithdrawApproval(WithdrawOrderEntity withdrawOrder, Long withdrawAmount) {
-        try {
-            log.info("开始处理提现审核通过 - 订单号: {}, 金额: {}", withdrawOrder.getOrderno(), withdrawAmount);
+        log.info("开始处理提现审核通过 - 订单号: {}, 金额: {}", withdrawOrder.getOrderno(), withdrawAmount);
 
-            // 1. 查询订单和用户信息
-            WithdrawOrderEntity order = withdrawOrderDao.selectByOrderno(withdrawOrder.getOrderno());
-            if (order == null) {
-                throw new RenException("订单不存在,请刷新页面");
-            }
-            MemberEntity user = memberDao.selectById(Long.valueOf(order.getUserId()));
-            if (user == null) {
-                throw new RenException("用户已停用");
-            }
-            // 1余额提现 2佣金提现
-            if (order.getWithdrawType() == 1) {
-                if (user.getTzWithdrawStatus() == 0) {
-                    throw new RenException("该用户余额提现功能已禁用");
-                }
-            } else if (order.getWithdrawType() == 2) {
-                if (user.getRewardWithdrawStatus() == 0) {
-                    throw new RenException("该用户佣金提现功能已禁用");
-                }
-            }
-            // 2. 从冻结余额中真正扣减
-            user.setFreezeBalance(user.getFreezeBalance() - order.getAmount());
-            memberDao.updateById(user);
-
-            // 3. 更新订单状态
-            order.setState(1); // 审核通过
-            order.setStateTime(new Date());
-            withdrawOrderDao.updateById(order);
-
-            // 4. 记录账变明细（提现成功）
-            recordBalanceDetail(order, user, order.getAmount(), "佣金提现");
-
-            // 5. 调用代付接口
-            callPayAgentPayout(order);
-
-            log.info("提现审核通过处理完成 - 订单号: {}", order.getOrderno());
-
-        } catch (Exception e) {
-            log.error("处理提现审核通过失败 - 订单号: {}", withdrawOrder.getOrderno(), e);
-            throw new RenException("处理提现审核通过失败: " + e.getMessage());
+        WithdrawOrderEntity order = withdrawOrderDao.selectByOrderno(withdrawOrder.getOrderno());
+        if (order == null) {
+            throw new RenException("订单不存在,请刷新页面");
         }
-    }
-
-    /**
-     * 调用代付接口
-     */
-    private void callPayAgentPayout(WithdrawOrderEntity withdrawOrder) {
-        log.info("开始调用代付接口 - 订单号: {}, 渠道ID: {}", withdrawOrder.getOrderno(), withdrawOrder.getChannelid());
-        
-        // 1. 查询支付商户信息
+        MemberEntity user = memberDao.selectById(Long.valueOf(order.getUserId()));
+        if (user == null) {
+            throw new RenException("用户已停用");
+        }
+        order.setState(1); // 审核通过
+        order.setStateTime(new Date());
+        withdrawOrderDao.updateById(order);
+        //调用代付接口
         PayMerchantEntity payMerchant = payMerchantDao.selectById(withdrawOrder.getMerchantid());
         if (payMerchant == null) {
             throw new RenException("查询支付商户信息失败 - 商户ID: " + withdrawOrder.getMerchantid());
         }
 
-        // 2. 使用代付工厂创建代付订单
+        // 使用代付工厂创建代付订单
         PayAgentResponse payoutResponse = payAgentFactory.createPayoutOrder(withdrawOrder, payMerchant);
 
         if (payoutResponse.getSuccess()) {
@@ -219,11 +181,16 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
             withdrawOrderDao.updateById(withdrawOrder);
 
         } else {
-            String errorMsg = payoutResponse.getMessage() != null ? payoutResponse.getMessage() : "未知错误";
-            if (payoutResponse.getErrorDetail() != null) {
-                errorMsg += " - " + payoutResponse.getErrorDetail();
+            //更新订单状态为失败
+            withdrawOrder.setThreeorderNo(payoutResponse.getThirdOrderNo());
+            withdrawOrder.setRemark("【" + payoutResponse.getChannel() + "】三方提现失败");
+            withdrawOrderDao.updateById(withdrawOrder);
+            //返还提现款 扣减冻结金额 增加可提现余额
+            if (order.getWithdrawType() == 1) {
+
+            } else if (order.getWithdrawType() == 2) {
+
             }
-            throw new RenException("代付接口调用失败: " + errorMsg);
         }
     }
 

@@ -34,29 +34,34 @@ public class WePaySignatureUtils {
                 throw new IllegalArgumentException("密钥不能为空");
             }
             
-            // 1. 过滤空值参数
+            // 1. 过滤空值参数（空字符串参与签名，null值不参与）
             Map<String, Object> filteredParams = new TreeMap<>();
             for (Map.Entry<String, Object> entry : params.entrySet()) {
-                if (entry.getValue() != null && !entry.getValue().toString().trim().isEmpty()) {
+                if (entry.getValue() != null) {
                     filteredParams.put(entry.getKey(), entry.getValue());
                 }
             }
             
-            // 2. 按字典序排序并拼接参数
+            // 2. 按字典序排序并拼接参数（key1=value1&key2=value2格式）
             StringBuilder sb = new StringBuilder();
+            boolean first = true;
             for (Map.Entry<String, Object> entry : filteredParams.entrySet()) {
-                sb.append(entry.getKey()).append("=").append(entry.getValue()).append("&");
+                if (!first) {
+                    sb.append("&");
+                }
+                sb.append(entry.getKey()).append("=").append(entry.getValue());
+                first = false;
             }
             
-            // 3. 添加密钥
-            sb.append("key=").append(secretKey);
+            // 3. 添加密钥（&key=私钥）
+            sb.append("&key=").append(secretKey);
             
             String signString = sb.toString();
-            logger.debug("签名原串: {}", signString);
+            logger.debug("待签名值: {}", signString);
             
-            // 4. MD5加密并转大写
-            String sign = DigestUtils.md5Hex(signString).toUpperCase();
-            logger.debug("生成签名: {}", sign);
+            // 4. MD5加密并转小写
+            String sign = DigestUtils.md5Hex(signString).toLowerCase();
+            logger.debug("签名结果: {}", sign);
             
             return sign;
             
@@ -81,10 +86,10 @@ public class WePaySignatureUtils {
             }
             
             String expectedSign = generateSign(params, secretKey);
-            boolean isValid = expectedSign.equals(sign.toUpperCase());
+            boolean isValid = expectedSign.equals(sign.toLowerCase());
             
             logger.debug("签名验证结果: {}, 期望签名: {}, 实际签名: {}", 
-                        isValid, expectedSign, sign.toUpperCase());
+                        isValid, expectedSign, sign.toLowerCase());
             
             return isValid;
             

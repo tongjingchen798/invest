@@ -105,11 +105,12 @@ public class WePayPayoutServiceImpl implements PayAgentService {
         
         // 基本参数
         request.setMchId(payMerchant.getMerchantno());
-        request.setPassageId("101"); // TODO: 从配置或数据库获取代付通道ID
+        request.setPassageId("101");
         request.setOrderNo(withdrawOrder.getOrderno());
         request.setAccount(withdrawOrder.getPayNo());
         request.setUserName(withdrawOrder.getPayName());
         request.setEmail("");
+
         
         // 金额转换（分转元）
         BigDecimal amountInYuan = new BigDecimal(withdrawOrder.getAmount()).divide(new BigDecimal("100"));
