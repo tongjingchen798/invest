@@ -753,5 +753,18 @@
         ORDER BY u.create_date DESC
     </select>
 
+    <!-- 批量更新用户余额（解冻金额并增加可提现金额） -->
+    <update id="updateBalanceOnWithdrawFailure">
+        UPDATE tb_user 
+        SET 
+            freeze_balance = freeze_balance - #{amount},
+            <if test="withdrawType == 1">
+                cashwithdrawable = cashwithdrawable + #{amount}
+            </if>
+            <if test="withdrawType == 2">
+                commission_balance = commission_balance + #{amount}
+            </if>
+        WHERE id = #{userId}
+    </update>
 
 </mapper>

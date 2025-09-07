@@ -29,6 +29,16 @@ import java.util.Date;
 @Slf4j
 @Service("adminWithdrawService")
 public class AdminWithdrawServiceImpl implements AdminWithdrawService {
+    
+    /**
+     * 提现订单状态常量
+     */
+    private static final int STATE_PENDING = 0;      // 待审核
+    private static final int STATE_APPROVED = 1;     // 审核通过
+    private static final int STATE_WITHDRAWN = 2;    // 已提现
+    private static final int STATE_REJECTED = 3;     // 驳回
+    private static final int STATE_FAILED = 4;       // 提现失败
+    private static final int STATE_INVALID = 5;      // 无效订单
 
     @Autowired
     private WithdrawOrderDao withdrawOrderDao;
@@ -108,37 +118,47 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
     private void handlePostAuditBusinessLogic(WithdrawOrderEntity withdrawOrder, Integer originalState,
                                               Integer newState, Long withdrawAmount) {
         try {
-            // 如果是从待审核状态变为其他状态，需要处理余额相关逻辑
-            if (originalState == 0) {
-                switch (newState) {
-                    case 1:
-                        // 审核通过
-                        log.info("提现审核通过，订单ID: {}, 金额: {}", withdrawOrder.getId(), withdrawAmount);
-                        handleWithdrawApproval(withdrawOrder, withdrawAmount);
+        // 如果是从待审核状态变为其他状态，需要处理余额相关逻辑
+        if (originalState == STATE_PENDING) {
+            switch (newState) {
+                case STATE_APPROVED:
+                    // 审核通过
+                    log.info("提现审核通过，订单ID: {}, 金额: {}", withdrawOrder.getId(), withdrawAmount);
+                    handleWithdrawApproval(withdrawOrder, withdrawAmount);
+                    break;
 
-                        break;
+                case STATE_WITHDRAWN:
+                    // 已提现（手动转款）
+                    log.info("提现手动转款，订单ID: {}, 金额: {}", withdrawOrder.getId(), withdrawAmount);
+                    // 手动转款不需要额外处理
+                    break;
 
-                    case 2: // 手动转款
-                        log.info("提现手动转款，订单ID: {}, 金额: {}", withdrawOrder.getId(), withdrawAmount);
-                        // 手动转款不需要额外处理
-                        break;
+                case STATE_REJECTED:
+                    // 驳回
+                    log.info("提现审核驳回，订单ID: {}, 金额: {}", withdrawOrder.getId(), withdrawAmount);
+                    // 审核驳回需要将资金退回给用户
+                    handleWithdrawRejection(withdrawOrder, withdrawAmount);
+                    break;
 
-                    case 3: // 审核驳回
-                        log.info("提现审核驳回，订单ID: {}, 金额: {}", withdrawOrder.getId(), withdrawAmount);
-                        // 审核驳回需要将资金退回给用户
-                        handleWithdrawRejection(withdrawOrder, withdrawAmount);
-                        break;
+                case STATE_FAILED:
+                    // 提现失败
+                    log.info("提现失败，订单ID: {}, 金额: {}", withdrawOrder.getId(), withdrawAmount);
+                    // 提现失败需要将资金退回给用户
+                    handleWithdrawRejection(withdrawOrder, withdrawAmount);
+                    break;
 
-                    case 5: // 再次提交
-                        log.info("提现再次提交，订单ID: {}, 金额: {}", withdrawOrder.getId(), withdrawAmount);
-                        // 再次提交不需要额外处理
-                        break;
+                case STATE_INVALID:
+                    // 无效订单
+                    log.info("无效订单，订单ID: {}, 金额: {}", withdrawOrder.getId(), withdrawAmount);
+                    // 无效订单需要将资金退回给用户
+                    handleWithdrawRejection(withdrawOrder, withdrawAmount);
+                    break;
 
-                    default:
-                        log.warn("未知的审核状态: {}, 订单ID: {}", newState, withdrawOrder.getId());
-                        break;
-                }
+                default:
+                    log.warn("未知的审核状态: {}, 订单ID: {}", newState, withdrawOrder.getId());
+                    break;
             }
+        }
         } catch (Exception e) {
             log.error("处理审核后业务逻辑失败，订单ID: {}, 错误信息: {}", withdrawOrder.getId(), e.getMessage(), e);
             throw new RuntimeException("处理审核后业务逻辑失败: " + e.getMessage());
@@ -159,7 +179,7 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
         if (user == null) {
             throw new RenException("用户已停用");
         }
-        order.setState(1); // 审核通过
+        order.setState(STATE_APPROVED); // 审核通过
         order.setStateTime(new Date());
         withdrawOrderDao.updateById(order);
         //调用代付接口
@@ -181,15 +201,42 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
             withdrawOrderDao.updateById(withdrawOrder);
 
         } else {
-            //更新订单状态为失败
-            withdrawOrder.setThreeorderNo(payoutResponse.getThirdOrderNo());
-            withdrawOrder.setRemark("【" + payoutResponse.getChannel() + "】三方提现失败");
-            withdrawOrderDao.updateById(withdrawOrder);
-            //返还提现款 扣减冻结金额 增加可提现余额
-            if (order.getWithdrawType() == 1) {
-
-            } else if (order.getWithdrawType() == 2) {
-
+            // 代付失败，需要回退提现金额
+            log.error("代付接口调用失败 - 订单号: {}, 渠道: {}, 错误信息: {}", 
+                     withdrawOrder.getOrderno(), payoutResponse.getChannel(), payoutResponse.getMessage());
+            
+            // 更新订单状态为失败
+            order.setState(STATE_FAILED); // 提现失败
+            order.setStateTime(new Date());
+            order.setRemark("【" + payoutResponse.getChannel() + "】代付失败: " + payoutResponse.getMessage());
+            withdrawOrderDao.updateById(order);
+            
+            // 回退提现金额：解冻资金，返还到可用余额（一条SQL完成）
+            try {
+                int result = memberDao.updateBalanceOnWithdrawFailure(
+                    Long.valueOf(order.getUserId()), 
+                    order.getAmount(), 
+                    order.getWithdrawType()
+                );
+                
+                if (result > 0) {
+                    String withdrawTypeName = order.getWithdrawType() == 1 ? "余额提现" : "佣金提现";
+                    log.info("代付失败，已回退{}金额 - 用户ID: {}, 金额: {}", 
+                            withdrawTypeName, order.getUserId(), order.getAmount());
+                } else {
+                    log.warn("代付失败回退金额失败 - 用户ID: {}, 金额: {}, 影响行数: {}", 
+                            order.getUserId(), order.getAmount(), result);
+                }
+                
+                // 记录账变明细（代付失败回退）
+                recordBalanceDetail(order, user, order.getAmount(), "代付失败回退");
+                
+            } catch (Exception e) {
+                log.error("代付失败回退金额异常 - 订单号: {}, 用户ID: {}, 金额: {}", 
+                         order.getOrderno(), order.getUserId(), order.getAmount(), e);
+                // 回退失败也要记录，但不影响主流程
+                order.setRemark(order.getRemark() + " | 回退金额失败: " + e.getMessage());
+                withdrawOrderDao.updateById(order);
             }
         }
     }
@@ -204,18 +251,24 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
             WithdrawOrderEntity order = withdrawOrderDao.selectByOrderno(withdrawOrder.getOrderno());
             MemberEntity user = memberDao.selectById(Long.valueOf(order.getUserId()));
 
-            // 解冻资金，返还到可用余额
-            user.setFreezeBalance(user.getFreezeBalance() - order.getAmount());
-            //提现类型 1余额提现 2佣金提现
-            if (withdrawOrder.getWithdrawType() == 1) {
-                user.setCashwithdrawable(user.getCashwithdrawable() + order.getAmount());
+            // 解冻资金，返还到可用余额（一条SQL完成）
+            int result = memberDao.updateBalanceOnWithdrawFailure(
+                Long.valueOf(order.getUserId()), 
+                order.getAmount(), 
+                order.getWithdrawType()
+            );
+            
+            if (result > 0) {
+                String withdrawTypeName = order.getWithdrawType() == 1 ? "余额提现" : "佣金提现";
+                log.info("提现驳回，已回退{}金额 - 用户ID: {}, 金额: {}", 
+                        withdrawTypeName, order.getUserId(), order.getAmount());
             } else {
-                user.setCommissionBalance(user.getCommissionBalance() + order.getAmount());
+                log.warn("提现驳回回退金额失败 - 用户ID: {}, 金额: {}, 影响行数: {}", 
+                        order.getUserId(), order.getAmount(), result);
             }
-            memberDao.updateById(user);
 
             // 更新订单状态
-            order.setState(3); // 审核拒绝
+            order.setState(STATE_REJECTED); // 驳回
             order.setRemark("审核拒绝");
             withdrawOrderDao.updateById(order);
 
@@ -232,8 +285,8 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
      * 检查订单状态是否允许审核
      */
     private boolean canAudit(Integer currentState) {
-        // 只有待审核状态(0)的订单才能进行审核
-        return currentState != null && currentState == 0;
+        // 只有待审核状态的订单才能进行审核
+        return currentState != null && currentState == STATE_PENDING;
     }
 
     /**
@@ -241,14 +294,16 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
      */
     private String getStatusMessage(Integer state) {
         switch (state) {
-            case 1:
+            case STATE_APPROVED:
                 return "审核通过";
-            case 2:
-                return "手动转款";
-            case 3:
-                return "审核驳回";
-            case 5:
-                return "再次提交";
+            case STATE_WITHDRAWN:
+                return "已提现";
+            case STATE_REJECTED:
+                return "驳回";
+            case STATE_FAILED:
+                return "提现失败";
+            case STATE_INVALID:
+                return "无效订单";
             default:
                 return null;
         }

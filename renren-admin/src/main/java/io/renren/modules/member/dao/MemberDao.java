@@ -76,4 +76,15 @@ public interface MemberDao extends BaseMapper<MemberEntity> {
      */
     List<AgentDetailDTO> selectAgentSubordinates(@Param("agentMobile") String agentMobile);
 
+    /**
+     * 批量更新用户余额（解冻金额并增加可提现金额）
+     * @param userId 用户ID
+     * @param amount 金额
+     * @param withdrawType 提现类型 1-余额提现 2-佣金提现
+     * @return 影响行数
+     */
+    int updateBalanceOnWithdrawFailure(@Param("userId") Long userId, 
+                                     @Param("amount") Long amount, 
+                                     @Param("withdrawType") Integer withdrawType);
+
 }
