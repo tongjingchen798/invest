@@ -51,15 +51,15 @@ public class WePayPayoutServiceImpl implements PayAgentService {
                        withdrawOrder.getOrderno(), withdrawOrder.getAmount());
             
             // 1. 构建请求参数
-            PayoutRequestDTO request = buildPayoutRequest(withdrawOrder, payMerchant);
-            
+            Map<String, Object> requestData  = buildPayoutRequest(withdrawOrder, payMerchant);
+
             // 2. 发送HTTP请求
             Map<String, String> headers = new HashMap<>();
             headers.put("Content-Type", "application/json");
             
-            String requestBody = JSON.toJSONString(request);
+            String requestBody = JSON.toJSONString(requestData);
             logger.info("代付请求参数: {}", requestBody);
-            
+
             String responseBody = HttpUtils.postJson(WEPAY_PAYOUT_URL, requestBody, headers);
             
             if (responseBody != null && !responseBody.isEmpty()) {
@@ -100,57 +100,26 @@ public class WePayPayoutServiceImpl implements PayAgentService {
     /**
      * 构建代付请求参数
      */
-    private PayoutRequestDTO buildPayoutRequest(WithdrawOrderEntity withdrawOrder, PayMerchantEntity payMerchant) {
-        PayoutRequestDTO request = new PayoutRequestDTO();
-        
-        // 基本参数
-        request.setMchId(payMerchant.getMerchantno());
-        request.setPassageId("101");
-        request.setOrderNo(withdrawOrder.getOrderno());
-        request.setAccount(withdrawOrder.getPayNo());
-        request.setUserName(withdrawOrder.getPayName());
-        request.setIfsc(withdrawOrder.getIfsc());
-        request.setNotifyUrl(PAYOUT_NOTIFY_URL);
-        // 金额转换（分转元）
-        BigDecimal amountInYuan = new BigDecimal(withdrawOrder.getAmount()).divide(new BigDecimal("100"));
-        request.setAmount(amountInYuan.longValue());
-        //        request.setOtherData("withdraw_order_id:" + withdrawOrder.getId());
-//        request.setEmail("");
-
-        if (withdrawOrder.getIfsc() != null && !withdrawOrder.getIfsc().isEmpty()) {
-            request.setIfsc(withdrawOrder.getIfsc());
-        }
-        Map<String, Object> signData = new HashMap<>();
-        // 必填参数
-        signData.put("mchId", request.getMchId());
-        signData.put("passageId", request.getPassageId());
-        signData.put("orderNo", request.getOrderNo());
-        signData.put("account", request.getAccount());
-        signData.put("userName", request.getUserName());
-        signData.put("amount", request.getAmount());
-        signData.put("notifyUrl", request.getNotifyUrl());
-        
-        // 可选参数 - 只有非空值才参与签名
-        if (request.getIfsc() != null && !request.getIfsc().isEmpty()) {
-            signData.put("ifsc", request.getIfsc());
-        }
-        if (request.getNumber() != null && !request.getNumber().isEmpty()) {
-            signData.put("number", request.getNumber());
-        }
-        if (request.getEmail() != null && !request.getEmail().isEmpty()) {
-            signData.put("email", request.getEmail());
-        }
-        if (request.getOtherData() != null && !request.getOtherData().isEmpty()) {
-            signData.put("otherData", request.getOtherData());
-        }
-        
-        String sign = WePaySignatureUtils.generateSign(signData, payMerchant.getChannelkey());
-        request.setSign(sign);
-        
-        logger.info("构建代付请求参数完成 - 订单号: {}, 签名: {}", 
-                   withdrawOrder.getOrderno(), sign);
-        
-        return request;
+    private Map<String, Object> buildPayoutRequest(WithdrawOrderEntity withdrawOrder, PayMerchantEntity payMerchant) {
+            Map<String, Object> data = new HashMap<>();
+            // 必填参数
+            data.put("mchId", payMerchant.getMerchantno()); // 商户ID
+            data.put("passageId", "101"); // 通道ID (TODO: 先用测试通道)
+            // 金额转换（分转元）
+            BigDecimal amountInYuan = new BigDecimal(withdrawOrder.getAmount()).divide(new BigDecimal("100"));
+            data.put("amount", amountInYuan.intValue()); // 金额(法币)
+            data.put("orderNo", withdrawOrder.getOrderno()); // 商户订单号
+            data.put("account", withdrawOrder.getPayNo()); // 异步通知回调地址
+            data.put("userName", withdrawOrder.getPayName());
+            data.put("notifyUrl", PAYOUT_NOTIFY_URL); // 异步通知回调地址
+            data.put("otherData", "user_id:" + withdrawOrder.getUserId()); // 扩展字段
+            data.put("ifsc", withdrawOrder.getIfsc());
+            data.put("remark", ""); // 备注
+            data.put("number", ""); // 号码备注
+            data.put("email", ""); // 邮箱
+            // 生成WePay签名
+            data.put("sign", WePaySignatureUtils.generateSign(data, payMerchant.getChannelkey()));
+        return data;
     }
     
     /**
@@ -160,7 +129,7 @@ public class WePayPayoutServiceImpl implements PayAgentService {
         try {
             JSONObject response = JSON.parseObject(responseBody);
             String code = response.getString("code");
-            String desc = response.getString("desc");
+            String desc = response.getString("msg");
             Boolean success = response.getBoolean("success");
             
             if (success != null && success) {
