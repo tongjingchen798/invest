@@ -259,10 +259,10 @@
                 <!-- 日统计：按天分组 -->
                 SELECT 
                     DATE_FORMAT(date_column, '%Y-%m-%d') as date,
-                    CAST(COALESCE(SUM(CASE WHEN source = 'register' THEN cnt ELSE 0 END), 0) AS SIGNED) as newRegisteredMembers,
-                    CAST(COALESCE(SUM(CASE WHEN source = 'recharge' THEN cnt ELSE 0 END), 0) AS SIGNED) as newRechargeMembers,
-                    CAST(COALESCE(SUM(CASE WHEN source = 'order' THEN cnt ELSE 0 END), 0) AS SIGNED) as rechargeOrderCount,
-                    CAST(COALESCE(SUM(CASE WHEN source = 'signin' THEN cnt ELSE 0 END), 0) AS SIGNED) as signInCount
+                    CAST(COALESCE(SUM(CASE WHEN source = 'register' THEN cnt ELSE 0 END), 0) AS SIGNED) as totalRegUser,
+                    CAST(COALESCE(SUM(CASE WHEN source = 'recharge' THEN cnt ELSE 0 END), 0) AS SIGNED) as totalChargeUser,
+                    CAST(COALESCE(SUM(CASE WHEN source = 'order' THEN cnt ELSE 0 END), 0) AS SIGNED) as totalCharge,
+                    CAST(COALESCE(SUM(CASE WHEN source = 'signin' THEN cnt ELSE 0 END), 0) AS SIGNED) as totalSignIn
                 FROM (
                     <!-- 新增注册会员 -->
                     SELECT 

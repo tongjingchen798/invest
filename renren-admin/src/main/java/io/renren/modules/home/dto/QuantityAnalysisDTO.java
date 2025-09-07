@@ -23,22 +23,22 @@ public class QuantityAnalysisDTO implements Serializable {
     /**
      * 新增注册会员数量
      */
-    private Long newRegisteredMembers;
+    private Long totalRegUser;
 
     /**
      * 新增充值会员数量
      */
-    private Long newRechargeMembers;
+    private Long totalChargeUser;
 
     /**
      * 充值订单数量
      */
-    private Long rechargeOrderCount;
+    private Long totalCharge;
 
     /**
      * 签到人数
      */
-    private Long signInCount;
+    private Long totalSignIn;
 
     /**
      * 统计类型标识（d: 日, w: 周, m: 月）
