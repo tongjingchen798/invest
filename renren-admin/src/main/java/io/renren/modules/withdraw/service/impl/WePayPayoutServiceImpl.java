@@ -32,7 +32,7 @@ public class WePayPayoutServiceImpl implements PayAgentService {
     /**
      * WePay代付API地址
      */
-    private static final String WEPAY_PAYOUT_URL = "https://api.wepay.com/pay/create";
+    private static final String WEPAY_PAYOUT_URL = "https://apis.wepayplus.com/client/pay/create";
     
     /**
      * 代付回调地址
