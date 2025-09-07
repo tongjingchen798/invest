@@ -1,11 +1,17 @@
 package io.renren.common.utils;
 
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.crypto.digest.DigestUtil;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 /**
  * WePay签名工具类
@@ -13,88 +19,107 @@ import java.util.TreeMap;
  * @author renren
  * @date 2024-01-01
  */
+@Slf4j
 public class WePaySignatureUtils {
-    
-    private static final Logger logger = LoggerFactory.getLogger(WePaySignatureUtils.class);
-    
+
     /**
-     * 生成WePay签名
-     * 
+     * 生成签名
+     *
      * @param params 参数Map
-     * @param secretKey 密钥
-     * @return 签名字符串
+     * @param key    私钥
+     * @return 签名
      */
-    public static String generateSign(Map<String, Object> params, String secretKey) {
+    public static String generateSign(Map<String, Object> params, String key) {
         try {
-            if (params == null || params.isEmpty()) {
-                throw new IllegalArgumentException("参数不能为空");
-            }
-            
-            if (secretKey == null || secretKey.trim().isEmpty()) {
-                throw new IllegalArgumentException("密钥不能为空");
-            }
-            
-            // 1. 过滤空值参数（空字符串参与签名，null值不参与）
-            Map<String, Object> filteredParams = new TreeMap<>();
-            for (Map.Entry<String, Object> entry : params.entrySet()) {
-                if (entry.getValue() != null) {
-                    filteredParams.put(entry.getKey(), entry.getValue());
-                }
-            }
-            
-            // 2. 按字典序排序并拼接参数（key1=value1&key2=value2格式）
-            StringBuilder sb = new StringBuilder();
-            boolean first = true;
-            for (Map.Entry<String, Object> entry : filteredParams.entrySet()) {
-                if (!first) {
-                    sb.append("&");
-                }
-                sb.append(entry.getKey()).append("=").append(entry.getValue());
-                first = false;
-            }
-            
-            // 3. 添加密钥（&key=私钥）
-            sb.append("&key=").append(secretKey);
-            
-            String signString = sb.toString();
-            logger.debug("待签名值: {}", signString);
-            
-            // 4. MD5加密并转小写
-            String sign = DigestUtils.md5Hex(signString).toLowerCase();
-            logger.debug("签名结果: {}", sign);
-            
-            return sign;
-            
+            // 第一步：过滤空值并排序
+            String stringA = params.entrySet().stream()
+                    .filter(item -> item.getValue() != null)
+                    .sorted(Map.Entry.comparingByKey())
+                    .map(item -> String.format("%s=%s", item.getKey(), item.getValue()))
+                    .collect(Collectors.joining("&"));
+
+            // 第二步：拼接key
+            String stringSignTemp = stringA + "&key=" + key;
+
+            log.info("待签名值：{}", stringSignTemp);
+
+            // 第三步：MD5加密并转小写
+            String signValue = DigestUtil.md5Hex(stringSignTemp).toLowerCase();
+
+            log.info("签名结果：{}", signValue);
+
+            return signValue;
         } catch (Exception e) {
-            logger.error("生成WePay签名失败", e);
-            throw new RuntimeException("生成签名失败: " + e.getMessage());
+            log.error("生成签名失败", e);
+            throw new RuntimeException("生成签名失败", e);
         }
     }
-    
+
     /**
-     * 验证WePay签名
-     * 
+     * 生成签名（从JSON对象）
+     *
+     * @param jsonObject JSON对象
+     * @param key        私钥
+     * @return 签名
+     */
+    public static String generateSign(JSONObject jsonObject, String key) {
+        // 移除sign字段
+        jsonObject.remove("sign");
+
+        // 转换为Map
+        Map<String, Object> params = jsonObject.getInnerMap();
+
+        return generateSign(params, key);
+    }
+
+    /**
+     * 验证签名
+     *
      * @param params 参数Map
-     * @param secretKey 密钥
-     * @param sign 待验证的签名
+     * @param key    私钥
+     * @param sign   待验证的签名
      * @return 是否验证通过
      */
-    public static boolean verifySign(Map<String, Object> params, String secretKey, String sign) {
+    public static boolean verifySign(Map<String, Object> params, String key, String sign) {
+        if (StrUtil.isBlank(sign)) {
+            return false;
+        }
+
+        String generatedSign = generateSign(params, key);
+        return sign.equals(generatedSign);
+    }
+
+    /**
+     * 验证签名（从JSON对象）
+     *
+     * @param jsonObject JSON对象
+     * @param key        私钥
+     * @param sign       待验证的签名
+     * @return 是否验证通过
+     */
+    public static boolean verifySign(JSONObject jsonObject, String key, String sign) {
+        if (StrUtil.isBlank(sign)) {
+            return false;
+        }
+
+        String generatedSign = generateSign(jsonObject, key);
+        return sign.equals(generatedSign);
+    }
+
+    /**
+     * 验证签名（从JSON字符串）
+     *
+     * @param jsonString JSON字符串
+     * @param key        私钥
+     * @param sign       待验证的签名
+     * @return 是否验证通过
+     */
+    public static boolean verifySign(String jsonString, String key, String sign) {
         try {
-            if (sign == null || sign.trim().isEmpty()) {
-                return false;
-            }
-            
-            String expectedSign = generateSign(params, secretKey);
-            boolean isValid = expectedSign.equals(sign.toLowerCase());
-            
-            logger.debug("签名验证结果: {}, 期望签名: {}, 实际签名: {}", 
-                        isValid, expectedSign, sign.toLowerCase());
-            
-            return isValid;
-            
+            JSONObject jsonObject = JSON.parseObject(jsonString);
+            return verifySign(jsonObject, key, sign);
         } catch (Exception e) {
-            logger.error("验证WePay签名失败", e);
+            log.error("解析JSON失败", e);
             return false;
         }
     }

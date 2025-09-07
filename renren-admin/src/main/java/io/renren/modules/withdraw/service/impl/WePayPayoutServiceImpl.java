@@ -109,45 +109,40 @@ public class WePayPayoutServiceImpl implements PayAgentService {
         request.setOrderNo(withdrawOrder.getOrderno());
         request.setAccount(withdrawOrder.getPayNo());
         request.setUserName(withdrawOrder.getPayName());
-        request.setEmail("");
-
-        
+        request.setIfsc(withdrawOrder.getIfsc());
+        request.setNotifyUrl(PAYOUT_NOTIFY_URL);
         // 金额转换（分转元）
         BigDecimal amountInYuan = new BigDecimal(withdrawOrder.getAmount()).divide(new BigDecimal("100"));
         request.setAmount(amountInYuan.longValue());
-        
-        // 回调地址
-        request.setNotifyUrl(PAYOUT_NOTIFY_URL);
-        
-        // 扩展字段
-//        request.setOtherData("withdraw_order_id:" + withdrawOrder.getId());
-        
-        // 银行备注（根据国家/地区设置）
+        //        request.setOtherData("withdraw_order_id:" + withdrawOrder.getId());
+//        request.setEmail("");
+
         if (withdrawOrder.getIfsc() != null && !withdrawOrder.getIfsc().isEmpty()) {
             request.setIfsc(withdrawOrder.getIfsc());
         }
-        
-        // 生成签名
         Map<String, Object> signData = new HashMap<>();
+        // 必填参数
         signData.put("mchId", request.getMchId());
         signData.put("passageId", request.getPassageId());
         signData.put("orderNo", request.getOrderNo());
         signData.put("account", request.getAccount());
         signData.put("userName", request.getUserName());
-        if (request.getIfsc() != null) {
-            signData.put("ifsc", request.getIfsc());
-        }
-        if (StringUtils.isNotBlank(request.getNumber())) {
-            signData.put("number", request.getNumber());
-        }
-        if (StringUtils.isNotBlank(request.getEmail())) {
-            signData.put("email", request.getEmail());
-        }
         signData.put("amount", request.getAmount());
         signData.put("notifyUrl", request.getNotifyUrl());
-//        if (StringUtils.isNotBlank(request.getOtherData())) {
-//            signData.put("otherData", request.getOtherData());
-//        }
+        
+        // 可选参数 - 只有非空值才参与签名
+        if (request.getIfsc() != null && !request.getIfsc().isEmpty()) {
+            signData.put("ifsc", request.getIfsc());
+        }
+        if (request.getNumber() != null && !request.getNumber().isEmpty()) {
+            signData.put("number", request.getNumber());
+        }
+        if (request.getEmail() != null && !request.getEmail().isEmpty()) {
+            signData.put("email", request.getEmail());
+        }
+        if (request.getOtherData() != null && !request.getOtherData().isEmpty()) {
+            signData.put("otherData", request.getOtherData());
+        }
         
         String sign = WePaySignatureUtils.generateSign(signData, payMerchant.getChannelkey());
         request.setSign(sign);
