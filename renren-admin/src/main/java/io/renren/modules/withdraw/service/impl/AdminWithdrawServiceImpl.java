@@ -279,24 +279,72 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
             withdrawOrderDao.updateById(order);
 
             // 创建新的提现申请订单
-            createNewWithdrawOrder(order, user);
+//            createNewWithdrawOrder(order, user);
+            // 检查是否有正在处理中的提现订单
+            Long pendingCount = withdrawOrderDao.selectPendingWithdrawCountByUserId(Long.valueOf(order.getUserId()));
+            if (pendingCount.intValue() > 0) {
+                log.warn("用户已有正在处理中的提现订单，无法创建新订单 - 用户ID: {}, 正在处理订单数: {}",
+                        order.getUserId(), pendingCount);
+                throw new RenException("用户已有正在处理中的提现订单，无法创建新订单");
+            }
+
+            // 生成新的订单号
+            String newOrderNo = generateOrderNo();
+
+            // 创建新的提现订单
+            WithdrawOrderEntity newOrder = new WithdrawOrderEntity();
+            newOrder.setId(String.valueOf(System.currentTimeMillis()));
+            newOrder.setUserId(order.getUserId());
+            newOrder.setMobile(order.getMobile());
+            newOrder.setUsername(order.getUsername());
+            newOrder.setAmount(order.getAmount());
+            newOrder.setInputamount(order.getInputamount());
+            newOrder.setHandFee(order.getHandFee());
+            newOrder.setRealAmount(order.getRealAmount());
+            newOrder.setChannel(order.getChannel());
+            newOrder.setPayNo(order.getPayNo());
+            newOrder.setPayName(order.getPayName());
+            newOrder.setBlankCode(order.getBlankCode());
+            newOrder.setBlankName(order.getBlankName());
+            newOrder.setIfsc(order.getIfsc());
+            newOrder.setWithdrawType(order.getWithdrawType());
+            newOrder.setState(STATE_APPROVED); // 审核通过
+            newOrder.setOrderno(newOrderNo);
+            newOrder.setMerchantid(order.getMerchantid());
+            newOrder.setChannelid(order.getChannelid());
+            newOrder.setAgent(order.getAgent());
+            newOrder.setAgentName(order.getAgentName());
+            newOrder.setSalesmanid(order.getSalesmanid());
+            newOrder.setSalesmanName(order.getSalesmanName());
+            newOrder.setLiebian(order.getLiebian());
+            newOrder.setCreateTime(new Date());
+            newOrder.setWithdrawTime(new Date());
+            newOrder.setStateTime(new Date());
+            newOrder.setRemark("重新申请提现");
+            newOrder.setOperCode(order.getOperCode());
+
+            // 保存新订单
+            withdrawOrderDao.insert(newOrder);
+
+            // 冻结用户提现金额
+            freezeUserWithdrawBalance(user, newOrder);
 
             //调用代付接口
-            PayMerchantEntity payMerchant = payMerchantDao.selectById(withdrawOrder.getMerchantid());
+            PayMerchantEntity payMerchant = payMerchantDao.selectById(newOrder.getMerchantid());
             if (payMerchant == null) {
-                throw new RenException("查询支付商户信息失败 - 商户ID: " + withdrawOrder.getMerchantid());
+                throw new RenException("查询支付商户信息失败 - 商户ID: " + newOrder.getMerchantid());
             }
             // 使用代付工厂创建代付订单
-            PayAgentResponse payoutResponse = payAgentFactory.createPayoutOrder(withdrawOrder, payMerchant);
+            PayAgentResponse payoutResponse = payAgentFactory.createPayoutOrder(newOrder, payMerchant);
 
             if (payoutResponse.getSuccess()) {
                 log.info("代付接口调用成功 - 订单号: {}, 渠道: {}, 第三方订单号: {}",
                         withdrawOrder.getOrderno(), payoutResponse.getChannel(), payoutResponse.getThirdOrderNo());
 
                 // 更新订单的第三方订单号
-                withdrawOrder.setThreeorderNo(payoutResponse.getThirdOrderNo());
-                withdrawOrder.setRemark(withdrawOrder.getRemark() + " |【" + payoutResponse.getChannel() + "】代付已提交");
-                withdrawOrderDao.updateById(withdrawOrder);
+                newOrder.setThreeorderNo(payoutResponse.getThirdOrderNo());
+                newOrder.setRemark(newOrder.getRemark() + " |【" + payoutResponse.getChannel() + "】代付已提交");
+                withdrawOrderDao.updateById(newOrder);
 
             } else {
                 // 代付失败，需要回退提现金额
@@ -304,37 +352,37 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
                         withdrawOrder.getOrderno(), payoutResponse.getChannel(), payoutResponse.getMessage());
 
                 // 更新订单状态为失败
-                order.setState(STATE_FAILED); // 提现失败
-                order.setStateTime(new Date());
-                order.setRemark("【" + payoutResponse.getChannel() + "】代付失败: " + payoutResponse.getMessage());
-                withdrawOrderDao.updateById(order);
+                newOrder.setState(STATE_FAILED); // 提现失败
+                newOrder.setStateTime(new Date());
+                newOrder.setRemark("【" + payoutResponse.getChannel() + "】代付失败: " + payoutResponse.getMessage());
+                withdrawOrderDao.updateById(newOrder);
 
                 // 回退提现金额：解冻资金，返还到可用余额（一条SQL完成）
                 try {
                     int result = memberDao.updateBalanceOnWithdrawFailure(
-                            Long.valueOf(order.getUserId()),
-                            order.getAmount(),
-                            order.getWithdrawType()
+                            Long.valueOf(newOrder.getUserId()),
+                            newOrder.getAmount(),
+                            newOrder.getWithdrawType()
                     );
 
                     if (result > 0) {
-                        String withdrawTypeName = order.getWithdrawType() == 1 ? "余额提现" : "佣金提现";
+                        String withdrawTypeName = newOrder.getWithdrawType() == 1 ? "余额提现" : "佣金提现";
                         log.info("代付失败，已回退{}金额 - 用户ID: {}, 金额: {}",
-                                withdrawTypeName, order.getUserId(), order.getAmount());
+                                withdrawTypeName, newOrder.getUserId(), newOrder.getAmount());
                     } else {
                         log.warn("代付失败回退金额失败 - 用户ID: {}, 金额: {}, 影响行数: {}",
-                                order.getUserId(), order.getAmount(), result);
+                                newOrder.getUserId(), newOrder.getAmount(), result);
                     }
 
                     // 记录账变明细（代付失败回退）
-                    recordBalanceDetail(order, user, order.getAmount(), "代付失败回退");
+                    recordBalanceDetail(newOrder, user, newOrder.getAmount(), "代付失败回退");
 
                 } catch (Exception e) {
                     log.error("代付失败回退金额异常 - 订单号: {}, 用户ID: {}, 金额: {}",
-                            order.getOrderno(), order.getUserId(), order.getAmount(), e);
+                            newOrder.getOrderno(), newOrder.getUserId(), newOrder.getAmount(), e);
                     // 回退失败也要记录，但不影响主流程
-                    order.setRemark(order.getRemark() + " | 回退金额失败: " + e.getMessage());
-                    withdrawOrderDao.updateById(order);
+                    newOrder.setRemark(newOrder.getRemark() + " | 回退金额失败: " + e.getMessage());
+                    withdrawOrderDao.updateById(newOrder);
                 }
             }
 
@@ -344,69 +392,22 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
         }
     }
 
-    /**
-     * 创建新的提现申请订单
-     */
-    private void createNewWithdrawOrder(WithdrawOrderEntity originalOrder, MemberEntity user) {
-        try {
-            // 检查是否有正在处理中的提现订单
-            Long pendingCount = withdrawOrderDao.selectPendingWithdrawCountByUserId(Long.valueOf(originalOrder.getUserId()));
-            if (pendingCount.intValue() > 0) {
-                log.warn("用户已有正在处理中的提现订单，无法创建新订单 - 用户ID: {}, 正在处理订单数: {}",
-                        originalOrder.getUserId(), pendingCount);
-                throw new RenException("用户已有正在处理中的提现订单，无法创建新订单");
-            }
-
-            // 生成新的订单号
-            String newOrderNo = generateOrderNo();
-            
-            // 创建新的提现订单
-            WithdrawOrderEntity newOrder = new WithdrawOrderEntity();
-            newOrder.setId(String.valueOf(System.currentTimeMillis()));
-            newOrder.setUserId(originalOrder.getUserId());
-            newOrder.setMobile(originalOrder.getMobile());
-            newOrder.setUsername(originalOrder.getUsername());
-            newOrder.setAmount(originalOrder.getAmount());
-            newOrder.setInputamount(originalOrder.getInputamount());
-            newOrder.setHandFee(originalOrder.getHandFee());
-            newOrder.setRealAmount(originalOrder.getRealAmount());
-            newOrder.setChannel(originalOrder.getChannel());
-            newOrder.setPayNo(originalOrder.getPayNo());
-            newOrder.setPayName(originalOrder.getPayName());
-            newOrder.setBlankCode(originalOrder.getBlankCode());
-            newOrder.setBlankName(originalOrder.getBlankName());
-            newOrder.setIfsc(originalOrder.getIfsc());
-            newOrder.setWithdrawType(originalOrder.getWithdrawType());
-            newOrder.setState(STATE_APPROVED); // 审核通过
-            newOrder.setOrderno(newOrderNo);
-            newOrder.setMerchantid(originalOrder.getMerchantid());
-            newOrder.setChannelid(originalOrder.getChannelid());
-            newOrder.setAgent(originalOrder.getAgent());
-            newOrder.setAgentName(originalOrder.getAgentName());
-            newOrder.setSalesmanid(originalOrder.getSalesmanid());
-            newOrder.setSalesmanName(originalOrder.getSalesmanName());
-            newOrder.setLiebian(originalOrder.getLiebian());
-            newOrder.setCreateTime(new Date());
-            newOrder.setWithdrawTime(new Date());
-            newOrder.setStateTime(new Date());
-            newOrder.setRemark("重新申请提现");
-            newOrder.setOperCode(originalOrder.getOperCode());
-            
-            // 保存新订单
-            withdrawOrderDao.insert(newOrder);
-
-            // 冻结用户提现金额
-            freezeUserWithdrawBalance(user, originalOrder);
-            
-            log.info("成功创建新的提现申请订单 - 原订单号: {}, 新订单号: {}, 用户ID: {}, 金额: {}", 
-                    originalOrder.getOrderno(), newOrderNo, user.getId(), originalOrder.getAmount());
-                    
-        } catch (Exception e) {
-            log.error("创建新提现订单失败 - 原订单号: {}, 用户ID: {}, 错误信息: {}", 
-                     originalOrder.getOrderno(), user.getId(), e.getMessage(), e);
-            throw new RuntimeException("创建新提现订单失败: " + e.getMessage());
-        }
-    }
+//    /**
+//     * 创建新的提现申请订单
+//     */
+//    private void createNewWithdrawOrder(WithdrawOrderEntity originalOrder, MemberEntity user) {
+//        try {
+//
+//
+//            log.info("成功创建新的提现申请订单 - 原订单号: {}, 新订单号: {}, 用户ID: {}, 金额: {}",
+//                    originalOrder.getOrderno(), newOrderNo, user.getId(), originalOrder.getAmount());
+//
+//        } catch (Exception e) {
+//            log.error("创建新提现订单失败 - 原订单号: {}, 用户ID: {}, 错误信息: {}",
+//                     originalOrder.getOrderno(), user.getId(), e.getMessage(), e);
+//            throw new RuntimeException("创建新提现订单失败: " + e.getMessage());
+//        }
+//    }
 
     /**
      * 冻结用户提现金额
@@ -490,9 +491,9 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
             log.info("提现驳回，需要将资金 {} 退回给用户 {}", withdrawAmount, withdrawOrder.getUserId());
 
             WithdrawOrderEntity order = withdrawOrderDao.selectByOrderno(withdrawOrder.getOrderno());
-            MemberEntity user = memberDao.selectById(Long.valueOf(order.getUserId()));
+//            MemberEntity user = memberDao.selectById(Long.valueOf(order.getUserId()));
 
-            // 解冻资金，返还到可用余额（一条SQL完成）
+            // 解冻资金，返还到可用余额
             int result = memberDao.updateBalanceOnWithdrawFailure(
                 Long.valueOf(order.getUserId()), 
                 order.getAmount(), 
@@ -522,13 +523,13 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
         }
     }
 
-    /**
-     * 检查订单状态是否允许审核
-     */
-    private boolean canAudit(Integer currentState) {
-        // 只有待审核状态的订单才能进行审核
-        return currentState != null && currentState == STATE_PENDING;
-    }
+//    /**
+//     * 检查订单状态是否允许审核
+//     */
+//    private boolean canAudit(Integer currentState) {
+//        // 只有待审核状态的订单才能进行审核
+//        return currentState != null && currentState == STATE_PENDING;
+//    }
 
     /**
      * 根据审核状态获取相应的消息
