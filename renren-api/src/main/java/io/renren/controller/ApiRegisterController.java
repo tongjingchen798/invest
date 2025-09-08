@@ -167,6 +167,8 @@ public class ApiRegisterController {
                 detail.setTransactionAmount(regAmount);
                 detail.setStatus(1); // 成功状态
                 detail.setTransactionDate(new Date());
+                detail.setChannel("1");
+                detail.setSalesmanId(user.getSalesmanid());
                 detail.setCreateDate(new Date());
                 detail.setUpdateDate(new Date());
                 detail.setRemarks("注册奖励");

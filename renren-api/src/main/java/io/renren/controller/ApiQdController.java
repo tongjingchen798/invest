@@ -153,12 +153,12 @@ public class ApiQdController {
             // 设置业务类型：13签到奖励
             userBalanceDetail.setBusiType(BusinessTypeEnum.SIGN_IN_REWARD.getCode());
             
-            // 设置渠道TODO 默认值
+            // 设置渠道
             userBalanceDetail.setChannel("1");
             
             // 设置交易流水ID（使用签到记录ID）
             userBalanceDetail.setStreamId(signInRecord.getId().toString());
-            
+
             // 设置使用金额（签到奖励金额）
             userBalanceDetail.setUseAmount(rewardAmount);
             
@@ -177,13 +177,13 @@ public class ApiQdController {
             // 设置状态：1正常
             userBalanceDetail.setStatus(1);
             
-            // 设置业务员ID和代理ID（如果有的话）
-//            if (user.getSalesmanId() != null) {
-//                userBalanceDetail.setSalesmanId(user.getSalesmanId());
-//            }
-//            if (user.getAgentId() != null) {
-//                userBalanceDetail.setAgentId(user.getAgentId());
-//            }
+             //设置业务员ID和代理ID（如果有的话）
+            if (user.getSalesmanid() != null) {
+                userBalanceDetail.setSalesmanId(user.getSalesmanid());
+            }
+            if (user.getAgent() != null) {
+                userBalanceDetail.setAgentId(user.getAgent());
+            }
             
             // 设置创建和更新时间
             userBalanceDetail.setCreateDate(now);
