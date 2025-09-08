@@ -99,8 +99,6 @@ public class MemberController {
             @RequestParam(value = "startTime", required = false) Long startTime) {
 
         try {
-            //TODO 还需要优化
-            // 参数验证
             if (page == null || page < 1) {
                 return new Result<PageData<SettlementReportDTO>>().error("页码必须大于0");
             }

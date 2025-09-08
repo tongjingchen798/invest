@@ -347,7 +347,7 @@
         m.uacnt AS xjzhCnt,
         -- 一级佣金统计（返佣A - 业务类型3）
         COALESCE((
-            SELECT SUM(ubd.original_amount)
+            SELECT SUM(ubd.use_amount)
             FROM user_balance_detail ubd
             WHERE ubd.user_id = m.id
             AND ubd.busi_type = 3
@@ -361,7 +361,7 @@
         ), 0) AS oneReward,
         -- 二级佣金统计（返佣B - 业务类型30）
         COALESCE((
-            SELECT SUM(ubd.original_amount)
+            SELECT SUM(ubd.use_amount)
             FROM user_balance_detail ubd
             WHERE ubd.user_id = m.id
             AND ubd.busi_type = 30
@@ -375,7 +375,7 @@
         ), 0) AS twoReward,
         -- 三级佣金统计（项目返上级 - 业务类型32）
         COALESCE((
-            SELECT SUM(ubd.original_amount)
+            SELECT SUM(ubd.use_amount)
             FROM user_balance_detail ubd
             WHERE ubd.user_id = m.id
             AND ubd.busi_type = 32
@@ -691,43 +691,62 @@
     <!-- 统计结算报表汇总数据 -->
     <select id="selectSettlementReportSummary" resultType="map">
         SELECT
-        COALESCE(SUM(c.real_amount), 0) AS czRealAmount,
-        COALESCE(SUM(w.real_amount), 0) AS txRealAmount
-        FROM tb_user u
-        LEFT JOIN sys_user salesman_user ON u.salesmanid = salesman_user.id
-        LEFT JOIN sys_user agent_user ON u.agent = agent_user.id
-        LEFT JOIN tb_charge_order c ON u.id = c.user_id
-        AND c.state = 1
-        <if test="params.startTime != null">
-            AND c.create_time &gt;= FROM_UNIXTIME(#{params.startTime} / 1000)
-        </if>
-        <if test="params.endTime != null">
-            AND c.create_time &lt;= FROM_UNIXTIME(#{params.endTime} / 1000)
-        </if>
-        LEFT JOIN tb_withdraw_order w ON u.id = w.user_id
-        AND w.state IN (1, 2)
-        <if test="params.startTime != null">
-            AND w.create_time &gt;= FROM_UNIXTIME(#{params.startTime} / 1000)
-        </if>
-        <if test="params.endTime != null">
-            AND w.create_time &lt;= FROM_UNIXTIME(#{params.endTime} / 1000)
-        </if>
-        WHERE 1=1
-        <if test="params.agent != null">
-            AND u.agent = #{params.agent}
-        </if>
-        <if test="params.salesmanid != null">
-            AND u.salesmanid = #{params.salesmanid}
-        </if>
-        <!-- 权限筛选 -->
-        <if test="params.currentUserId != null and params.currentUserId != ''">
-            <if test="params.currentUserType != null and params.currentUserType == 1">
-                AND u.agent = #{params.currentUserId}
+        COALESCE((
+            SELECT SUM(c.real_amount) 
+            FROM tb_user u 
+            LEFT JOIN tb_charge_order c ON u.id = c.user_id AND c.state = 1
+            <if test="params.startTime != null">
+                AND c.create_time &gt;= FROM_UNIXTIME(#{params.startTime} / 1000)
             </if>
-            <if test="params.currentUserType != null and params.currentUserType == 2">
-                AND u.salesmanid = #{params.currentUserId}
+            <if test="params.endTime != null">
+                AND c.create_time &lt;= FROM_UNIXTIME(#{params.endTime} / 1000)
             </if>
-        </if>
+            LEFT JOIN sys_user salesman_user ON u.salesmanid = salesman_user.id
+            WHERE salesman_user.type = 2 AND salesman_user.status = 1
+            <if test="params.agent != null">
+                AND u.agent = #{params.agent}
+            </if>
+            <if test="params.salesmanid != null">
+                AND u.salesmanid = #{params.salesmanid}
+            </if>
+            <!-- 权限筛选 -->
+            <if test="params.currentUserId != null and params.currentUserId != ''">
+                <if test="params.currentUserType != null and params.currentUserType == 1">
+                    AND u.agent = #{params.currentUserId}
+                </if>
+                <if test="params.currentUserType != null and params.currentUserType == 2">
+                    AND u.salesmanid = #{params.currentUserId}
+                </if>
+            </if>
+        ), 0) AS czRealAmount,
+        COALESCE((
+            SELECT SUM(w.real_amount) 
+            FROM tb_user u 
+            LEFT JOIN tb_withdraw_order w ON u.id = w.user_id AND w.state IN (1, 2)
+            <if test="params.startTime != null">
+                AND w.create_time &gt;= FROM_UNIXTIME(#{params.startTime} / 1000)
+            </if>
+            <if test="params.endTime != null">
+                AND w.create_time &lt;= FROM_UNIXTIME(#{params.endTime} / 1000)
+            </if>
+            LEFT JOIN sys_user salesman_user ON u.salesmanid = salesman_user.id
+            WHERE salesman_user.type = 2 AND salesman_user.status = 1
+            <if test="params.agent != null">
+                AND u.agent = #{params.agent}
+            </if>
+            <if test="params.salesmanid != null">
+                AND u.salesmanid = #{params.salesmanid}
+            </if>
+            <!-- 权限筛选 -->
+            <if test="params.currentUserId != null and params.currentUserId != ''">
+                <if test="params.currentUserType != null and params.currentUserType == 1">
+                    AND u.agent = #{params.currentUserId}
+                </if>
+                <if test="params.currentUserType != null and params.currentUserType == 2">
+                    AND u.salesmanid = #{params.currentUserId}
+                </if>
+            </if>
+        ), 0) AS txRealAmount
     </select>
 
     <!-- 查询代理详情列表 -->
