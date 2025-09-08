@@ -40,4 +40,11 @@ public interface WithdrawOrderDao extends BaseMapper<WithdrawOrderEntity> {
     @Select("select * from tb_withdraw_order where  orderno=#{orderno}")
     WithdrawOrderEntity selectByOrderno(@Param("orderno") String orderno);
 
+    /**
+     * 查询用户正在提现状态订单
+     *
+     * @param userId 用户ID
+     * @return 正在提现
+     */
+    Long selectPendingWithdrawCountByUserId(@Param("userId") Long userId);
 }

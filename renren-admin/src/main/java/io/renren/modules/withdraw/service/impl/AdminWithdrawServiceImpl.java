@@ -349,6 +349,14 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
      */
     private void createNewWithdrawOrder(WithdrawOrderEntity originalOrder, MemberEntity user) {
         try {
+            // 检查是否有正在处理中的提现订单
+            Long pendingCount = withdrawOrderDao.selectPendingWithdrawCountByUserId(Long.valueOf(originalOrder.getUserId()));
+            if (pendingCount.intValue() > 0) {
+                log.warn("用户已有正在处理中的提现订单，无法创建新订单 - 用户ID: {}, 正在处理订单数: {}",
+                        originalOrder.getUserId(), pendingCount);
+                throw new RenException("用户已有正在处理中的提现订单，无法创建新订单");
+            }
+
             // 生成新的订单号
             String newOrderNo = generateOrderNo();
             

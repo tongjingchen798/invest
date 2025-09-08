@@ -68,5 +68,10 @@
         AND DATE(create_time) = DATE(#{date})
         AND state IN (1, 2) <!-- 审核通过或已提现的状态 -->
     </select>
+    <select id="selectPendingWithdrawCountByUserId" resultType="java.lang.Long">
+        SELECT count(1)
+        FROM tb_withdraw_order
+        WHERE user_id = #{userId} AND state IN (0, 1)
+    </select>
 
 </mapper>

@@ -183,6 +183,12 @@ public class WithdrawServiceImpl implements WithdrawService {
             throw new RenException("Your withdrawal function has been disabled, please contact customer service");
         }
 
+        // 检查用户是否有正在处理中的提现订单
+        Long pendingCount = withdrawOrderDao.selectPendingWithdrawCountByUserId(userId);
+        if (pendingCount.intValue() > 0) {
+            throw new RenException("You have a pending withdrawal order, please wait for it to be completed before applying again");
+        }
+
         // 检查佣金余额
         if (user.getCommissionBalance() == null || user.getCommissionBalance() < requestDTO.getAmount()) {
             throw new RenException("Insufficient cash withdrawal balance");
@@ -300,6 +306,12 @@ public class WithdrawServiceImpl implements WithdrawService {
         }
         if (user.getTzWithdrawStatus() == 0) {
             throw new RenException("Your withdrawal function has been disabled, please contact customer service");
+        }
+
+        // 检查是否有正在处理中的提现订单
+        Long pendingCount = withdrawOrderDao.selectPendingWithdrawCountByUserId(userId);
+        if (pendingCount.intValue() > 0) {
+            throw new RenException("You have a pending withdrawal order, please wait for it to be completed before applying again");
         }
 
         // 检查余额是否足够

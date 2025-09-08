@@ -35,6 +35,13 @@ public interface WithdrawOrderDao extends BaseDao<WithdrawOrderEntity> {
     Long selectPendingWithdrawAmountByUserId(@Param("userId") Long userId);
 
     /**
+     * 检查用户是否有正在处理中的提现订单
+     * @param userId
+     * @return
+     */
+    Long selectPendingWithdrawCountByUserId(@Param("userId") Long userId);
+
+    /**
      * 查询用户指定日期的提现总额
      *
      * @param userId 用户ID

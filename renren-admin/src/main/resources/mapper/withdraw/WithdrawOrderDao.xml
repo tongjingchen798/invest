@@ -244,5 +244,10 @@
             </if>
         </where>
     </select>
+    <select id="selectPendingWithdrawCountByUserId" resultType="java.lang.Long">
+        SELECT count(1)
+        FROM tb_withdraw_order
+        WHERE user_id = #{userId} AND state IN (0, 1)
+    </select>
 
 </mapper>
