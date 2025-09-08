@@ -41,14 +41,14 @@ public class WithdrawRuleValidator {
     }
     
     /**
-     * 计算实际到账金额
+     * 计算实际支付金额
      * 
      * @param amount 提现金额（卢比）
-     * @return 实际到账金额（卢比）
+     * @return 实际支付金额（卢比）
      */
     public BigDecimal calculateRealAmount(BigDecimal amount) {
         BigDecimal fee = calculateFee(amount);
-        return amount.subtract(fee);
+        return amount.add(fee);
     }
     
 

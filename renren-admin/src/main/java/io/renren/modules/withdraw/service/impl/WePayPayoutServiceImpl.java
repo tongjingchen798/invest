@@ -106,7 +106,7 @@ public class WePayPayoutServiceImpl implements PayAgentService {
             data.put("mchId", payMerchant.getMerchantno()); // 商户ID
             data.put("passageId", "101"); // 通道ID (TODO: 先用测试通道)
             // 金额转换（分转元）
-            BigDecimal amountInYuan = new BigDecimal(withdrawOrder.getAmount()).divide(new BigDecimal("100"));
+            BigDecimal amountInYuan = new BigDecimal(withdrawOrder.getRealAmount()).divide(new BigDecimal("100"));
             data.put("amount", amountInYuan.intValue()); // 金额(法币)
             data.put("orderNo", withdrawOrder.getOrderno()); // 商户订单号
             data.put("account", withdrawOrder.getPayNo()); // 异步通知回调地址

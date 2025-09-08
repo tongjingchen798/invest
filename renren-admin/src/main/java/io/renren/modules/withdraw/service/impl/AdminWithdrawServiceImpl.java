@@ -80,7 +80,8 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
 
             // 记录原始状态，用于后续处理
             Integer originalState = withdrawOrder.getState();
-            Long withdrawAmount = withdrawOrder.getInputamount();
+            //提现金额
+            Long withdrawAmount = withdrawOrder.getAmount();
 
             // 更新订单状态
             withdrawOrder.setState(auditDTO.getState());
@@ -125,7 +126,6 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
      */
     private void handlePostAuditBusinessLogic(WithdrawOrderEntity withdrawOrder, Integer originalState,
                                               Integer newState, Long withdrawAmount) {
-        try {
         // 如果是从待审核状态变为其他状态，需要处理余额相关逻辑
 //        if (originalState == STATE_PENDING) {
             switch (newState) {
@@ -167,10 +167,7 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
                     break;
             }
 //        }
-        } catch (Exception e) {
-            log.error("处理审核后业务逻辑失败，订单ID: {}, 错误信息: {}", withdrawOrder.getId(), e.getMessage(), e);
-            throw new RuntimeException("处理审核后业务逻辑失败: " + e.getMessage());
-        }
+
     }
 
     /**

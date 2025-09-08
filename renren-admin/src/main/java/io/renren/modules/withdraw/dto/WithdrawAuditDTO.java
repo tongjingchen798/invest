@@ -25,7 +25,7 @@ public class WithdrawAuditDTO implements Serializable {
     @ApiModelProperty(value = "备注")
     private String remark;
 
-    @ApiModelProperty(value = "审核通过 1  驳回  3 手动转款  2  再次提交 5")
+    @ApiModelProperty(value = "1审核通过 2已提现 3驳回 4提现失败  5无效订单")
     private Integer state;
 
     @ApiModelProperty(value = "操作人id")
