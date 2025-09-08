@@ -33,10 +33,10 @@ public class PayChannelDTO {
     private Integer status;
 
     @ApiModelProperty(value = "usdt赠送比例")
-    private BigDecimal usdtGiftRatio;
+    private String usdtGiftRatio;
 
     @ApiModelProperty(value = "usdt兑当地货币汇率")
-    private BigDecimal usdtLocalCurrencyRate;
+    private String usdtLocalCurrencyRate;
 
     @ApiModelProperty(value = "创建时间")
     private String createDate;

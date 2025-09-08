@@ -2,6 +2,7 @@ package io.renren.controller;
 
 import io.renren.common.utils.Result;
 import io.renren.dao.PayChannelDao;
+import io.renren.dao.SysParamsDao;
 import io.renren.dto.PayChannelDTO;
 import io.renren.entity.PayChannelEntity;
 import io.swagger.annotations.Api;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,6 +32,9 @@ public class ApiPayChannelController {
 
     @Autowired
     private PayChannelDao payChannelDao;
+    
+    @Autowired
+    private SysParamsDao sysParamsDao;
 
     @GetMapping("getPay")
     @ApiOperation("查询支付方式")
@@ -56,8 +61,27 @@ public class ApiPayChannelController {
             // 确保所有通道类型都存在，即使没有数据也返回空数组
             result.put("UPI", groupedChannels.getOrDefault("UPI", new ArrayList<>()));
             result.put("SWIPE", groupedChannels.getOrDefault("SWIPE", new ArrayList<>()));
-            result.put("USDT", groupedChannels.getOrDefault("USDT", new ArrayList<>()));
             
+            // 处理USDT通道
+            List<PayChannelDTO> usdtChannels = groupedChannels.getOrDefault("USDT", new ArrayList<>());
+            if (!usdtChannels.isEmpty()) {
+                // USDT不为空时，从sys_params表中查询USDT相关参数
+                String usdtSysPrice = sysParamsDao.getValueByCode("usdtsysprice");
+                String usdtRealPrice = sysParamsDao.getValueByCode("usdtrealprice");
+                
+                // 为每个USDT通道设置从系统参数表查询的值
+                for (PayChannelDTO usdtChannel : usdtChannels) {
+                    if (usdtSysPrice != null) {
+                        usdtChannel.setUsdtGiftRatio(usdtSysPrice);
+                    }
+                    if (usdtRealPrice != null) {
+                        usdtChannel.setUsdtLocalCurrencyRate(usdtRealPrice);
+                    }
+                }
+            }
+            result.put("USDT", usdtChannels);
+            
+
             return new Result<Map<String, Object>>().ok(result);
     }
     
