@@ -65,7 +65,7 @@ public class OrderServiceImpl implements OrderService {
 				result.put("message", validation.get("message"));
 				return result;
 			}
-			
+
 			// 2. 获取项目信息
 			ProjectEntity project = projectDao.selectProjectById(dto.getInvestId());
 			if (project == null) {
@@ -105,7 +105,7 @@ public class OrderServiceImpl implements OrderService {
 			investmentRecord.setProfitDate(profitEndDate);
 			
 			BigDecimal rate = new BigDecimal(conversion);
-			rate = rate.divide(new BigDecimal("100"), 2, BigDecimal.ROUND_DOWN);
+			rate = rate.divide(new BigDecimal("100"), 4, BigDecimal.ROUND_DOWN);
 
 			BigDecimal investmentAmountTotal = new BigDecimal(dto.getAmount());
 			// 计算每日收益金额
@@ -330,14 +330,14 @@ public class OrderServiceImpl implements OrderService {
 			UserEntity user = userDao.getUserByUserId(userId);
 			if (user == null) {
 				result.put("status", "error");
-				result.put("message", "用户不存在");
+				result.put("message", "User not found");
 				return result;
 			}
 			
 			Long currentAssets = user.getAssets() != null ? user.getAssets() : 0L;
 			if (currentAssets < dto.getAmount()) {
 				result.put("status", "error");
-				result.put("message", "可用余额不足，当前可用余额: " + (currentAssets / 100.0) + "元，需要: " + (dto.getAmount() / 100.0) + "元");
+				result.put("message", "Insufficient balance");
 				return result;
 			}
 			

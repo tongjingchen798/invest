@@ -23,6 +23,7 @@
         m.historychargecnt,
         m.invite_code as inviteCode,
         m.upinvite_code as upinviteCode,
+        (SELECT tbb.mobile from tb_user tbb where tbb.invite_code=m.upinvite_code) as superiorName,
         m.agent,
         agent_user.username as agentName,
         m.salesmanid,

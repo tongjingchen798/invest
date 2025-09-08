@@ -327,7 +327,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             // 查询用户信息
             MemberEntity member = this.selectById(userId);
             if (member == null) {
-                return new Result().error("用户不存在");
+                return new Result().error("User not found");
             }
             
             // 更新用户余额
@@ -382,7 +382,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             // 查询用户信息
             MemberEntity member = this.selectById(userId);
             if (member == null) {
-                return new Result().error("用户不存在");
+                return new Result().error("User not found");
             }
             
             // 根据操作类型处理标签
@@ -425,7 +425,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             // 查询用户信息
             MemberEntity member = this.selectById(userId);
             if (member == null) {
-                return new Result().error("用户不存在");
+                return new Result().error("User not found");
             }
             
             // 更新用户业务员信息
@@ -459,7 +459,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             // 查询用户信息
             MemberEntity member = this.selectById(userId);
             if (member == null) {
-                return new Result().error("用户不存在");
+                return new Result().error("User not found");
             }
             
             // 查询上级用户信息
@@ -506,7 +506,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             // 查询用户信息
             MemberEntity member = this.selectById(userId);
             if (member == null) {
-                return new Result().error("用户不存在");
+                return new Result().error("User not found");
             }
             
             // 检查姓名长度限制（假设最大长度为20个字符）
@@ -550,7 +550,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             // 查询用户信息
             MemberEntity member = this.selectById(userId);
             if (member == null) {
-                return new Result().error("用户不存在");
+                return new Result().error("User not found");
             }
             
             // 获取当前余额
@@ -627,7 +627,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             // 查询用户信息
             MemberEntity member = this.selectById(userId);
             if (member == null) {
-                return new Result().error("用户不存在");
+                return new Result().error("User not found");
             }
             
             // 获取当前余额和冻结金额
@@ -715,7 +715,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             // 查询用户信息
             MemberEntity member = this.selectById(userId);
             if (member == null) {
-                return new Result().error("用户不存在");
+                return new Result().error("User not found");
             }
             member.setPassword(DigestUtils.sha256Hex(trimmedPassword));
             // 更新用户信息
@@ -747,7 +747,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             // 查询用户信息
             MemberEntity member = this.selectById(userId);
             if (member == null) {
-                return new Result().error("用户不存在");
+                return new Result().error("User not found");
             }
             
             // 更新用户状态
@@ -789,7 +789,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             // 查询用户信息
             MemberEntity member = this.selectById(userId);
             if (member == null) {
-                return new Result().error("用户不存在");
+                return new Result().error("User not found");
             }
             
             // 更新佣金账户提现状态
@@ -824,7 +824,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             // 查询用户信息
             MemberEntity member = this.selectById(userId);
             if (member == null) {
-                return new Result().error("用户不存在");
+                return new Result().error("User not found");
             }
             
             // 更新投资账户提现状态
@@ -1013,7 +1013,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
         // 设置兑付金额：从分转换为元，保留2位小数
         if (entity.getHistoryProfit() != null) {
             BigDecimal amountInYuan = new BigDecimal(entity.getHistoryProfit())
-                .divide(new BigDecimal(100), 2, BigDecimal.ROUND_HALF_UP);
+                .divide(new BigDecimal(100), 2, BigDecimal.ROUND_DOWN);
             dto.setProfitAmount(amountInYuan);
         } else {
             dto.setProfitAmount(BigDecimal.ZERO);

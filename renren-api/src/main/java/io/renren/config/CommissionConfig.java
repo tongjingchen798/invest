@@ -41,13 +41,13 @@ public class CommissionConfig {
      * 获取1级佣金比例（小数形式）
      */
     public BigDecimal getFirstLevelRateDecimal() {
-        return firstLevelRate.divide(new BigDecimal("100"), 2, BigDecimal.ROUND_HALF_UP);
+        return firstLevelRate.divide(new BigDecimal("100"), 4, BigDecimal.ROUND_DOWN);
     }
     
     /**
      * 获取2级佣金比例（小数形式）
      */
     public BigDecimal getSecondLevelRateDecimal() {
-        return secondLevelRate.divide(new BigDecimal("100"), 2, BigDecimal.ROUND_HALF_UP);
+        return secondLevelRate.divide(new BigDecimal("100"), 4, BigDecimal.ROUND_DOWN);
     }
 }

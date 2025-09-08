@@ -383,7 +383,7 @@ public class UserInvestmentProfitSchedule {
         
         // 计算实际收益率：年化收益率 * 投资天数 / 365
         BigDecimal actualRate = annualRate.multiply(new BigDecimal(investmentDays))
-                                         .divide(new BigDecimal(365), 4, BigDecimal.ROUND_HALF_UP);
+                                         .divide(new BigDecimal(365), 4, BigDecimal.ROUND_DOWN);
         
         return investmentAmount.multiply(actualRate);
     }
@@ -415,7 +415,7 @@ public class UserInvestmentProfitSchedule {
         // 优先使用项目配置的收益率，如果没有则使用默认配置
         BigDecimal annualRate = getProjectAnnualRate(project, "noPrincipal");
         BigDecimal actualRate = annualRate.multiply(new BigDecimal(investmentDays))
-                                         .divide(new BigDecimal(365), 4, BigDecimal.ROUND_HALF_UP);
+                                         .divide(new BigDecimal(365), 4, BigDecimal.ROUND_DOWN);
         
         return investmentAmount.multiply(actualRate);
     }
@@ -477,7 +477,7 @@ public class UserInvestmentProfitSchedule {
         // 拼团收益：基础收益 + 拼团奖励
         BigDecimal baseAnnualRate = getProjectAnnualRate(project, "groupBuyBase");
         BigDecimal baseProfit = baseAnnualRate.multiply(new BigDecimal(investmentDays))
-                                             .divide(new BigDecimal(365), 4, BigDecimal.ROUND_HALF_UP);
+                                             .divide(new BigDecimal(365), 4, BigDecimal.ROUND_DOWN);
         
         // 拼团奖励
         BigDecimal groupBonus = getProjectAnnualRate(project, "groupBuyBonus");
@@ -582,7 +582,7 @@ public class UserInvestmentProfitSchedule {
     private BigDecimal parseProjectRate(String conversion) {
         try {
             BigDecimal rate = new BigDecimal(conversion);
-            rate = rate.divide(new BigDecimal("100"), 2, BigDecimal.ROUND_DOWN);
+            rate = rate.divide(new BigDecimal("100"), 4, BigDecimal.ROUND_DOWN);
             return rate;
         } catch (Exception e) {
             log.warn("解析项目收益率失败: {}, 使用默认配置", conversion, e);
@@ -602,7 +602,7 @@ public class UserInvestmentProfitSchedule {
                 return profitConfig.getCompoundDailyRate();
             }
             BigDecimal rate = new BigDecimal(conversion);
-            rate = rate.divide(new BigDecimal("100"), 2, BigDecimal.ROUND_DOWN);
+            rate = rate.divide(new BigDecimal("100"), 4, BigDecimal.ROUND_DOWN);
 
             return rate;
         } catch (Exception e) {
