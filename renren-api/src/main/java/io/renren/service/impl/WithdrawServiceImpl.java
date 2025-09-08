@@ -87,8 +87,7 @@ public class WithdrawServiceImpl implements WithdrawService {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("检查首次提现状态失败: " + e.getMessage());
+            return FirstWithdrawCheckDTO.notFirstTime();
         }
     }
 

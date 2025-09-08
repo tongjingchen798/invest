@@ -220,67 +220,107 @@
     <!-- 查询结算报表分页数据 - 按业务员统计 -->
     <select id="getSettlementReport" resultType="io.renren.modules.member.dto.SettlementReportDTO">
         SELECT
-        u.salesmanid,
-        MAX(salesman_user.username) as salesmanName,
-        MAX(u.agent) as agent,
-        MAX(agent_user.username) as agentName,
-        COALESCE(SUM(c.real_amount), 0) as czRealAmount,
-        COALESCE(SUM(c.real_amount), 0) - COALESCE(SUM(w.real_amount), 0) as lr,
-        COALESCE(SUM(w.real_amount), 0) as txRealAmount
-        FROM tb_user u
-        LEFT JOIN sys_user salesman_user ON u.salesmanid = salesman_user.id
-        LEFT JOIN sys_user agent_user ON u.agent = agent_user.id
-        LEFT JOIN tb_charge_order c ON u.id = c.user_id
-        AND c.state = 1
-        <if test="params.startTime != null">
-            AND c.create_time &gt;= FROM_UNIXTIME(#{params.startTime} / 1000)
-        </if>
-        <if test="params.endTime != null">
-            AND c.create_time &lt;= FROM_UNIXTIME(#{params.endTime} / 1000)
-        </if>
-        LEFT JOIN tb_withdraw_order w ON u.id = w.user_id
-        AND w.state IN (1, 2)
-        <if test="params.startTime != null">
-            AND w.create_time &gt;= FROM_UNIXTIME(#{params.startTime} / 1000)
-        </if>
-        <if test="params.endTime != null">
-            AND w.create_time &lt;= FROM_UNIXTIME(#{params.endTime} / 1000)
-        </if>
-        WHERE 1=1
-        <if test="params.agent != null">
-            AND u.agent = #{params.agent}
-        </if>
+        salesman_user.id as salesmanid,
+        salesman_user.username as salesmanName,
+        (SELECT MAX(u2.agent) FROM tb_user u2 WHERE u2.salesmanid = salesman_user.id) as agent,
+        (SELECT MAX(agent_user2.username) FROM tb_user u2 
+         LEFT JOIN sys_user agent_user2 ON u2.agent = agent_user2.id 
+         WHERE u2.salesmanid = salesman_user.id) as agentName,
+        COALESCE((
+            SELECT SUM(c.real_amount) 
+            FROM tb_user u 
+            LEFT JOIN tb_charge_order c ON u.id = c.user_id AND c.state = 1
+            <if test="params.startTime != null">
+                AND c.create_time &gt;= FROM_UNIXTIME(#{params.startTime} / 1000)
+            </if>
+            <if test="params.endTime != null">
+                AND c.create_time &lt;= FROM_UNIXTIME(#{params.endTime} / 1000)
+            </if>
+            WHERE u.salesmanid = salesman_user.id
+            <if test="params.agent != null">
+                AND u.agent = #{params.agent}
+            </if>
+        ), 0) as czRealAmount,
+        COALESCE((
+            SELECT SUM(c.real_amount) 
+            FROM tb_user u 
+            LEFT JOIN tb_charge_order c ON u.id = c.user_id AND c.state = 1
+            <if test="params.startTime != null">
+                AND c.create_time &gt;= FROM_UNIXTIME(#{params.startTime} / 1000)
+            </if>
+            <if test="params.endTime != null">
+                AND c.create_time &lt;= FROM_UNIXTIME(#{params.endTime} / 1000)
+            </if>
+            WHERE u.salesmanid = salesman_user.id
+            <if test="params.agent != null">
+                AND u.agent = #{params.agent}
+            </if>
+        ), 0) - COALESCE((
+            SELECT SUM(w.real_amount) 
+            FROM tb_user u 
+            LEFT JOIN tb_withdraw_order w ON u.id = w.user_id AND w.state IN (1, 2)
+            <if test="params.startTime != null">
+                AND w.create_time &gt;= FROM_UNIXTIME(#{params.startTime} / 1000)
+            </if>
+            <if test="params.endTime != null">
+                AND w.create_time &lt;= FROM_UNIXTIME(#{params.endTime} / 1000)
+            </if>
+            WHERE u.salesmanid = salesman_user.id
+            <if test="params.agent != null">
+                AND u.agent = #{params.agent}
+            </if>
+        ), 0) as lr,
+        COALESCE((
+            SELECT SUM(w.real_amount) 
+            FROM tb_user u 
+            LEFT JOIN tb_withdraw_order w ON u.id = w.user_id AND w.state IN (1, 2)
+            <if test="params.startTime != null">
+                AND w.create_time &gt;= FROM_UNIXTIME(#{params.startTime} / 1000)
+            </if>
+            <if test="params.endTime != null">
+                AND w.create_time &lt;= FROM_UNIXTIME(#{params.endTime} / 1000)
+            </if>
+            WHERE u.salesmanid = salesman_user.id
+            <if test="params.agent != null">
+                AND u.agent = #{params.agent}
+            </if>
+        ), 0) as txRealAmount
+        FROM sys_user salesman_user
+        WHERE salesman_user.type = 2 AND salesman_user.status = 1
         <if test="params.salesmanid != null">
-            AND u.salesmanid = #{params.salesmanid}
+            AND salesman_user.id = #{params.salesmanid}
         </if>
         <!-- 权限筛选 -->
         <if test="params.currentUserId != null and params.currentUserId != ''">
             <if test="params.currentUserType != null and params.currentUserType == 1">
-                AND u.agent = #{params.currentUserId}
+                AND EXISTS (
+                    SELECT 1 FROM tb_user u3 
+                    WHERE u3.salesmanid = salesman_user.id AND u3.agent = #{params.currentUserId}
+                )
             </if>
             <if test="params.currentUserType != null and params.currentUserType == 2">
-                AND u.salesmanid = #{params.currentUserId}
+                AND salesman_user.id = #{params.currentUserId}
             </if>
         </if>
-        GROUP BY u.salesmanid
         <if test="params.orderField != null and params.order != null">
             ORDER BY ${params.orderField} ${params.order}
         </if>
         <if test="params.orderField == null or params.order == null">
-            ORDER BY u.salesmanid
+            ORDER BY salesman_user.id
         </if>
     </select>
 
     <!-- 查询结算报表总数 - 按业务员统计 -->
     <select id="getSettlementReportCount" resultType="long">
-        SELECT COUNT(DISTINCT u.salesmanid)
-        FROM tb_user u
-        WHERE 1=1
+        SELECT COUNT(DISTINCT salesman_user.id)
+        FROM sys_user salesman_user
+        LEFT JOIN tb_user u ON u.salesmanid = salesman_user.id
+        WHERE salesman_user.type = 2 AND salesman_user.status = 1
         <if test="params.agent != null">
             AND u.agent = #{params.agent}
         </if>
         <if test="params.salesmanid != null">
-            AND u.salesmanid = #{params.salesmanid}
+            AND salesman_user.id = #{params.salesmanid}
         </if>
         <!-- 权限筛选 -->
         <if test="params.currentUserId != null and params.currentUserId != ''">
@@ -288,7 +328,7 @@
                 AND u.agent = #{params.currentUserId}
             </if>
             <if test="params.currentUserType != null and params.currentUserType == 2">
-                AND u.salesmanid = #{params.currentUserId}
+                AND salesman_user.id = #{params.currentUserId}
             </if>
         </if>
     </select>
