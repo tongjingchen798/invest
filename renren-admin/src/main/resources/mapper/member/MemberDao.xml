@@ -701,22 +701,9 @@
             <if test="params.endTime != null">
                 AND c.create_time &lt;= FROM_UNIXTIME(#{params.endTime} / 1000)
             </if>
-            LEFT JOIN sys_user salesman_user ON u.salesmanid = salesman_user.id
-            WHERE salesman_user.type = 2 AND salesman_user.status = 1
+            WHERE u.salesmanid = salesman_user.id
             <if test="params.agent != null">
                 AND u.agent = #{params.agent}
-            </if>
-            <if test="params.salesmanid != null">
-                AND u.salesmanid = #{params.salesmanid}
-            </if>
-            <!-- 权限筛选 -->
-            <if test="params.currentUserId != null and params.currentUserId != ''">
-                <if test="params.currentUserType != null and params.currentUserType == 1">
-                    AND u.agent = #{params.currentUserId}
-                </if>
-                <if test="params.currentUserType != null and params.currentUserType == 2">
-                    AND u.salesmanid = #{params.currentUserId}
-                </if>
             </if>
         ), 0) AS czRealAmount,
         COALESCE((
@@ -729,24 +716,28 @@
             <if test="params.endTime != null">
                 AND w.create_time &lt;= FROM_UNIXTIME(#{params.endTime} / 1000)
             </if>
-            LEFT JOIN sys_user salesman_user ON u.salesmanid = salesman_user.id
-            WHERE salesman_user.type = 2 AND salesman_user.status = 1
+            WHERE u.salesmanid = salesman_user.id
             <if test="params.agent != null">
                 AND u.agent = #{params.agent}
             </if>
-            <if test="params.salesmanid != null">
-                AND u.salesmanid = #{params.salesmanid}
-            </if>
-            <!-- 权限筛选 -->
-            <if test="params.currentUserId != null and params.currentUserId != ''">
-                <if test="params.currentUserType != null and params.currentUserType == 1">
-                    AND u.agent = #{params.currentUserId}
-                </if>
-                <if test="params.currentUserType != null and params.currentUserType == 2">
-                    AND u.salesmanid = #{params.currentUserId}
-                </if>
-            </if>
         ), 0) AS txRealAmount
+        FROM sys_user salesman_user
+        WHERE salesman_user.type = 2 AND salesman_user.status = 1
+        <if test="params.salesmanid != null">
+            AND salesman_user.id = #{params.salesmanid}
+        </if>
+        <!-- 权限筛选 -->
+        <if test="params.currentUserId != null and params.currentUserId != ''">
+            <if test="params.currentUserType != null and params.currentUserType == 1">
+                AND EXISTS (
+                    SELECT 1 FROM tb_user u3 
+                    WHERE u3.salesmanid = salesman_user.id AND u3.agent = #{params.currentUserId}
+                )
+            </if>
+            <if test="params.currentUserType != null and params.currentUserType == 2">
+                AND salesman_user.id = #{params.currentUserId}
+            </if>
+        </if>
     </select>
 
     <!-- 查询代理详情列表 -->
