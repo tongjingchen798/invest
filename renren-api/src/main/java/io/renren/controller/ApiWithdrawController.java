@@ -3,6 +3,7 @@ package io.renren.controller;
 import io.renren.annotation.Login;
 import io.renren.annotation.LoginUser;
 import io.renren.common.utils.Result;
+import io.renren.dto.FirstWithdrawCheckDTO;
 import io.renren.dto.RewardWithdrawRequestDTO;
 import io.renren.dto.RewardWithdrawSumDTO;
 import io.renren.dto.WithdrawPageData;
@@ -35,12 +36,12 @@ public class ApiWithdrawController {
     @Login
     @PostMapping("scFalg")
     @ApiOperation("是否首次提现")
-    public Result<Map<String, Object>> checkFirstWithdraw(@LoginUser UserEntity user) {
+    public Result<FirstWithdrawCheckDTO> checkFirstWithdraw(@LoginUser UserEntity user) {
         try {
-            Map<String, Object> result = withdrawService.checkFirstWithdraw(user.getId());
-            return new Result<Map<String, Object>>().ok(result);
+            FirstWithdrawCheckDTO result = withdrawService.checkFirstWithdraw(user.getId());
+            return new Result<FirstWithdrawCheckDTO>().ok(result);
         } catch (Exception e) {
-            return new Result<Map<String, Object>>().error("检查首次提现状态失败: " + e.getMessage());
+            return new Result<FirstWithdrawCheckDTO>().error("检查首次提现状态失败: " + e.getMessage());
         }
     }
 

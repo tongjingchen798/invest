@@ -1,5 +1,6 @@
 package io.renren.service;
 
+import io.renren.dto.FirstWithdrawCheckDTO;
 import io.renren.dto.RewardWithdrawRequestDTO;
 import io.renren.dto.RewardWithdrawSumDTO;
 import io.renren.dto.WithdrawPageData;
@@ -20,9 +21,9 @@ public interface WithdrawService {
      * 检查用户是否首次提现
      *
      * @param userId 用户ID
-     * @return 包含是否首次提现信息的Map
+     * @return 首次提现检查结果DTO
      */
-    Map<String, Object> checkFirstWithdraw(Long userId);
+    FirstWithdrawCheckDTO checkFirstWithdraw(Long userId);
 
     /**
      * 分页查询用户提现记录

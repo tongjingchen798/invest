@@ -10,6 +10,7 @@ import io.renren.dao.PayChannelDao;
 import io.renren.dao.PayInfoDao;
 import io.renren.dao.UserDao;
 import io.renren.dao.WithdrawOrderDao;
+import io.renren.dto.FirstWithdrawCheckDTO;
 import io.renren.dto.RewardWithdrawRequestDTO;
 import io.renren.dto.RewardWithdrawSumDTO;
 import io.renren.dto.UserWithdrawInfoDTO;
@@ -73,18 +74,17 @@ public class WithdrawServiceImpl implements WithdrawService {
     private PayInfoDao payInfoDao;
 
     @Override
-    public Map<String, Object> checkFirstWithdraw(Long userId) {
+    public FirstWithdrawCheckDTO checkFirstWithdraw(Long userId) {
         try {
-            Map<String, Object> result = new HashMap<>();
             // 查询用户提现记录数量
             Long withdrawCount = withdrawOrderDao.selectCountByUserId(userId);
-            Integer sc = 1;
+            
             // 判断是否首次提现
-            if (withdrawCount != 0L) {
-                sc = 0;
+            if (withdrawCount == 0L) {
+                return FirstWithdrawCheckDTO.firstTime();
+            } else {
+                return FirstWithdrawCheckDTO.notFirstTime();
             }
-            result.put("sc", sc);
-            return result;
 
         } catch (Exception e) {
             e.printStackTrace();
