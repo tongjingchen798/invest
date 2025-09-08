@@ -178,11 +178,11 @@ public class UserEntity implements Serializable {
 	@TableField("today_recharge_cnt")
 	private Long todayRechargeCnt;
 
-	/**
-	 * 今日提现次数
-	 */
-	@TableField("today_withdraw_cnt")
-	private Long todayWithdrawCnt;
+//	/**
+//	 * 今日提现次数
+//	 */
+//	@TableField("today_withdraw_cnt")
+//	private Long todayWithdrawCnt;
 
 	/**
 	 * 累计充值(分)
@@ -191,7 +191,7 @@ public class UserEntity implements Serializable {
 	private Long chargeSum;
 
 	/**
-	 * 累计提现(分)
+	 * 历史总提现(分)
 	 */
 	@TableField("withdraw_sum")
 	private Long withdrawSum;
@@ -304,29 +304,7 @@ public class UserEntity implements Serializable {
 	@TableField("history_uc_profit")
 	private Long historyUcProfit;
 
-	/**
-	 * 今日提现次数
-	 */
-	@TableField("to_daywithdraw_count")
-	private Long toDaywithdrawCount;
 
-	/**
-	 * 今日佣金提现总额(分)
-	 */
-	@TableField("to_daywithdraw_quota")
-	private Long toDaywithdrawQuota;
-
-	/**
-	 * 佣金提现总次数
-	 */
-	@TableField("withdraw_count")
-	private Long withdrawCount;
-
-	/**
-	 * 佣金提现总额(分)
-	 */
-	@TableField("withdraw_quota")
-	private Long withdrawQuota;
 
 	/**
 	 * 佣金余额(分)
@@ -340,12 +318,26 @@ public class UserEntity implements Serializable {
 	@TableField("history_commission")
 	private Long historyCommission;
 
+
+//	/**
+//	 * 今日提现次数
+//	 */
+//	@TableField("to_daywithdraw_count")
+//	private Long toDaywithdrawCount;
+
+
+	/**
+	 * 佣金提现总次数
+	 */
+	@TableField("withdraw_count")
+	private Long withdrawCount;
+
 	/**
 	 * 佣金提现总额(分)
 	 */
-	@ApiModelProperty(value = "佣金提现总额(分)")
-	@TableField("commission_withdraw_sum")
-	private Long commissionWithdrawSum;
+	@TableField("withdraw_quota")
+	private Long withdrawQuota;
+
 
 	/**
 	 * 今日佣金

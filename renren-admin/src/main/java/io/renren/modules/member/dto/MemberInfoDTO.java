@@ -86,8 +86,6 @@ public class MemberInfoDTO implements Serializable {
     @ApiModelProperty(value = "历史充提差（历史充值-历史提现）")
     private Long historyctc;
 
-    @ApiModelProperty(value = "历史总提现次数")
-    private Long historywithdrawcnt;
 
     @ApiModelProperty(value = "邀请码")
     private String inviteCode;
@@ -137,11 +135,32 @@ public class MemberInfoDTO implements Serializable {
     @ApiModelProperty(value = "今日充提差（今日充值-今日提现）")
     private Long toDayctc;
 
-    @ApiModelProperty(value = "今日佣金提现总次数")
-    private Long toDaywithdrawCount;
+    @ApiModelProperty(value = "佣金提现次数")
+    private Long withdrawCount;
 
-    @ApiModelProperty(value = "今日佣金提现总额")
-    private Long toDaywithdrawQuota;
+    @ApiModelProperty(value = "佣金提现总额(分)")
+    private Long withdrawQuota;
+
+    @ApiModelProperty(value = "今日总提现")
+    private Long todayWithdraw;
+
+    @ApiModelProperty(value = "历史总提现")
+    private Long withdrawSum;
+
+    @ApiModelProperty(value = "历史总提现次数")
+    private Long historywithdrawcnt;
+
+
+//    @ApiModelProperty(value = "今日总提现次数")
+//    private Long todayWithdrawCnt;
+
+
+
+
+
+//    @ApiModelProperty(value = "今日佣金提现总次数")
+//    private Long toDaywithdrawCount;
+
 
     @ApiModelProperty(value = "今日投资数")
     private Long todayInvestment;
@@ -155,11 +174,8 @@ public class MemberInfoDTO implements Serializable {
     @ApiModelProperty(value = "今日总充值次数")
     private Long todayRechargeCnt;
 
-    @ApiModelProperty(value = "今日总提现")
-    private Long todayWithdraw;
 
-    @ApiModelProperty(value = "今日总提现次数")
-    private Long todayWithdrawCnt;
+
 
     @ApiModelProperty(value = "投资账户的提现 0 禁用 1 正常")
     private Integer tzWithdrawStatus;
@@ -194,14 +210,7 @@ public class MemberInfoDTO implements Serializable {
     @ApiModelProperty(value = "VIP等级范围")
     private Integer viplr;
 
-    @ApiModelProperty(value = "历史佣金提现总次数")
-    private Long withdrawCount;
 
-    @ApiModelProperty(value = "佣金提现总额")
-    private Long withdrawQuota;
-
-    @ApiModelProperty(value = "历史总提现")
-    private Long withdrawSum;
 
     @ApiModelProperty(value = "是否裂变(0否1是)")
     private Integer liebian;

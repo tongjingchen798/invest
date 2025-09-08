@@ -119,7 +119,7 @@ public interface UserDao extends BaseDao<UserEntity> {
      * 重置用户今日收益和充值字段（每日定时任务调用）
      * @return 影响行数
      */
-    @Update("UPDATE tb_user SET today_profit = 0, today_investment = 0, today_recharge = 0, today_recharge_cnt = 0")
+    @Update("UPDATE tb_user SET today_profit = 0,today_withdraw=0, today_investment = 0, today_recharge = 0, today_recharge_cnt = 0")
     int resetTodayInvestmentAndProfit();
 
 

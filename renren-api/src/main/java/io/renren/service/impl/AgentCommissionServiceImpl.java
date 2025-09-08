@@ -247,10 +247,10 @@ public class AgentCommissionServiceImpl implements AgentCommissionService {
                 }
             }
             agentCenter.setHirstory_amt(String.valueOf(currentUser.getHistoryCommission()));
-            // 历史总佣金
-            agentCenter.setWithdraw_amt(String.valueOf(currentUser.getHistoryCommission()));
+            // 佣金余额
+            agentCenter.setWithdraw_amt(String.valueOf(currentUser.getCommissionBalance()));
             //佣金已提款
-            agentCenter.setYt_withdraw_amt(String.valueOf(currentUser.getCommissionWithdrawSum()));
+            agentCenter.setYt_withdraw_amt(String.valueOf(currentUser.getWithdrawQuota()));
             
             // 今日佣金总额
             agentCenter.setToday_amt(String.valueOf(currentUser.getTodayCommission() != null ? currentUser.getTodayCommission() : 0L));

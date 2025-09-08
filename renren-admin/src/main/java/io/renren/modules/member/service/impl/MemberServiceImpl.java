@@ -234,10 +234,11 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
         
         // 调用自定义的XML查询方法
         IPage<MemberInfoDTO> pageResult = baseDao.selectMemberPage(page, params);
-        //TODO 统计没有实现 让前端加
+        // 统计汇总数据
+        Map<String, Object> summaryData = baseDao.selectReportSummary(params);
 
         // 转换为PageData格式
-        return new PageData<>(pageResult.getRecords(), pageResult.getTotal());
+        return new PageData<>(pageResult.getRecords(), pageResult.getTotal(),summaryData);
     }
 
     @Override

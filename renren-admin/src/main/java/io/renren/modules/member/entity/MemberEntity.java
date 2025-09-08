@@ -165,7 +165,7 @@ public class MemberEntity implements Serializable {
     private Long todayRecharge;
 
     /**
-     * 今日提现(分)
+     * 今日总提现(分)
      */
     @TableField("today_withdraw")
     private Long todayWithdraw;
@@ -176,11 +176,11 @@ public class MemberEntity implements Serializable {
     @TableField("today_recharge_cnt")
     private Long todayRechargeCnt;
 
-    /**
-     * 今日提现次数
-     */
-    @TableField("today_withdraw_cnt")
-    private Long todayWithdrawCnt;
+//    /**
+//     * 今日提现次数
+//     */
+//    @TableField("today_withdraw_cnt")
+//    private Long todayWithdrawCnt;
 
     /**
      * 累计充值(分)
@@ -302,17 +302,13 @@ public class MemberEntity implements Serializable {
     @TableField("history_uc_profit")
     private Long historyUcProfit;
 
-    /**
-     * 今日提现次数
-     */
-    @TableField("to_daywithdraw_count")
-    private Long toDaywithdrawCount;
+//    /**
+//     * 今日提现次数
+//     */
+//    @TableField("to_daywithdraw_count")
+//    private Long toDaywithdrawCount;
 
-    /**
-     * 今日佣金提现总额(分)
-     */
-    @TableField("to_daywithdraw_quota")
-    private Long toDaywithdrawQuota;
+
 
     /**
      * 佣金提现次数

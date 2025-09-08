@@ -21,7 +21,7 @@ public class AgentCenterDTO implements Serializable {
     @ApiModelProperty(value = "历史佣金总额")
     private String hirstory_amt;
 
-    @ApiModelProperty(value = "代理提现总额")
+    @ApiModelProperty(value = "佣金余额")
     private String withdraw_amt;
 
     @ApiModelProperty(value = "昨日提现总额")

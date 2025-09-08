@@ -218,6 +218,17 @@ public class PayoutCallbackController {
             UserEntity user=userDao.selectById(withdrawOrder.getUserId());
             //从冻结余额中真正扣减
             user.setFreezeBalance(user.getFreezeBalance() - withdrawOrder.getAmount());
+            //2 余额提现 33佣金提现
+            if (withdrawOrder.getWithdrawType() == 2) {
+                //佣金提现总额
+                user.setWithdrawQuota(user.getWithdrawQuota()+withdrawOrder.getAmount());
+                user.setWithdrawCount(user.getWithdrawCount()+1);
+                user.setHistorywithdrawcnt(user.getHistorywithdrawcnt()+1);
+            }
+            //历史总提现
+            user.setWithdrawSum(user.getWithdrawSum()+withdrawOrder.getAmount());
+            user.setTodayWithdraw(user.getTodayWithdraw()+withdrawOrder.getAmount());
+            user.setHistorywithdrawcnt(user.getHistorywithdrawcnt()+1);
             userDao.updateById(user);
 
             //记录账变明细

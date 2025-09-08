@@ -87,4 +87,10 @@ public interface MemberDao extends BaseMapper<MemberEntity> {
                                      @Param("amount") Long amount, 
                                      @Param("withdrawType") Integer withdrawType);
 
+    /**
+     * 统计会员信息汇总数据
+     * @param params 查询参数
+     * @return 汇总数据
+     */
+    Map<String, Object> selectReportSummary(@Param("params") Map<String, Object> params);
 }
