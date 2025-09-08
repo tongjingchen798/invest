@@ -48,7 +48,7 @@ public class WithdrawRuleValidator {
      */
     public BigDecimal calculateRealAmount(BigDecimal amount) {
         BigDecimal fee = calculateFee(amount);
-        return amount.add(fee);
+        return amount.subtract(fee);
     }
     
 
