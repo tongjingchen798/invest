@@ -47,12 +47,12 @@ public class PayChannelEntity {
      * usdt赠送比例
      */
     @TableField("usdt_gift_ratio")
-	private BigDecimal usdtGiftRatio;
+	private String usdtGiftRatio;
     /**
      * usdt兑当地货币汇率	
      */
     @TableField("usdt_local_currency_rate")
-	private BigDecimal usdtLocalCurrencyRate;
+	private String usdtLocalCurrencyRate;
     /**
      * 充提类型（1:充值,2:提现,3:充提）
      */

@@ -52,12 +52,12 @@ public class PayChannelEntity implements Serializable {
     /**
      * usdt赠送比例
      */
-    private BigDecimal usdtGiftRatio;
+    private String usdtGiftRatio;
 
     /**
      * usdt兑当地货币汇率
      */
-    private BigDecimal usdtLocalCurrencyRate;
+    private String usdtLocalCurrencyRate;
 
     /**
      * 创建时间

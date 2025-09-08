@@ -39,10 +39,10 @@ public class PayChannelDTO implements Serializable {
 	private Integer status;
 
 	@ApiModelProperty(value = "usdt赠送比例")
-	private BigDecimal usdtGiftRatio;
+	private String usdtGiftRatio;
 
 	@ApiModelProperty(value = "usdt兑当地货币汇率	")
-	private BigDecimal usdtLocalCurrencyRate;
+	private String usdtLocalCurrencyRate;
 
 	@ApiModelProperty(value = "充提类型（1:充值,2:提现,3:充提）")
 	private String chargeorwithdraw;
