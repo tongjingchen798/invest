@@ -2,6 +2,8 @@ package io.renren.controller;
 
 import io.renren.annotation.Login;
 import io.renren.annotation.LoginUser;
+import io.renren.common.exception.ErrorCode;
+import io.renren.common.exception.RenException;
 import io.renren.common.utils.Result;
 import io.renren.dao.*;
 import io.renren.dto.PageData;
@@ -231,7 +233,7 @@ public class ApiQdController {
             return new Result<Map<String, Object>>().ok(data);
             
         } catch (Exception e) {
-            return new Result().error("签到失败: " + e.getMessage());
+            throw new RenException(ErrorCode.SIGN_IN_FAILED);
         }
     }
     

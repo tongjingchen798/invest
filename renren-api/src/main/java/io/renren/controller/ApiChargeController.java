@@ -2,6 +2,7 @@ package io.renren.controller;
 
 import io.renren.annotation.Login;
 import io.renren.annotation.LoginUser;
+import io.renren.common.exception.ErrorCode;
 import io.renren.common.exception.RenException;
 import io.renren.common.utils.Result;
 import io.renren.dao.PayChannelDao;
@@ -22,6 +23,7 @@ import io.renren.service.WePayPaymentService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,6 +36,7 @@ import java.math.BigDecimal;
  * @email renren@gmail.com
  * @date 2024-01-01 00:00:00
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/charge")
 @Api(tags = "充值订单接口")
@@ -53,7 +56,8 @@ public class ApiChargeController {
             return new Result<ChargeOrderDetailDTO>().ok(detail);
 
         } catch (Exception e) {
-            return new Result<ChargeOrderDetailDTO>().error("获取充值订单详情失败: " + e.getMessage());
+            log.error("获取充值订单详情失败: {}", e.getMessage(), e);
+            throw new RenException(ErrorCode.CHARGE_ORDER_DETAIL_FAILED);
         }
     }
 
@@ -69,19 +73,19 @@ public class ApiChargeController {
         try {
             // 参数验证
             if (amount == null || amount <= 0) {
-                throw new RenException(500, "金额不能小于0");
+                throw new RenException(ErrorCode.CHARGE_AMOUNT_INVALID);
             }
             if (!ChargeTypeEnum.isValid(charge_type)) {
-                throw new RenException(500, "充值类型无效");
+                throw new RenException(ErrorCode.CHARGE_TYPE_INVALID);
             }
-
             // 创建充值订单
             ChargeResponseDTO responseDTO = chargeOrderService.createChargeOrder(user.getId(), amount, charge_type, channelid);
 
             return new Result<ChargeResponseDTO>().ok(responseDTO);
 
         } catch (Exception e) {
-            throw new RenException(500, "充值失败");
+            log.error("充值失败: {}", e.getMessage(), e);
+            throw new RenException(ErrorCode.CHARGE_FAILED);
         }
     }
 
@@ -95,10 +99,12 @@ public class ApiChargeController {
         try {
             // 参数验证
             if (page == null || page < 1) {
-                return new Result<ChargePageData>().error("页码必须大于0");
+                log.warn("页码参数无效: {}", page);
+                return new Result<ChargePageData>().ok(null);
             }
             if (limit == null || limit < 1 || limit > 100) {
-                return new Result<ChargePageData>().error("每页记录数必须在1-100之间");
+                log.warn("每页记录数参数无效: {}", limit);
+                return new Result<ChargePageData>().ok(null);
             }
 
             // 获取分页数据 TODO 可优化
@@ -107,7 +113,8 @@ public class ApiChargeController {
             return new Result<ChargePageData>().ok(pageData);
 
         } catch (Exception e) {
-            return new Result<ChargePageData>().error("获取资金明细失败: " + e.getMessage());
+            log.error("获取资金明细失败: {}", e.getMessage(), e);
+            throw new RenException(ErrorCode.CHARGE_PAGE_DATA_FAILED);
         }
     }
 

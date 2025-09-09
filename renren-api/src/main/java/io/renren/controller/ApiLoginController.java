@@ -4,6 +4,8 @@ package io.renren.controller;
 
 
 import io.renren.annotation.Login;
+import io.renren.common.exception.ErrorCode;
+import io.renren.common.exception.RenException;
 import io.renren.common.utils.Result;
 import io.renren.common.validator.ValidatorUtils;
 import io.renren.dto.LoginDTO;
@@ -57,7 +59,7 @@ public class ApiLoginController {
         
         // 如果没有设置设备类型，默认为未知
         if (dto.getEquipment() == null) {
-            dto.setEquipment(4); // 4:未知
+            dto.setEquipment(1);
         }
 
         //用户登录
@@ -115,7 +117,7 @@ public class ApiLoginController {
 //
 			// 验证两次密码是否一致
 			if (!dto.getPassword().equals(dto.getPassword2())) {
-				return new Result().error("两次输入的密码不一致");
+				throw new RenException(ErrorCode.PASSWORD_NOT_MATCH);
 			}
 			
 			// 验证短信验证码（这里需要根据实际业务逻辑实现）
@@ -127,11 +129,11 @@ public class ApiLoginController {
 			if (success) {
 				return new Result().ok("密码重置成功");
 			} else {
-				return new Result().error("密码重置失败，请检查手机号是否正确");
+				throw new RenException(ErrorCode.PASSWORD_RESET_FAILED);
 			}
 			
 		} catch (Exception e) {
-			return new Result().error("找回密码失败: " + e.getMessage());
+			throw new RenException(ErrorCode.FIND_PASSWORD_FAILED);
 		}
 	}
 
@@ -145,7 +147,7 @@ public class ApiLoginController {
 			
 			// 验证两次密码是否一致
 			if (!dto.getPassword().equals(dto.getPassword2())) {
-				return new Result().error("两次输入的密码不一致");
+				throw new RenException(ErrorCode.PASSWORD_NOT_MATCH);
 			}
 			
 			// 验证短信验证码（这里需要根据实际业务逻辑实现）
@@ -157,11 +159,11 @@ public class ApiLoginController {
 			if (success) {
 				return new Result().ok("密码修改成功");
 			} else {
-				return new Result().error("密码修改失败");
+				throw new RenException(ErrorCode.PASSWORD_CHANGE_FAILED);
 			}
 			
 		} catch (Exception e) {
-			return new Result().error("修改密码失败: " + e.getMessage());
+			throw new RenException(ErrorCode.PASSWORD_CHANGE_FAILED);
 		}
 	}
 

@@ -202,12 +202,12 @@ public class ApiRegisterController {
         
         // 验证手机号格式
         if (mobile == null || mobile.trim().isEmpty()) {
-            return new Result().error("手机号不能为空");
+            throw new RenException(ErrorCode.PHONE_NUMBER_EMPTY);
         }
         
         // 验证手机号格式（10位数字）
         if (!mobile.matches("^\\d{10}$")) {
-            return new Result().error("手机号格式错误");
+            throw new RenException(ErrorCode.PHONE_NUMBER_FORMAT_ERROR);
         }
         
         try {
@@ -223,11 +223,11 @@ public class ApiRegisterController {
                 
                 return new Result().ok("验证码发送成功");
             } else {
-                return new Result().error("验证码发送失败，请稍后重试");
+                throw new RenException(ErrorCode.VERIFICATION_CODE_SEND_FAILED);
             }
             
         } catch (Exception e) {
-            return new Result().error("系统异常，请稍后重试");
+            throw new RenException(ErrorCode.SYSTEM_EXCEPTION);
         }
     }
     

@@ -3,12 +3,15 @@ package io.renren.controller;
 
 import io.renren.annotation.Login;
 import io.renren.annotation.LoginUser;
+import io.renren.common.exception.ErrorCode;
+import io.renren.common.exception.RenException;
 import io.renren.common.utils.Result;
 import io.renren.common.validator.ValidatorUtils;
 import io.renren.dto.PayInfoDTO;
 import io.renren.entity.UserEntity;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -54,10 +57,9 @@ public class ApiPayInfoController {
         // 参数校验
         ValidatorUtils.validateEntity(dto);
 
-//        if(StringUtils.isBlank(dto.getCode())){
-//            throw new RenException(20001);
-////            return new Result().error(ErrorCode.INVALID_CODE,"You haven't got the verification code, please get it");
-//        }
+         if(StringUtils.isBlank(dto.getCode())){
+             throw new RenException(ErrorCode.VERIFICATION_CODE_NOT_FOUND);
+         }
 
         // 检查是否已存在相同的银行账号
         QueryWrapper<PayInfoEntity> queryWrapper = new QueryWrapper<>();
@@ -65,7 +67,7 @@ public class ApiPayInfoController {
                    .eq("user_id", user.getId());
         List<PayInfoEntity> existList = PayInfoDao.selectList(queryWrapper);
         if (existList != null && !existList.isEmpty()) {
-            return new Result().error("该银行账号已存在");
+            throw new RenException(ErrorCode.BANK_ACCOUNT_EXISTS);
         }
 
         // 转换为实体对象
@@ -116,7 +118,7 @@ public class ApiPayInfoController {
     public Result delete(@RequestBody List<Long> ids, @LoginUser UserEntity user) {
         // 参数校验
         if (ids == null || ids.isEmpty()) {
-            return new Result().error("请选择要删除的支付信息");
+            throw new RenException(ErrorCode.PAYMENT_INFO_DELETE_ERROR);
         }
         
         // TODO: 可以添加权限校验，确保只能删除自己的支付信息

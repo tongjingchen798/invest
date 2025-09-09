@@ -39,7 +39,6 @@ public class ApiAdvertisementController {
         @ApiImplicitParam(name = "type", value = "广告类型 1=LOG,2=轮播图，3=个人中心 4=弹窗广告", paramType = "query", required = false, dataType = "string")
     })
     public Result<PageData<AdvertisementDTO>> page(@ApiIgnore @RequestParam Map<String, Object> params) {
-        try {
             if (!params.containsKey("page")) {
                 params.put("page", "1");
             }
@@ -48,9 +47,6 @@ public class ApiAdvertisementController {
             }
             PageData<AdvertisementDTO> pageData = advertisementService.getPage(params);
             return new Result<PageData<AdvertisementDTO>>().ok(pageData);
-        } catch (Exception e) {
-            return new Result<PageData<AdvertisementDTO>>().error("查询失败：" + e.getMessage());
-        }
     }
 
 }

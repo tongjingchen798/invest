@@ -2,6 +2,8 @@ package io.renren.controller;
 
 import io.renren.annotation.Login;
 import io.renren.annotation.LoginUser;
+import io.renren.common.exception.ErrorCode;
+import io.renren.common.exception.RenException;
 import io.renren.common.utils.Result;
 import io.renren.dto.UserTaskInfoDTO;
 import io.renren.entity.UserEntity;
@@ -38,7 +40,7 @@ public class ApiUserTaskInfoController {
             UserTaskInfoDTO taskInfo = userTaskInfoService.getUserTaskInfo(user.getId());
             return new Result().ok(taskInfo);
         } catch (Exception e) {
-            return new Result().error("获取用户任务信息失败: " + e.getMessage());
+            throw new RenException(ErrorCode.USER_TASK_INFO_FAILED);
         }
     }
 }
