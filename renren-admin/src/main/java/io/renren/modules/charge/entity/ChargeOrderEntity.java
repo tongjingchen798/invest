@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -98,17 +99,17 @@ public class ChargeOrderEntity implements Serializable {
     /**
      * U金额
      */
-    private Long uamout;
+    private BigDecimal uamout;
 
     /**
      * U价格
      */
-    private Long uprice;
+    private BigDecimal uprice;
 
     /**
      * U实际支付金额
      */
-    private Long uRealAmout;
+    private BigDecimal uRealAmout;
 
     /**
      * 钱包ID

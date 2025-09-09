@@ -1,19 +1,14 @@
 package io.renren.service.impl;
 
+import io.renren.common.exception.RenException;
 import io.renren.common.service.impl.BaseServiceImpl;
-import io.renren.dao.ChargeOrderDao;
-import io.renren.dao.PayChannelDao;
-import io.renren.dao.PayMerchantDao;
-import io.renren.dao.UserDao;
-import io.renren.dto.ChargeOrderDetailDTO;
-import io.renren.dto.ChargePageData;
-import io.renren.dto.UserChargeInfoDTO;
-import io.renren.entity.ChargeOrderEntity;
-import io.renren.entity.PayChannelEntity;
-import io.renren.entity.PayMerchantEntity;
-import io.renren.entity.UserEntity;
+import io.renren.dao.*;
+import io.renren.dto.*;
+import io.renren.entity.*;
 import io.renren.enums.ChargeTypeEnum;
 import io.renren.service.ChargeOrderService;
+import io.renren.service.WePayPaymentService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -49,6 +44,15 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
 
     @Autowired
     private PayMerchantDao  payMerchantDao;
+
+    @Autowired
+    private WePayPaymentService wePayPaymentService;
+
+    @Autowired
+    private SysParamsDao sysParamsDao;
+
+    @Autowired
+    private UAddressConfigDao uAddressConfigDao;
 
     @Override
     public ChargeOrderDetailDTO getChargeOrderDetail(Long userId) {
@@ -200,8 +204,7 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
             
             // 业务员信息
             dto.setSalesmanid(order.getSalesmanid());
-            dto.setSalesmanName("");
-            
+
             // 其他字段
 //            dto.setBiaoqian(order.getBiaoqian());
 //            dto.setLiebian(order.getLiebian());
@@ -210,9 +213,9 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
             dto.setRemark(order.getRemark());
             
             // USDT相关
-            dto.setUprice(order.getUprice() != null ? new BigDecimal(order.getUprice()) : BigDecimal.ZERO);
-            dto.setUamout(order.getUamout() != null ? new BigDecimal(order.getUamout()) : BigDecimal.ZERO);
-            dto.setURealAmout(order.getURealAmout() != null ? new BigDecimal(order.getURealAmout()) : BigDecimal.ZERO);
+            dto.setUprice(order.getUprice());
+            dto.setUamout(order.getUamout());
+            dto.setURealAmout(order.getURealAmout());
             
             // 钱包信息
             dto.setWalletAddr(order.getWalletAddr());
@@ -234,48 +237,73 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
         return result;
     }
 
-    /**
-     * 计算汇总数据
-     */
-    private Map<String, Object> calculateSummary(List<ChargeOrderEntity> orders) {
-        Map<String, Object> summary = new HashMap<>();
-        
-        if (orders != null && !orders.isEmpty()) {
-            long totalAmount = 0;
-            long totalRealAmount = 0;
-            long totalUAmount = 0;
-            
-            for (ChargeOrderEntity order : orders) {
-                if (order.getAmount() != null) totalAmount += order.getAmount();
-                if (order.getRealAmount() != null) totalRealAmount += order.getRealAmount();
-                if (order.getUamout() != null) totalUAmount += order.getUamout();
-            }
-            
-            summary.put("totalAmount", totalAmount);
-            summary.put("totalRealAmount", totalRealAmount);
-            summary.put("totalUAmount", totalUAmount);
-            summary.put("totalCount", orders.size());
-        } else {
-            summary.put("totalAmount", 0);
-            summary.put("totalRealAmount", 0);
-            summary.put("totalUAmount", 0);
-            summary.put("totalCount", 0);
-        }
-        
-        return summary;
-    }
+//    /**
+//     * 计算汇总数据
+//     */
+//    private Map<String, Object> calculateSummary(List<ChargeOrderEntity> orders) {
+//        Map<String, Object> summary = new HashMap<>();
+//
+//        if (orders != null && !orders.isEmpty()) {
+//            long totalAmount = 0;
+//            long totalRealAmount = 0;
+//            long totalUAmount = 0;
+//
+//            for (ChargeOrderEntity order : orders) {
+//                if (order.getAmount() != null) totalAmount += order.getAmount();
+//                if (order.getRealAmount() != null) totalRealAmount += order.getRealAmount();
+//                if (order.getUamout() != null) totalUAmount += order.getUamout();
+//            }
+//
+//            summary.put("totalAmount", totalAmount);
+//            summary.put("totalRealAmount", totalRealAmount);
+//            summary.put("totalUAmount", totalUAmount);
+//            summary.put("totalCount", orders.size());
+//        } else {
+//            summary.put("totalAmount", 0);
+//            summary.put("totalRealAmount", 0);
+//            summary.put("totalUAmount", 0);
+//            summary.put("totalCount", 0);
+//        }
+//
+//        return summary;
+//    }
 
     @Override
-    public String createChargeOrder(Long userId, Long amount, Integer chargeType, Long channelid) {
-        try {
+    public ChargeResponseDTO createChargeOrder(Long userId, Long amount, Integer chargeType, Long channelid) {
+            PayChannelEntity payChannelEntity = payChannelDao.selectById(channelid);
+            if (payChannelEntity == null) {
+                throw new RenException(500, "通道已关闭");
+            }
+            PayMerchantEntity payMerchantEntity = payMerchantDao.selectById(payChannelEntity.getMerchantid());
+            if (payMerchantEntity == null) {
+                throw new RenException(500, "商户已停用");
+            }
             // 生成订单号
             String orderno = generateOrderNo();
             UserEntity user=userDao.selectById(userId);
             // 创建充值订单实体
             ChargeOrderEntity chargeOrder = new ChargeOrderEntity();
             chargeOrder.setUserId(userId);
-            chargeOrder.setAmount(amount);
-            chargeOrder.setRealAmount(amount);
+            if(chargeType==2){
+                String usdtSysPrice = sysParamsDao.getValueByCode("usdtsysprice");
+                String usdtRealPrice = sysParamsDao.getValueByCode("usdtrealprice");
+
+                Long usdtSysPriceAmount=Long.parseLong(usdtSysPrice);
+                Long usdtRealPriceAmount=Long.parseLong(usdtRealPrice);
+                chargeOrder.setAmount(amount*usdtSysPriceAmount);
+                chargeOrder.setRealAmount(amount*usdtRealPriceAmount);
+                UAddressConfigEntity uAddressConfigEntity=uAddressConfigDao.selectAddrLimit();
+                if(uAddressConfigEntity!=null){
+                    chargeOrder.setWalletAddr(uAddressConfigEntity.getAddr());
+                    chargeOrder.setWalletId(uAddressConfigEntity.getId());
+                }
+                chargeOrder.setUamout(new BigDecimal(amount/100));
+                chargeOrder.setUprice(new BigDecimal(usdtSysPrice));
+                chargeOrder.setURealAmout(new BigDecimal(usdtRealPrice));
+            }else {
+                chargeOrder.setAmount(amount);
+                chargeOrder.setRealAmount(amount);
+            }
             chargeOrder.setOrderno(orderno);
             chargeOrder.setState(0); // 待审核
             chargeOrder.setCreateTime(new Date());
@@ -290,37 +318,70 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
             chargeOrder.setAgent(user.getAgent());
             chargeOrder.setSalesmanid(user.getSalesmanid());
             chargeOrder.setRemark("前端充值");
-            PayChannelEntity payChannelEntity=payChannelDao.selectById(chargeOrder.getChannelid());
-            if(payChannelEntity!=null){
-                chargeOrder.setMerchantid(payChannelEntity.getMerchantid());
-                PayMerchantEntity payMerchantEntity=payMerchantDao.selectById(payChannelEntity.getMerchantid());
-                if(payMerchantEntity!=null){
-                    chargeOrder.setMerchantname(payMerchantEntity.getMerchantname());
-                }
-            }
-
+            chargeOrder.setMerchantname(payMerchantEntity.getMerchantname());
             // 设置支付通道ID
             chargeOrder.setChannelid(channelid);
-            
             // 根据充值类型设置相关字段
             setChargeTypeFields(chargeOrder, chargeType);
-            
             // 保存到数据库
             chargeOrderDao.insert(chargeOrder);
-            
-            return orderno;
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("创建充值订单失败: " + e.getMessage());
-        }
+
+            // 构建充值响应数据
+            ChargeResponseDTO responseDTO = new ChargeResponseDTO();
+            responseDTO.setOrderNo(orderno);
+            responseDTO.setMerchantNo(payMerchantEntity.getMerchantno());
+            responseDTO.setAmount(amount);
+
+            // 根据充值类型设置不同的响应数据
+            ChargeTypeEnum chargeTypeEnum = ChargeTypeEnum.getByCode(chargeType);
+            if (chargeTypeEnum != null) {
+                switch (chargeTypeEnum) {
+                    case CRYPTO:
+                        responseDTO.setMerchantNo(payMerchantEntity.getMerchantno());
+                        responseDTO.setUsdtInfo(
+                                chargeOrder.getWalletAddr(), // USDT地址
+                                chargeOrder.getUamout(), // u数量
+                                chargeOrder.getUprice(),   // u价格
+                                chargeOrder.getURealAmout()  // 实际支付u数量
+                        );
+                        // USDT充值不设置payUrl
+                        responseDTO.setPayUrl("");
+                        responseDTO.setPOrderNo(orderno);
+                        responseDTO.setErrorCode(0);
+                        break;
+
+                    case UPI:
+                    case PAYTM:
+                    case BANK_CARD:
+                        // 其他支付方式，设置支付相关信息
+                        responseDTO.setUamount(BigDecimal.ZERO);
+                        responseDTO.setUprice(BigDecimal.ZERO);
+                        responseDTO.setURealAmount(BigDecimal.ZERO);
+
+                        // 调用WePay支付服务创建支付订单 分转换为元
+                        PaymentResponseDTO paymentResponse = wePayPaymentService.createPaymentOrder(
+                                user, amount/100, orderno, payChannelEntity, payMerchantEntity);
+
+                        // 设置支付地址
+                        String payUrl = "";
+                        if (paymentResponse.getData() != null) {
+                            payUrl = paymentResponse.getData().getPayUrl();
+                        }
+                        responseDTO.setBankCardInfo(payUrl);
+                        responseDTO.setPOrderNo(paymentResponse.getData().getTradeNo());
+                        responseDTO.setErrorCode(0);
+                        break;
+                }
+            }
+            responseDTO.setFlag(1); //2是内部
+            return responseDTO;
     }
 
     /**
      * 生成订单号
      */
     private String generateOrderNo() {
-        return "CHG" + System.currentTimeMillis() + String.format("%04d", (int)(Math.random() * 10000));
+        return "R" + System.currentTimeMillis() + String.format("%04d", (int)(Math.random() * 10000));
     }
 
     /**

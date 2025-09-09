@@ -5,12 +5,14 @@ import io.renren.dao.PayChannelDao;
 import io.renren.dao.SysParamsDao;
 import io.renren.dto.PayChannelDTO;
 import io.renren.entity.PayChannelEntity;
+import io.renren.service.USDTRechargeService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
@@ -35,6 +37,9 @@ public class ApiPayChannelController {
     
     @Autowired
     private SysParamsDao sysParamsDao;
+    
+    @Autowired
+    private USDTRechargeService usdtRechargeService;
 
     @GetMapping("getPay")
     @ApiOperation("查询支付方式")
@@ -115,5 +120,31 @@ public class ApiPayChannelController {
         }
         
         return dto;
+    }
+    
+    @PostMapping("generateUSDTQRCode")
+    @ApiOperation("生成USDT充值二维码")
+    public Result<Map<String, Object>> generateUSDTQRCode(
+            @ApiParam(value = "充值金额（可选）", required = false) @RequestParam(required = false) String amount) {
+        try {
+            Map<String, Object> result = usdtRechargeService.generateUSDTRechargeQRCode(amount);
+            return new Result<Map<String, Object>>().ok(result);
+        } catch (Exception e) {
+            return new Result<Map<String, Object>>().error("生成USDT充值二维码失败: " + e.getMessage());
+        }
+    }
+    
+    @GetMapping("getUSDTAddress")
+    @ApiOperation("获取USDT-TRC20地址")
+    public Result<String> getUSDTAddress() {
+        try {
+            String usdtAddress = usdtRechargeService.getUSDTAddress();
+            if (usdtAddress == null || usdtAddress.isEmpty()) {
+                return new Result<String>().error("USDT-TRC20地址未配置");
+            }
+            return new Result<String>().ok(usdtAddress);
+        } catch (Exception e) {
+            return new Result<String>().error("获取USDT地址失败: " + e.getMessage());
+        }
     }
 }

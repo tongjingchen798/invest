@@ -32,6 +32,17 @@
             <artifactId>okhttp</artifactId>
             <version>4.10.0</version>
         </dependency>
+        <!-- ZXing二维码生成依赖 -->
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>3.5.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>javase</artifactId>
+            <version>3.5.1</version>
+        </dependency>
     </dependencies>
 
 	<build>

@@ -6,12 +6,15 @@ import io.renren.common.exception.RenException;
 import io.renren.common.utils.Result;
 import io.renren.dao.PayChannelDao;
 import io.renren.dao.PayMerchantDao;
+import io.renren.dao.SysParamsDao;
+import io.renren.dao.UAddressConfigDao;
 import io.renren.dto.ChargeOrderDetailDTO;
 import io.renren.dto.ChargePageData;
 import io.renren.dto.ChargeResponseDTO;
 import io.renren.dto.PaymentResponseDTO;
 import io.renren.entity.PayChannelEntity;
 import io.renren.entity.PayMerchantEntity;
+import io.renren.entity.UAddressConfigEntity;
 import io.renren.entity.UserEntity;
 import io.renren.enums.ChargeTypeEnum;
 import io.renren.service.ChargeOrderService;
@@ -38,15 +41,7 @@ public class ApiChargeController {
 
     @Autowired
     private ChargeOrderService chargeOrderService;
-    @Autowired
-    private PayChannelDao payChannelDao;
 
-    @Autowired
-    private PayMerchantDao payMerchantDao;
-
-    
-    @Autowired
-    private WePayPaymentService wePayPaymentService;
 
     @Login
     @PostMapping("orderdetail")
@@ -79,64 +74,10 @@ public class ApiChargeController {
             if (!ChargeTypeEnum.isValid(charge_type)) {
                 throw new RenException(500, "充值类型无效");
             }
-            PayChannelEntity payChannelEntity = payChannelDao.selectById(channelid);
-            if (payChannelEntity == null) {
-                throw new RenException(500, "通道已关闭");
-            }
-            PayMerchantEntity payMerchantEntity = payMerchantDao.selectById(payChannelEntity.getMerchantid());
-            if (payMerchantEntity == null) {
-                throw new RenException(500, "商户已停用");
-            }
 
             // 创建充值订单
-            String orderno = chargeOrderService.createChargeOrder(user.getId(), amount, charge_type, channelid);
-            // 构建充值响应数据
-            ChargeResponseDTO responseDTO = new ChargeResponseDTO();
-            responseDTO.setOrderNo(orderno);
-            responseDTO.setMerchantNo(payMerchantEntity.getMerchantno());
-            responseDTO.setAmount(amount);
+            ChargeResponseDTO responseDTO = chargeOrderService.createChargeOrder(user.getId(), amount, charge_type, channelid);
 
-            // 根据充值类型设置不同的响应数据
-            ChargeTypeEnum chargeTypeEnum = ChargeTypeEnum.getByCode(charge_type);
-            if (chargeTypeEnum != null) {
-                switch (chargeTypeEnum) {
-                    case CRYPTO:
-                        // 虚拟币充值，设置USDT相关信息
-                        responseDTO.setMerchantNo("usdt");
-                        responseDTO.setUsdtInfo(
-                                "TVsCfPDWy8EZCFBgjzEXRtSZvr5r96w3U3", // USDT地址
-                                new BigDecimal("299.951"), // u数量
-                                new BigDecimal("97.50"),   // u价格
-                                new BigDecimal("299.951")  // 实际支付u数量
-                        );
-                        // USDT充值不设置payUrl
-                        responseDTO.setPayUrl("");
-                        break;
-
-                    case UPI:
-                    case PAYTM:
-                    case BANK_CARD:
-                        // 其他支付方式，设置支付相关信息
-                        responseDTO.setUamount(BigDecimal.ZERO);
-                        responseDTO.setUprice(BigDecimal.ZERO);
-                        responseDTO.setURealAmount(BigDecimal.ZERO);
-
-                        // 调用WePay支付服务创建支付订单 分转换为元
-                        PaymentResponseDTO paymentResponse = wePayPaymentService.createPaymentOrder(
-                                user, amount/100, orderno, payChannelEntity, payMerchantEntity);
-
-                        // 设置支付地址
-                        String payUrl = "";
-                        if (paymentResponse.getData() != null) {
-                            payUrl = paymentResponse.getData().getPayUrl();
-                        }
-                        responseDTO.setBankCardInfo(payUrl);
-                        responseDTO.setPOrderNo(paymentResponse.getData().getTradeNo());
-                        responseDTO.setErrorCode(0);
-                        break;
-                }
-            }
-            responseDTO.setFlag(1); //2是内部
             return new Result<ChargeResponseDTO>().ok(responseDTO);
 
         } catch (Exception e) {
@@ -160,7 +101,7 @@ public class ApiChargeController {
                 return new Result<ChargePageData>().error("每页记录数必须在1-100之间");
             }
 
-            // 获取分页数据
+            // 获取分页数据 TODO 可优化
             ChargePageData pageData = chargeOrderService.getChargePageData(user.getId(), page, limit);
 
             return new Result<ChargePageData>().ok(pageData);
