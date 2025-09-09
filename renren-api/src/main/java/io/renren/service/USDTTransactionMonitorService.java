@@ -1,5 +1,6 @@
 package io.renren.service;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -11,14 +12,22 @@ import java.util.Map;
 public interface USDTTransactionMonitorService {
     
     /**
-     * 监控USDT转账
+     * 定时拉取USDT交易记录并存储到U收款记录表
      *
      * @param usdtAddress USDT地址
-     * @param amount  平台币
-     * @param userId 用户ID
-     * @return 监控结果
      */
-    Map<String, Object> monitorUSDTTransaction(String usdtAddress, Long amount, Long userId);
+    void fetchAndStoreUSDTTransactions(String usdtAddress);
+    
+    /**
+     * 匹配U收款记录与充值订单
+     *
+     * @param usdtAddress USDT地址
+     * @param amount 期望金额
+     * @param userId 用户ID
+     * @return 匹配结果
+     */
+    Map<String, Object> matchUSDTRecords(String usdtAddress, Long amount, Long userId);
+    
     
     /**
      * 检查特定地址的USDT余额
@@ -37,4 +46,12 @@ public interface USDTTransactionMonitorService {
      * @return 验证结果
      */
     Map<String, Object> verifyUSDTTransaction(String txHash, String usdtAddress, Long amount);
+    
+    /**
+     * 获取未匹配的U收款记录
+     *
+     * @param usdtAddress USDT地址
+     * @return 未匹配的记录列表
+     */
+    List<Map<String, Object>> getUnmatchedUSDTRecords(String usdtAddress);
 }

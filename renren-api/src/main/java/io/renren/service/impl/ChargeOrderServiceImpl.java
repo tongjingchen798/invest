@@ -335,7 +335,7 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
             ChargeTypeEnum chargeTypeEnum = ChargeTypeEnum.getByCode(chargeType);
             if (chargeTypeEnum != null) {
                 switch (chargeTypeEnum) {
-                    case CRYPTO:
+                    case USDT:
                         responseDTO.setMerchantNo(payMerchantEntity.getMerchantno());
                         responseDTO.setUsdtInfo(
                                 chargeOrder.getWalletAddr(), // USDT地址

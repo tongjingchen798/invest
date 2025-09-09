@@ -10,7 +10,7 @@ package io.renren.enums;
 public enum ChargeTypeEnum {
     
     BANK_CARD(1, "银行卡", "bank", "bank_transfer"),
-    CRYPTO(2, "虚拟币", "crypto", "crypto_payment"),
+    USDT(2, "虚拟币", "usdt", "usdt"),
     UPI(3, "UPI", "upi", "upi_payment"),
     PAYTM(4, "Paytm", "paytm", "paytm_payment");
 
