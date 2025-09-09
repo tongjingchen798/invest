@@ -1,5 +1,7 @@
 package io.renren.utils;
 
+import io.renren.common.exception.ErrorCode;
+import io.renren.common.exception.RenException;
 import io.renren.common.redis.RedisUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -184,7 +186,7 @@ public class RedisDistributedLock {
     public <T> T executeWithLock(String lockKey, long waitTime, long expireTime, LockAction<T> action) throws Exception {
         String lockValue = lock(lockKey, waitTime, expireTime);
         if (lockValue == null) {
-            throw new RuntimeException("获取锁失败: " + lockKey);
+            throw new RenException(ErrorCode.ACQUIRE_LOCK_FAILED);
         }
         
         try {

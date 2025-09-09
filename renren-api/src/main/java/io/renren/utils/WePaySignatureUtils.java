@@ -33,9 +33,7 @@ public class WePaySignatureUtils {
 
             // 第二步：拼接key
             String stringSignTemp = stringA + "&key=" + key;
-
             log.info("待签名值：{}", stringSignTemp);
-
             // 第三步：MD5加密并转小写
             String signValue = DigestUtil.md5Hex(stringSignTemp).toLowerCase();
 
@@ -44,7 +42,7 @@ public class WePaySignatureUtils {
             return signValue;
         } catch (Exception e) {
             log.error("生成签名失败", e);
-            throw new RuntimeException("生成签名失败", e);
+            return "";
         }
     }
 

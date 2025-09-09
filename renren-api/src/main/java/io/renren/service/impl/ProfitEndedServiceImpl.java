@@ -1,5 +1,7 @@
 package io.renren.service.impl;
 
+import io.renren.common.exception.ErrorCode;
+import io.renren.common.exception.RenException;
 import io.renren.dao.InvestmentRecordDao;
 import io.renren.dao.UserBalanceDetailDao;
 import io.renren.dto.ProfitEndedDTO;
@@ -44,7 +46,7 @@ public class ProfitEndedServiceImpl implements ProfitEndedService {
             
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("获取付息还本记录失败: " + e.getMessage());
+            throw new RenException(ErrorCode.GET_PROFIT_ENDED_RECORD_FAILED);
         }
     }
 
@@ -81,7 +83,7 @@ public class ProfitEndedServiceImpl implements ProfitEndedService {
             
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("获取投资中项目统计失败: " + e.getMessage());
+            throw new RenException(ErrorCode.GET_INVESTMENT_PROJECT_STATS_FAILED);
         }
     }
 

@@ -2,6 +2,8 @@ package io.renren.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.renren.common.exception.ErrorCode;
+import io.renren.common.exception.RenException;
 import io.renren.dao.UserBalanceDetailDao;
 import io.renren.dao.UserDao;
 import io.renren.dto.BalanceDetailDTO;
@@ -65,7 +67,7 @@ public class BalanceDetailServiceImpl implements BalanceDetailService {
             
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("获取资金明细失败: " + e.getMessage());
+            throw new RenException(ErrorCode.GET_BALANCE_DETAIL_FAILED);
         }
     }
     @Override
@@ -100,7 +102,7 @@ public class BalanceDetailServiceImpl implements BalanceDetailService {
 
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("获取资金明细失败: " + e.getMessage());
+            throw new RenException(ErrorCode.GET_BALANCE_DETAIL_FAILED);
         }
     }
 

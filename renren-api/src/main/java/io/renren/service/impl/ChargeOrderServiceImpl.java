@@ -1,5 +1,6 @@
 package io.renren.service.impl;
 
+import io.renren.common.exception.ErrorCode;
 import io.renren.common.exception.RenException;
 import io.renren.common.service.impl.BaseServiceImpl;
 import io.renren.dao.*;
@@ -84,7 +85,7 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
             // 根据订单号查询充值订单
             ChargeOrderEntity order = chargeOrderDao.selectByOrderno(orderNo);
             if (order == null) {
-                throw new RuntimeException("订单不存在: " + orderNo);
+                throw new RenException(ErrorCode.ORDER_NOT_EXISTS);
             }
             
             // 转换为DTO
@@ -95,7 +96,7 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
             
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("获取充值订单详情失败: " + e.getMessage());
+            throw new RenException(ErrorCode.GET_CHARGE_ORDER_DETAIL_FAILED);
         }
     }
 
@@ -155,7 +156,7 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
             
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("获取充值分页数据失败: " + e.getMessage());
+            throw new RenException(ErrorCode.GET_CHARGE_PAGE_DATA_FAILED);
         }
     }
 

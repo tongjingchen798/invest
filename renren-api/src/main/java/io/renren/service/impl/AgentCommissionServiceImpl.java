@@ -1,5 +1,6 @@
 package io.renren.service.impl;
 
+import io.renren.common.exception.ErrorCode;
 import io.renren.common.exception.RenException;
 import io.renren.dao.UserDao;
 import io.renren.dao.WithdrawOrderDao;
@@ -57,7 +58,7 @@ public class AgentCommissionServiceImpl implements AgentCommissionService {
             return myAgent;
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("获取代理佣金信息失败: " + e.getMessage());
+            throw new RenException(ErrorCode.GET_AGENT_COMMISSION_INFO_FAILED);
         }
     }
 
@@ -274,7 +275,7 @@ public class AgentCommissionServiceImpl implements AgentCommissionService {
             return agentCenter;
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("获取代理中心数据失败: " + e.getMessage());
+            throw new RenException(ErrorCode.GET_AGENT_CENTER_DATA_FAILED);
         }
     }
 }

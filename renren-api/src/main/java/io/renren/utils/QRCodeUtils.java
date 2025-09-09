@@ -7,6 +7,8 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
+import io.renren.common.exception.ErrorCode;
+import io.renren.common.exception.RenException;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -50,7 +52,7 @@ public class QRCodeUtils {
             BufferedImage image = generateQRCodeImage(content, width, height);
             return imageToBase64(image);
         } catch (Exception e) {
-            throw new RuntimeException("生成二维码失败: " + e.getMessage(), e);
+            throw new RenException(ErrorCode.GENERATE_QR_CODE_FAILED);
         }
     }
     
@@ -86,7 +88,7 @@ public class QRCodeUtils {
             byte[] imageBytes = baos.toByteArray();
             return "data:image/png;base64," + Base64.getEncoder().encodeToString(imageBytes);
         } catch (IOException e) {
-            throw new RuntimeException("图片转换失败: " + e.getMessage(), e);
+            throw new RenException(ErrorCode.IMAGE_CONVERSION_FAILED);
         }
     }
     

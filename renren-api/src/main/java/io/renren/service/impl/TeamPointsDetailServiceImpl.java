@@ -2,6 +2,8 @@ package io.renren.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.renren.common.exception.ErrorCode;
+import io.renren.common.exception.RenException;
 import io.renren.dao.UserBalanceDetailDao;
 import io.renren.dto.TeamPointsDetailDTO;
 import io.renren.dto.TeamPointsDetailPageData;
@@ -59,7 +61,7 @@ public class TeamPointsDetailServiceImpl implements TeamPointsDetailService {
             
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("获取积分明细失败: " + e.getMessage());
+            throw new RenException(ErrorCode.GET_TEAM_POINTS_DETAIL_FAILED);
         }
     }
 

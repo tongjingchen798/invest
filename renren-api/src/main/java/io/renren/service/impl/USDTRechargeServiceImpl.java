@@ -1,6 +1,7 @@
 package io.renren.service.impl;
 
-import io.renren.dao.SysParamsDao;
+import io.renren.common.exception.ErrorCode;
+import io.renren.common.exception.RenException;
 import io.renren.dao.UAddressConfigDao;
 import io.renren.entity.UAddressConfigEntity;
 import io.renren.service.USDTRechargeService;
@@ -20,9 +21,7 @@ import java.util.Map;
 @Service
 public class USDTRechargeServiceImpl implements USDTRechargeService {
     
-    @Autowired
-    private SysParamsDao sysParamsDao;
-    
+
     @Autowired
     private UAddressConfigDao uAddressConfigDao;
     
@@ -33,7 +32,7 @@ public class USDTRechargeServiceImpl implements USDTRechargeService {
         // 获取USDT-TRC20地址
         String usdtAddress = getUSDTAddress();
         if (usdtAddress == null || usdtAddress.isEmpty()) {
-            throw new RuntimeException("USDT-TRC20地址未配置");
+            throw new RenException(ErrorCode.USDT_ADDRESS_NOT_CONFIGURED);
         }
         
         // 生成二维码

@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.renren.common.exception.ErrorCode;
 import io.renren.common.exception.RenException;
-import io.renren.common.utils.Result;
 import io.renren.config.WithdrawConfig;
 import io.renren.dao.PayChannelDao;
 import io.renren.dao.PayInfoDao;
@@ -22,7 +21,6 @@ import io.renren.entity.WithdrawOrderEntity;
 import io.renren.service.WithdrawService;
 import io.renren.utils.RedisDistributedLock;
 import io.renren.utils.WithdrawRuleValidator;
-import io.renren.utils.WithdrawRuleValidator.ValidationResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -120,7 +118,7 @@ public class WithdrawServiceImpl implements WithdrawService {
 
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("获取提现分页数据失败: " + e.getMessage());
+            throw new RenException(ErrorCode.GET_WITHDRAWAL_PAGE_DATA_FAILED);
         }
     }
 
@@ -153,7 +151,7 @@ public class WithdrawServiceImpl implements WithdrawService {
 
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("获取佣金提现分页数据失败: " + e.getMessage());
+            throw new RenException(ErrorCode.GET_COMMISSION_WITHDRAWAL_PAGE_DATA_FAILED);
         }
     }
 
@@ -437,7 +435,7 @@ public class WithdrawServiceImpl implements WithdrawService {
 
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("获取佣金提现统计失败: " + e.getMessage());
+            throw new RenException(ErrorCode.GET_COMMISSION_WITHDRAWAL_STATS_FAILED);
         }
     }
 

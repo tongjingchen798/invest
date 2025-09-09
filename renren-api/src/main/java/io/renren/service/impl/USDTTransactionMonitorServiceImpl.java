@@ -3,6 +3,8 @@ package io.renren.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import io.renren.common.exception.ErrorCode;
+import io.renren.common.exception.RenException;
 import io.renren.dao.ChargeOrderDao;
 import io.renren.dao.UserBalanceDetailDao;
 import io.renren.dao.UserDao;
@@ -422,7 +424,7 @@ public class USDTTransactionMonitorServiceImpl implements USDTTransactionMonitor
             
             usdtRecordDao.updateById(record);
         } catch (Exception e) {
-            throw new RuntimeException("更新U收款记录失败", e);
+            throw new RenException(ErrorCode.UPDATE_USDT_RECORD_FAILED);
         }
     }
     
@@ -516,7 +518,7 @@ public class USDTTransactionMonitorServiceImpl implements USDTTransactionMonitor
             
             chargeOrderDao.updateById(order);
         } catch (Exception e) {
-            throw new RuntimeException("更新充值订单状态失败", e);
+            throw new RenException(ErrorCode.UPDATE_CHARGE_ORDER_STATUS_FAILED);
         }
     }
     
@@ -528,7 +530,7 @@ public class USDTTransactionMonitorServiceImpl implements USDTTransactionMonitor
             // 获取用户信息
             UserEntity user = userDao.selectById(userId);
             if (user == null) {
-                throw new RuntimeException("用户不存在: " + userId);
+                throw new RenException(ErrorCode.USER_NOT_EXISTS);
             }
             
             // 创建账变记录
@@ -553,7 +555,7 @@ public class USDTTransactionMonitorServiceImpl implements USDTTransactionMonitor
             // 插入账变记录
             userBalanceDetailDao.insert(balanceDetail);
         } catch (Exception e) {
-            throw new RuntimeException("记录USDT充值账变明细失败", e);
+            throw new RenException(ErrorCode.RECORD_USDT_RECHARGE_BALANCE_DETAIL_FAILED);
         }
     }
     
@@ -622,7 +624,7 @@ public class USDTTransactionMonitorServiceImpl implements USDTTransactionMonitor
             // 插入记录
             usdtRecordDao.insert(usdtRecord);
         } catch (Exception e) {
-            throw new RuntimeException("创建U收款记录失败", e);
+            throw new RenException(ErrorCode.CREATE_USDT_RECORD_FAILED);
         }
     }
     
