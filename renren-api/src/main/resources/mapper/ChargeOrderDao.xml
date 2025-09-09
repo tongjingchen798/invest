@@ -52,6 +52,15 @@
         SELECT * FROM tb_charge_order 
         WHERE threeorder_no = #{threeorderNo}
     </select>
+    
+    <!-- 查询待处理的USDT充值订单 -->
+    <select id="selectPendingUSDTOrders" resultMap="chargeOrderMap">
+        SELECT * FROM tb_charge_order 
+        WHERE channel_type = 'USDT' 
+        AND state = 0 
+        AND create_time > UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 HOUR)) * 1000
+        ORDER BY create_time ASC
+    </select>
 
     <!-- 根据状态查询充值订单 -->
     <select id="selectByState" resultMap="chargeOrderMap">

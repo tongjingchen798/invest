@@ -60,7 +60,7 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
             // 获取用户最新的充值订单
             List<ChargeOrderEntity> orders = chargeOrderDao.selectByUserId(userId);
             if (orders == null || orders.isEmpty()) {
-                return createDefaultChargeOrderDetail(userId);
+                return createDefaultChargeOrderDetail();
             }
 
             // 获取最新的充值订单
@@ -74,7 +74,7 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
             
         } catch (Exception e) {
             e.printStackTrace();
-            return createDefaultChargeOrderDetail(userId);
+            return createDefaultChargeOrderDetail();
         }
     }
 
@@ -316,7 +316,6 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
             chargeOrder.setChannelType(channelEntity.getChannelType());
             chargeOrder.setMobile(user.getMobile());
             chargeOrder.setAgent(user.getAgent());
-            chargeOrder.setSalesmanid(user.getSalesmanid());
             chargeOrder.setRemark("前端充值");
             chargeOrder.setMerchantname(payMerchantEntity.getMerchantname());
             // 设置支付通道ID
@@ -401,13 +400,13 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
     }
 
     /**
-     * 创建默认的充值订单详情（当用户没有充值记录时）
+     * 创建默认的充值订单详情
      */
-    private ChargeOrderDetailDTO createDefaultChargeOrderDetail(Long userId) {
+    private ChargeOrderDetailDTO createDefaultChargeOrderDetail() {
         ChargeOrderDetailDTO detailDTO = new ChargeOrderDetailDTO();
         detailDTO.setAmount(0L);
-        detailDTO.setURealAmout(0L);
-        detailDTO.setUprice(0L);
+        detailDTO.setURealAmout(BigDecimal.ZERO);
+        detailDTO.setUprice(BigDecimal.ZERO);
         detailDTO.setWalletAddr("");
         detailDTO.setWalletId(0L);
         return detailDTO;

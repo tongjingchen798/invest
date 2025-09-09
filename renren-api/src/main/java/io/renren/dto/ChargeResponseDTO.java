@@ -53,9 +53,9 @@ public class ChargeResponseDTO implements Serializable {
     @ApiModelProperty(value = "钱包地址", example = "钱包地址")
     private String walletAddr;
 
-    @ApiModelProperty(value = "订单状态", example = "0")
-    @JsonProperty("status")
-    private Integer status;
+//    @ApiModelProperty(value = "订单状态", example = "0")
+//    @JsonProperty("status")
+//    private Integer status;
 
     @ApiModelProperty(value = "异常码")
     private  Integer errorCode;

@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * 充值订单详情DTO
@@ -19,16 +20,16 @@ public class ChargeOrderDetailDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "u兑换法币汇率(1U=多少法币)")
-    private Long uprice;
+    private BigDecimal uprice;
 
     @ApiModelProperty(value = "实际充值成功得到的金额")
     private Long amount;
 
     @ApiModelProperty(value = "充值u数量")
-    private Long uamount;
+    private BigDecimal uamount;
 
     @ApiModelProperty(value = "实际支付u数量(后台有个充值折扣比例, 每次会扣减)")
-    private Long uRealAmout;
+    private BigDecimal uRealAmout;
 
     @ApiModelProperty(value = "钱包地址")
     private String walletAddr;

@@ -31,6 +31,12 @@ public interface ChargeOrderDao extends BaseDao<ChargeOrderEntity> {
      * @return 充值订单
      */
     ChargeOrderEntity selectByOrderno(@Param("orderno") String orderno);
+    
+    /**
+     * 查询待处理的USDT充值订单
+     * @return 待处理的USDT充值订单列表
+     */
+    List<ChargeOrderEntity> selectPendingUSDTOrders();
 
     /**
      * 根据第三方订单号查询充值订单

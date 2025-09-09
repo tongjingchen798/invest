@@ -670,7 +670,7 @@ public class UserInvestmentProfitSchedule {
         try {
             Long profitAmountInCents = profitAmount.longValue();
             // 更新用户可用余额
-            int balanceResult = userDao.updateAllProfitFields(userId, profitAmountInCents);
+            int balanceResult = userDao.updateAllCashProfitFields(userId, profitAmountInCents);
             if (balanceResult > 0) {
                 log.debug("用户 {} 可用余额更新成功，增加: {} 分", userId, profitAmountInCents);
             } else {

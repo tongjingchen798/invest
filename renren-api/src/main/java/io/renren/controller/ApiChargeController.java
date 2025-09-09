@@ -46,10 +46,10 @@ public class ApiChargeController {
     @Login
     @PostMapping("orderdetail")
     @ApiOperation("获取usdt充值订单详情")
-    public Result<ChargeOrderDetailDTO> getChargeOrderDetail(@ApiParam(value = "订单号", required = true) @RequestParam String orderNo) {
+    public Result<ChargeOrderDetailDTO> getChargeOrderDetail(@ApiParam(value = "订单号", required = true) @RequestParam String order_no) {
         try {
             // 根据订单号获取充值订单详情
-            ChargeOrderDetailDTO detail = chargeOrderService.getChargeOrderDetailByOrderNo(orderNo);
+            ChargeOrderDetailDTO detail = chargeOrderService.getChargeOrderDetailByOrderNo(order_no);
             return new Result<ChargeOrderDetailDTO>().ok(detail);
 
         } catch (Exception e) {

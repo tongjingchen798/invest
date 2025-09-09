@@ -100,6 +100,17 @@ public interface UserDao extends BaseDao<UserEntity> {
     int updateAllProfitFields(@Param("userId") Long userId, @Param("amount") Long amount);
 
 
+
+    @Update("UPDATE tb_user SET " +
+            "cashwithdrawable = cashwithdrawable + #{amount}, " +
+            "today_profit = today_profit + #{amount}, " +
+            "sy_sum = sy_sum + #{amount}, " +
+            "history_profit = history_profit + #{amount}, " +
+            "total_profit = total_profit + #{amount} " +
+            "WHERE id = #{userId}")
+    int updateAllCashProfitFields(@Param("userId") Long userId, @Param("amount") Long amount);
+
+
     /**
      * 更新用户佣金收益相关字段（历史佣金收益、今日佣金收益、推荐人数、佣金余额 TODO sy_sum不确定是否需要）
      * @param userId 用户ID

@@ -1,6 +1,8 @@
 package io.renren.service.impl;
 
 import io.renren.dao.SysParamsDao;
+import io.renren.dao.UAddressConfigDao;
+import io.renren.entity.UAddressConfigEntity;
 import io.renren.service.USDTRechargeService;
 import io.renren.utils.QRCodeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,9 @@ public class USDTRechargeServiceImpl implements USDTRechargeService {
     
     @Autowired
     private SysParamsDao sysParamsDao;
+    
+    @Autowired
+    private UAddressConfigDao uAddressConfigDao;
     
     @Override
     public Map<String, Object> generateUSDTRechargeQRCode(String amount) {
@@ -44,6 +49,10 @@ public class USDTRechargeServiceImpl implements USDTRechargeService {
     
     @Override
     public String getUSDTAddress() {
-        return sysParamsDao.getValueByCode("usdt-trc20-address");
+        UAddressConfigEntity uAddressConfigEntity = uAddressConfigDao.selectAddrLimit();
+        if (uAddressConfigEntity != null && uAddressConfigEntity.getAddr() != null) {
+            return uAddressConfigEntity.getAddr();
+        }
+        return null;
     }
 }
