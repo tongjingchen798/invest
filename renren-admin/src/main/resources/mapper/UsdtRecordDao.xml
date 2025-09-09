@@ -21,4 +21,79 @@
         <result property="updateDate" column="update_date"/>
     </resultMap>
 
+    <!-- USDT收款记录DTO结果映射 -->
+    <resultMap type="io.renren.modules.usdtrecord.dto.UsdtRecordDTO" id="usdtRecordDTOMap">
+        <result property="id" column="id"/>
+        <result property="transactionId" column="transaction_id"/>
+        <result property="fromAddress" column="from_address"/>
+        <result property="toAddress" column="to_address"/>
+        <result property="contractAddress" column="contract_address"/>
+        <result property="blockTs" column="block_ts"/>
+        <result property="block" column="block_number"/>
+        <result property="quant" column="amount"/>
+        <result property="contractType" column="contract_type"/>
+        <result property="isRisk" column="is_risk"/>
+        <result property="isProcess" column="is_process"/>
+        <result property="blockTime" column="block_time"/>
+        <result property="orderno" column="order_no"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateDate" column="update_date"/>
+    </resultMap>
+
+    <!-- 自定义分页查询USDT收款记录 -->
+    <select id="selectUsdtRecordPage" resultMap="usdtRecordDTOMap">
+        SELECT 
+            id,
+            transaction_id,
+            from_address,
+            to_address,
+            contract_address,
+            block_ts,
+            block_number,
+            amount,
+            contract_type,
+            is_risk,
+            is_process,
+            DATE_FORMAT(block_time, '%Y-%m-%d %H:%i:%s') as block_time,
+            order_no,
+            DATE_FORMAT(create_date, '%Y-%m-%d %H:%i:%s') as create_date,
+            DATE_FORMAT(update_date, '%Y-%m-%d %H:%i:%s') as update_date
+        FROM tb_usdt_record
+        <where>
+            <if test="params.fromAddress != null and params.fromAddress != ''">
+                AND from_address LIKE CONCAT('%', #{params.fromAddress}, '%')
+            </if>
+            <if test="params.toAddress != null and params.toAddress != ''">
+                AND to_address LIKE CONCAT('%', #{params.toAddress}, '%')
+            </if>
+            <if test="params.transactionId != null and params.transactionId != ''">
+                AND transaction_id LIKE CONCAT('%', #{params.transactionId}, '%')
+            </if>
+            <if test="params.isProcess != null">
+                AND is_process = #{params.isProcess}
+            </if>
+            <if test="params.createStartTime != null">
+                AND create_date >= FROM_UNIXTIME(#{params.createStartTime}/1000)
+            </if>
+            <if test="params.createEndTime != null">
+                AND create_date &lt;= FROM_UNIXTIME(#{params.createEndTime}/1000)
+            </if>
+        </where>
+        <choose>
+            <when test="params.orderField != null and params.orderField != ''">
+                <choose>
+                    <when test="params.order != null and params.order == 'desc'">
+                        ORDER BY ${params.orderField} DESC
+                    </when>
+                    <otherwise>
+                        ORDER BY ${params.orderField} ASC
+                    </otherwise>
+                </choose>
+            </when>
+            <otherwise>
+                ORDER BY block_time DESC
+            </otherwise>
+        </choose>
+    </select>
+
 </mapper>

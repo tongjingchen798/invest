@@ -20,6 +20,7 @@ import io.renren.dao.InvestmentProfitDetailDao;
 import io.renren.entity.InvestmentRecordEntity;
 import io.renren.entity.InvestmentProfitDetailEntity;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -623,7 +624,7 @@ public class UserInvestmentProfitSchedule {
         
         try {
             // 检查今天是否已经派发过收益，防止重复派发
-            String today = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new Date());
+            String today = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
             int existingCount = investmentProfitDetailDao.selectCountByInvestmentIdAndDate(record.getOrderId(), today);
             
             if (existingCount > 0) {
@@ -749,18 +750,4 @@ public class UserInvestmentProfitSchedule {
         }
     }
     
-//    /**
-//     * 获取用户余额信息（用于调试和监控）
-//     *
-//     * @param userId 用户ID
-//     * @return 用户余额信息
-//     */
-//    public UserEntity getUserBalanceInfo(Long userId) {
-//        try {
-//            return userDao.getUserBalanceInfo(userId);
-//        } catch (Exception e) {
-//            log.error("获取用户 {} 余额信息失败", userId, e);
-//            return null;
-//        }
-//    }
 }

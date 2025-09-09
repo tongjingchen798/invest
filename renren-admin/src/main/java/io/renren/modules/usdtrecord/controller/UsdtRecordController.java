@@ -36,12 +36,12 @@ public class UsdtRecordController {
         @ApiImplicitParam(name = "limit", value = "每页显示记录数", required = true, dataType = "int", paramType = "query"),
         @ApiImplicitParam(name = "orderField", value = "排序字段", required = false, dataType = "string", paramType = "query"),
         @ApiImplicitParam(name = "order", value = "排序方式，可选值(asc、desc)", required = false, dataType = "string", paramType = "query"),
-        @ApiImplicitParam(name = "createstarttime", value = "开始日期:时间戳", required = false, dataType = "long", paramType = "query"),
-        @ApiImplicitParam(name = "createendtime", value = "结束日期:时间戳", required = false, dataType = "long", paramType = "query"),
-        @ApiImplicitParam(name = "fromaddress", value = "转账地址", required = false, dataType = "string", paramType = "query"),
-        @ApiImplicitParam(name = "toaddress", value = "收款地址", required = false, dataType = "string", paramType = "query"),
+        @ApiImplicitParam(name = "createStartTime", value = "开始日期:时间戳", required = false, dataType = "long", paramType = "query"),
+        @ApiImplicitParam(name = "createEndTime", value = "结束日期:时间戳", required = false, dataType = "long", paramType = "query"),
+        @ApiImplicitParam(name = "fromAddress", value = "转账地址", required = false, dataType = "string", paramType = "query"),
+        @ApiImplicitParam(name = "toAddress", value = "收款地址", required = false, dataType = "string", paramType = "query"),
         @ApiImplicitParam(name = "transactionId", value = "交易Hash", required = false, dataType = "string", paramType = "query"),
-        @ApiImplicitParam(name = "isprocess", value = "状态 0 未处理 1已处理", required = false, dataType = "int", paramType = "query")
+        @ApiImplicitParam(name = "isProcess", value = "状态 0 未处理 1已处理", required = false, dataType = "int", paramType = "query")
     })
     public Result<PageData<UsdtRecordDTO>> page(@ApiIgnore @RequestParam Map<String, Object> params) {
         try {
@@ -73,7 +73,7 @@ public class UsdtRecordController {
             // 调用服务进行订单匹配
             boolean success = usdtRecordService.matchOrder(dto.getId(), dto.getOrderno());
             if (success) {
-                return new Result<>().ok("订单匹配成功");
+                return new Result<>().ok("订单匹配成功，用户余额已更新");
             } else {
                 throw new RenException("订单匹配失败,请检查订单号");
             }
