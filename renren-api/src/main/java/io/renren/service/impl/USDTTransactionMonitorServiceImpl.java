@@ -208,14 +208,47 @@ public class USDTTransactionMonitorServiceImpl implements USDTTransactionMonitor
     }
     
     /**
-     * 获取USDT交易记录
+     * 获取USDT交易记录（只获取转入交易）
      */
     private Map<String, Object> getUSDTTransactions(String usdtAddress) {
         try {
-            String url = TRON_API_BASE + "/v1/accounts/" + usdtAddress + "/transactions/trc20";
+            // 构建API URL，添加参数限制只获取转入交易
+            StringBuilder urlBuilder = new StringBuilder();
+            urlBuilder.append(TRON_API_BASE);
+            urlBuilder.append("/v1/accounts/");
+            urlBuilder.append(usdtAddress);
+            urlBuilder.append("/transactions/trc20");
+            
+            // 添加查询参数
+            urlBuilder.append("?limit=200");                    // 限制返回数量
+            urlBuilder.append("&only_confirmed=true");         // 只获取已确认的交易
+            urlBuilder.append("&only_to=true");                // 只获取转入交易
+            urlBuilder.append("&contract_address=").append(USDT_CONTRACT_ADDRESS); // 指定USDT合约地址
+            
+            String url = urlBuilder.toString();
+            log.debug("调用TRON API获取USDT转入交易: {}", url);
+            
             String response = HttpUtils.get(url);
-            return JSON.parseObject(response);
+            if (response == null || response.trim().isEmpty()) {
+                log.warn("TRON API返回空响应");
+                return null;
+            }
+            
+            JSONObject result = JSON.parseObject(response);
+            if (result.containsKey("error")) {
+                log.error("TRON API返回错误: {}", result.getString("error"));
+                return null;
+            }
+            
+            // 记录获取到的交易数量
+            if (result.containsKey("data")) {
+                JSONArray data = result.getJSONArray("data");
+                log.info("成功获取到 {} 条USDT转入交易记录", data != null ? data.size() : 0);
+            }
+            
+            return result;
         } catch (Exception e) {
+            log.error("调用TRON API获取USDT交易记录失败: {}", e.getMessage(), e);
             return null;
         }
     }
@@ -359,35 +392,59 @@ public class USDTTransactionMonitorServiceImpl implements USDTTransactionMonitor
     }
     
     /**
-     * 检查是否为USDT交易（简化版本，用于拉取时过滤）
+     * 检查是否为有效的USDT转入交易
      */
     private boolean isUSDTTransaction(JSONObject transaction) {
         try {
-            // 检查交易类型
+            // 1. 检查交易类型
             String type = transaction.getString("type");
             if (!"Transfer".equals(type)) {
+                log.debug("交易类型不是Transfer: {}", type);
                 return false;
             }
             
-            // 检查token_info中的合约地址
+            // 2. 检查token_info中的合约地址
             JSONObject tokenInfo = transaction.getJSONObject("token_info");
             if (tokenInfo == null) {
+                log.debug("交易缺少token_info信息");
                 return false;
             }
             
             String contractAddress = tokenInfo.getString("address");
             if (!USDT_CONTRACT_ADDRESS.equals(contractAddress)) {
+                log.debug("合约地址不匹配: 期望={}, 实际={}", USDT_CONTRACT_ADDRESS, contractAddress);
                 return false;
             }
             
-            // 检查是否有有效的value
+            // 3. 检查是否有有效的value
             String value = transaction.getString("value");
             if (value == null || value.equals("0")) {
+                log.debug("交易金额无效: {}", value);
                 return false;
             }
+            
+            // 4. 验证交易方向（确保是转入交易）
+            String toAddress = transaction.getString("to");
+            if (toAddress == null || toAddress.trim().isEmpty()) {
+                log.debug("交易缺少收款地址");
+                return false;
+            }
+            
+            // 注意：由于API已经通过only_to参数过滤，这里主要是双重验证
+            // 如果API参数不生效，这里可以作为备用验证
+            
+            // 5. 检查交易状态（确保是成功状态）
+            if (transaction.containsKey("result") && !"SUCCESS".equals(transaction.getString("result"))) {
+                log.debug("交易状态不是成功: {}", transaction.getString("result"));
+                return false;
+            }
+            
+            log.debug("发现有效的USDT转入交易: txHash={}, to={}, value={}", 
+                     transaction.getString("transaction_id"), toAddress, value);
             
             return true;
         } catch (Exception e) {
+            log.error("验证USDT交易时发生异常: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -575,15 +632,23 @@ public class USDTTransactionMonitorServiceImpl implements USDTTransactionMonitor
     }
     
     /**
-     * 创建U收款记录
+     * 创建U收款记录（只处理转入交易）
      */
     private void createUsdtRecord(JSONObject transaction, String usdtAddress, Long amount, String orderNo) {
         try {
+            // 验证交易方向，确保是转入交易
+            String toAddress = transaction.getString("to");
+            if (toAddress == null || !usdtAddress.equals(toAddress)) {
+                log.warn("跳过非转入交易: txHash={}, toAddress={}, expectedAddress={}", 
+                        transaction.getString("transaction_id"), toAddress, usdtAddress);
+                return;
+            }
+            
             UsdtRecordEntity usdtRecord = new UsdtRecordEntity();
             
             // 设置基本信息
             usdtRecord.setTransactionId(transaction.getString("transaction_id"));
-            usdtRecord.setToAddress(transaction.getString("to")); // 使用实际的收款地址
+            usdtRecord.setToAddress(toAddress); // 确保是目标地址
             usdtRecord.setContractAddress(USDT_CONTRACT_ADDRESS);
             usdtRecord.setContractType("USDT-TRC20");
             
@@ -623,7 +688,14 @@ public class USDTTransactionMonitorServiceImpl implements USDTTransactionMonitor
             
             // 插入记录
             usdtRecordDao.insert(usdtRecord);
+            
+            log.info("成功创建USDT转入记录: txHash={}, from={}, to={}, amount={}", 
+                    usdtRecord.getTransactionId(), usdtRecord.getFromAddress(), 
+                    usdtRecord.getToAddress(), usdtRecord.getAmount());
+                    
         } catch (Exception e) {
+            log.error("创建USDT记录失败: txHash={}, error={}", 
+                     transaction.getString("transaction_id"), e.getMessage(), e);
             throw new RenException(ErrorCode.CREATE_USDT_RECORD_FAILED);
         }
     }
