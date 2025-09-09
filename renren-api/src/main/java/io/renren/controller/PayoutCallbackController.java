@@ -12,7 +12,6 @@ import io.renren.entity.UserBalanceDetailEntity;
 import io.renren.entity.UserEntity;
 import io.renren.entity.WithdrawOrderEntity;
 import io.renren.utils.WePaySignatureUtils;
-import org.apache.catalina.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
