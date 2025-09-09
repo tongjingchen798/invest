@@ -312,10 +312,11 @@ public class PayoutCallbackController {
             // 根据提现类型更新对应的钱包
             switch (withdrawType) {
                 case 1: // 余额提现
-                    // 将冻结的余额提现金额返还到可提现余额
+                    // 将冻结的余额提现金额返还到可用余额和可提现余额
                     user.setFreezeBalance(user.getFreezeBalance() - amount);
+                    user.setAssets(user.getAssets() + amount);
                     user.setCashwithdrawable(user.getCashwithdrawable() + amount);
-                    logger.info("余额提现失败，返还到可提现余额 - 用户ID: {}, 金额: {}", user.getId(), amount);
+                    logger.info("余额提现失败，返还到可用余额和可提现余额 - 用户ID: {}, 金额: {}", user.getId(), amount);
                     break;
                     
                 case 2: // 佣金提现

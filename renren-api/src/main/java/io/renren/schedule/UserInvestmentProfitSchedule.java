@@ -670,12 +670,21 @@ public class UserInvestmentProfitSchedule {
         
         try {
             Long profitAmountInCents = profitAmount.longValue();
-            // 更新用户可用余额
-            int balanceResult = userDao.updateAllCashProfitFields(userId, profitAmountInCents);
-            if (balanceResult > 0) {
+            
+            // 1. 更新用户可用余额（assets字段）- 用于投资
+            int assetsResult = userDao.addUserBalance(userId, profitAmountInCents);
+            if (assetsResult > 0) {
                 log.debug("用户 {} 可用余额更新成功，增加: {} 分", userId, profitAmountInCents);
             } else {
                 log.warn("用户 {} 可用余额更新失败", userId);
+            }
+            
+            // 2. 更新用户可提现额度和收益统计字段（cashwithdrawable字段）- 用于提现
+            int cashResult = userDao.updateAllCashProfitFields(userId, profitAmountInCents);
+            if (cashResult > 0) {
+                log.debug("用户 {} 可提现额度更新成功，增加: {} 分", userId, profitAmountInCents);
+            } else {
+                log.warn("用户 {} 可提现额度更新失败", userId);
             }
             
             log.debug("用户 {} 余额和收益字段更新完成", userId);

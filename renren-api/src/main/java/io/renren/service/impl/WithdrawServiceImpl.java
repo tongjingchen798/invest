@@ -311,7 +311,10 @@ public class WithdrawServiceImpl implements WithdrawService {
             throw new RenException(ErrorCode.WITHDRAWAL_PENDING_ORDER);
         }
 
-        // 检查余额是否足够
+        // 检查可用余额和可提现余额是否足够
+        if (user.getAssets() == null || user.getAssets() < requestDTO.getAmount()) {
+            throw new RenException(ErrorCode.WITHDRAWAL_INSUFFICIENT_BALANCE);
+        }
         if (user.getCashwithdrawable() == null || user.getCashwithdrawable() < requestDTO.getAmount()) {
             throw new RenException(ErrorCode.WITHDRAWAL_INSUFFICIENT_BALANCE);
         }
@@ -377,16 +380,19 @@ public class WithdrawServiceImpl implements WithdrawService {
         // 保存提现订单
         withdrawOrderDao.insert(withdrawOrder);
 
-        // 扣除用户可提现余额（原子性操作）
+        // 扣除用户可用余额和可提现余额（原子性操作）
+        Long oldAssets = user.getAssets() != null ? user.getAssets() : 0L;
         Long oldCashWithdrawable = user.getCashwithdrawable();
         Long oldFreezeBalance = user.getFreezeBalance() != null ? user.getFreezeBalance() : 0L;
 
+        // 同时扣减两个字段
+        user.setAssets(oldAssets - requestDTO.getAmount());
         user.setCashwithdrawable(oldCashWithdrawable - requestDTO.getAmount());
         user.setFreezeBalance(oldFreezeBalance + requestDTO.getAmount());
         userDao.updateById(user);
 
-        logger.info("余额提现申请处理完成 - 用户ID: {}, 订单号: {}, 提现金额: {}, 可提现余额: {}, 冻结余额: {}",
-                userId, orderNo, requestDTO.getAmount(), user.getCashwithdrawable(), user.getFreezeBalance());
+        logger.info("余额提现申请处理完成 - 用户ID: {}, 订单号: {}, 提现金额: {}, 可用余额: {}, 可提现余额: {}, 冻结余额: {}",
+                userId, orderNo, requestDTO.getAmount(), user.getAssets(), user.getCashwithdrawable(), user.getFreezeBalance());
 
         // 构建返回结果
         Map<String, Object> result = new HashMap<>();
