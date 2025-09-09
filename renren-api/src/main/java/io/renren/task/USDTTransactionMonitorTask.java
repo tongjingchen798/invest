@@ -58,7 +58,7 @@ public class USDTTransactionMonitorTask {
                     // 监控USDT转账
                     usdtTransactionMonitorService.monitorUSDTTransaction(
                             usdtAddress, 
-                            order.getAmount().toString(), 
+                            order.getAmount(),
                             order.getUserId()
                     );
                 } catch (Exception e) {

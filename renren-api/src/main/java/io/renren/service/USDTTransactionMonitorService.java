@@ -14,11 +14,11 @@ public interface USDTTransactionMonitorService {
      * 监控USDT转账
      *
      * @param usdtAddress USDT地址
-     * @param amount 期望金额
+     * @param amount  平台币
      * @param userId 用户ID
      * @return 监控结果
      */
-    Map<String, Object> monitorUSDTTransaction(String usdtAddress, String amount, Long userId);
+    Map<String, Object> monitorUSDTTransaction(String usdtAddress, Long amount, Long userId);
     
     /**
      * 检查特定地址的USDT余额
@@ -36,5 +36,5 @@ public interface USDTTransactionMonitorService {
      * @param amount 期望金额
      * @return 验证结果
      */
-    Map<String, Object> verifyUSDTTransaction(String txHash, String usdtAddress, String amount);
+    Map<String, Object> verifyUSDTTransaction(String txHash, String usdtAddress, Long amount);
 }
