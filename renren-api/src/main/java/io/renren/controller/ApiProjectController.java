@@ -59,26 +59,21 @@ public class ApiProjectController {
         return new Result<List<ProjectTypeDTO>>().ok(list);
     }
     
-    	@Login
+    @Login
 	@PostMapping("placeAnOrder")
 	@ApiOperation("下单")
 	public Result<Map<String, String>> placeOrder(@RequestBody PlaceOrderDTO dto, @LoginUser UserEntity user) {
-		try {
-			// 参数验证
-			ValidatorUtils.validateEntity(dto);
-			
-			// 调用下单服务
-			Map<String, String> result = orderService.placeOrder(dto, user.getId());
-			
-			if ("success".equals(result.get("status"))) {
-				return new Result<Map<String, String>>().ok(result);
-			} else {
-				return new Result<Map<String, String>>().error(result.get("message"));
-			}
-			
-		} catch (Exception e) {
-			return new Result<Map<String, String>>().error("下单失败: " + e.getMessage());
-		}
+        // 参数验证
+        ValidatorUtils.validateEntity(dto);
+
+        // 调用下单服务
+        Map<String, String> result = orderService.placeOrder(dto, user.getId());
+
+        if ("success".equals(result.get("status"))) {
+            return new Result<Map<String, String>>().ok(result);
+        } else {
+            return new Result<Map<String, String>>().error(result.get("message"));
+        }
 	}
 
 	@GetMapping("page")

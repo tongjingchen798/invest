@@ -1,5 +1,6 @@
 package io.renren.service.impl;
 
+import io.renren.common.exception.RenException;
 import io.renren.config.CommissionConfig;
 import io.renren.dao.InvestmentRecordDao;
 import io.renren.dao.ProjectDao;
@@ -56,8 +57,6 @@ public class OrderServiceImpl implements OrderService {
 	@Transactional(rollbackFor = Exception.class)
 	public Map<String, String> placeOrder(PlaceOrderDTO dto, Long userId) {
 		Map<String, String> result = new HashMap<>();
-		
-		try {
 			// 1. 验证投资条件
 			Map<String, String> validation = validateInvestment(dto, userId);
 			if (!"success".equals(validation.get("status"))) {
@@ -195,12 +194,7 @@ public class OrderServiceImpl implements OrderService {
 			result.put("investmentId", investmentRecord.getOrderId().toString());
 			result.put("investName", investmentRecord.getInvestName());
 			result.put("count", investmentRecord.getInvestCount().toString());
-			
-		} catch (Exception e) {
-			result.put("status", "error");
-			result.put("message", "下单失败: " + e.getMessage());
-		}
-		
+
 		return result;
 	}
 	
@@ -209,33 +203,21 @@ public class OrderServiceImpl implements OrderService {
 	 */
 	private Map<String, String> validateAndDeductBalance(UserEntity user, Long amount) {
 		Map<String, String> result = new HashMap<>();
-		
-		try {
-			Long currentAssets = user.getAssets() != null ? user.getAssets() : 0L;
-			if (currentAssets < amount) {
-				result.put("status", "error");
-				result.put("message", "可用余额不足，当前可用余额: " + currentAssets + "分，需要: " + (amount));
-				return result;
-			}
-			
-			// 3. 执行余额扣款（原子操作，包含余额验证）
-			int updateRows = userDao.updateBalanceForInvestment(user.getId(), amount);
-			if (updateRows == 0) {
-				result.put("status", "error");
-				result.put("message", "余额扣款失败，余额不足");
-				return result;
-			}
-			
-			// 4. 记录原始余额，用于账变记录
-			result.put("originalBalance", currentAssets.toString());
-			result.put("status", "success");
-			result.put("message", "余额扣款成功");
-			
-		} catch (Exception e) {
-			result.put("status", "error");
-			result.put("message", "余额验证失败: " + e.getMessage());
+		Long currentAssets = user.getAssets() != null ? user.getAssets() : 0L;
+		if (currentAssets < amount) {
+			throw new RenException(10039);
 		}
-		
+		// 3. 执行余额扣款（原子操作，包含余额验证）
+		int updateRows = userDao.updateBalanceForInvestment(user.getId(), amount);
+		if (updateRows == 0) {
+			throw new RenException(10039);
+		}
+
+		// 4. 记录原始余额，用于账变记录
+		result.put("originalBalance", currentAssets.toString());
+		result.put("status", "success");
+		result.put("message", "余额扣款成功");
+
 		return result;
 	}
 	
@@ -311,12 +293,12 @@ public class OrderServiceImpl implements OrderService {
 				return result;
 			}
 			
-			// 6. 验证可买台数
-			if (project.getInvestRepeat() != null && dto.getCount() > project.getInvestRepeat()) {
-				result.put("status", "error");
-				result.put("message", "购买份数超过项目可买台数");
-				return result;
-			}
+//			// 6. 验证可买台数
+//			if (project.getInvestRepeat() != null && dto.getCount() > project.getInvestRepeat()) {
+//				result.put("status", "error");
+//				result.put("message", "购买份数超过项目可买台数");
+//				return result;
+//			}
 			
 //			// 7. 验证项目投资限额（参与人数和剩余份数）
 //			boolean canInvest = projectDao.checkInvestmentLimit(dto.getInvestId(), dto.getAmount());

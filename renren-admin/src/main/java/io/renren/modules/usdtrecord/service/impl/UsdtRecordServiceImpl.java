@@ -5,18 +5,22 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import io.renren.common.page.PageData;
+import io.renren.modules.charge.dao.ChargeOrderDao;
+import io.renren.modules.charge.entity.ChargeOrderEntity;
 import io.renren.modules.usdtrecord.dao.UsdtRecordDao;
 import io.renren.modules.usdtrecord.dto.UsdtRecordDTO;
 import io.renren.modules.usdtrecord.entity.UsdtRecordEntity;
 import io.renren.modules.usdtrecord.service.UsdtRecordService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -30,6 +34,9 @@ import java.util.stream.Collectors;
 public class UsdtRecordServiceImpl extends ServiceImpl<UsdtRecordDao, UsdtRecordEntity> implements UsdtRecordService {
 
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    @Autowired
+    private ChargeOrderDao chargeOrderDao;
 
     @Override
     public PageData<UsdtRecordDTO> page(Map<String, Object> params) {
@@ -195,11 +202,15 @@ public class UsdtRecordServiceImpl extends ServiceImpl<UsdtRecordDao, UsdtRecord
             if (entity == null) {
                 return false;
             }
-            
+            ChargeOrderEntity chargeOrder=chargeOrderDao.selectByOrderNo(orderno);
+            if(Objects.isNull(chargeOrder)){
+                return false;
+            }
             // 更新订单号
             entity.setOrderNo(orderno);
+            entity.setIsProcess(1);
             entity.setUpdateDate(new Date());
-            
+
             // 保存更新
             boolean result = this.updateById(entity);
             

@@ -7,6 +7,7 @@ import io.renren.modules.charge.dto.ChargeOrderDetailDTO;
 import io.renren.modules.charge.entity.ChargeOrderEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.Map;
 
@@ -36,4 +37,6 @@ public interface ChargeOrderDao extends BaseMapper<ChargeOrderEntity> {
      */
     Map<String, Object> selectAdminChargeSummary(@Param("params") Map<String, Object> params);
 
+    @Select("SELECT * FROM tb_charge_order where orderno=#{orderno}")
+    ChargeOrderEntity selectByOrderNo(@Param("orderno")  String orderno);
 }
