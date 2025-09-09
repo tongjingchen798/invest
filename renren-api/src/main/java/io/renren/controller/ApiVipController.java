@@ -2,6 +2,8 @@ package io.renren.controller;
 
 import io.renren.annotation.Login;
 import io.renren.annotation.LoginUser;
+import io.renren.common.exception.ErrorCode;
+import io.renren.common.exception.RenException;
 import io.renren.common.utils.Result;
 import io.renren.dto.VipClaimStatusDTO;
 import io.renren.entity.UserEntity;
@@ -53,13 +55,13 @@ public class ApiVipController {
         try {
             // 检查用户是否可以领取该VIP等级
             if (!vipClaimService.canClaimVipLevel(user.getId(), vip)) {
-                return new Result<Map<String, Object>>().error("不满足领取条件");
+                throw new RenException(ErrorCode.VIP_CLAIM_CONDITION_NOT_MET);
             }
             
             // 领取VIP等级
             boolean success = vipClaimService.claimVipLevel(user.getId(), vip);
             if (!success) {
-                return new Result<Map<String, Object>>().error("领取失败");
+                throw new RenException(ErrorCode.VIP_CLAIM_FAILED);
             }
             
             // 构建返回数据

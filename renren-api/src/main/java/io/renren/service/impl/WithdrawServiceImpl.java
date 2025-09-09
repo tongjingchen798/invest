@@ -179,30 +179,30 @@ public class WithdrawServiceImpl implements WithdrawService {
             throw new RenException(30001);
         }
         if (user.getRewardWithdrawStatus() == 0) {
-            throw new RenException("Your withdrawal function has been disabled, please contact customer service");
+            throw new RenException(ErrorCode.WITHDRAWAL_DISABLED);
         }
 
         // 检查用户是否有正在处理中的提现订单
         Long pendingCount = withdrawOrderDao.selectPendingWithdrawCountByUserId(userId);
         if (pendingCount.intValue() > 0) {
-            throw new RenException("You have a pending withdrawal order, please wait for it to be completed before applying again");
+            throw new RenException(ErrorCode.WITHDRAWAL_PENDING_ORDER);
         }
 
         // 检查佣金余额
         if (user.getCommissionBalance() == null || user.getCommissionBalance() < requestDTO.getAmount()) {
-            throw new RenException("Insufficient cash withdrawal balance");
+            throw new RenException(ErrorCode.WITHDRAWAL_INSUFFICIENT_BALANCE);
         }
 
         // 验证提现金额
         BigDecimal amountTotal = new BigDecimal(requestDTO.getAmount());
         // 检查最低提现额度
         if (amountTotal.compareTo(withdrawConfig.getMinAmount()) < 0) {
-            throw new RenException("Withdrawal amount cannot be less than 200 RS");
+            throw new RenException(ErrorCode.WITHDRAWAL_AMOUNT_TOO_SMALL);
         }
 
         // 检查最高提现额度
         if (amountTotal.compareTo(withdrawConfig.getMaxAmount()) > 0) {
-            throw new RenException("The withdrawal amount cannot be greater than 100000");
+            throw new RenException(ErrorCode.WITHDRAWAL_AMOUNT_TOO_LARGE);
         }
 
         // 生成订单号
@@ -222,11 +222,11 @@ public class WithdrawServiceImpl implements WithdrawService {
         //选择可用的提现渠道
         PayChannelEntity payChannelEntity = payChannelDao.selectWithdrawChannelInfo();
         if (payChannelEntity == null) {
-            throw new RenException("The withdrawal function is under maintenance, please apply again later");
+            throw new RenException(ErrorCode.WITHDRAWAL_MAINTENANCE);
         }
         String payName = payInfoDao.selectPayNameByCardNo(requestDTO.getPayNo());
         if (!StringUtils.hasText(payName)) {
-            throw new RenException("Card No can't be empty");
+            throw new RenException(ErrorCode.WITHDRAWAL_CARD_EMPTY);
         }
         // 创建提现订单
         WithdrawOrderEntity withdrawOrder = new WithdrawOrderEntity();
@@ -304,30 +304,30 @@ public class WithdrawServiceImpl implements WithdrawService {
             throw new RenException(30001);
         }
         if (user.getTzWithdrawStatus() == 0) {
-            throw new RenException("Your withdrawal function has been disabled, please contact customer service");
+            throw new RenException(ErrorCode.WITHDRAWAL_DISABLED);
         }
 
         // 检查是否有正在处理中的提现订单
         Long pendingCount = withdrawOrderDao.selectPendingWithdrawCountByUserId(userId);
         if (pendingCount.intValue() > 0) {
-            throw new RenException("You have a pending withdrawal order, please wait for it to be completed before applying again");
+            throw new RenException(ErrorCode.WITHDRAWAL_PENDING_ORDER);
         }
 
         // 检查余额是否足够
         if (user.getCashwithdrawable() == null || user.getCashwithdrawable() < requestDTO.getAmount()) {
-            throw new RenException("Insufficient cash withdrawal balance");
+            throw new RenException(ErrorCode.WITHDRAWAL_INSUFFICIENT_BALANCE);
         }
 
         // 验证提现金额
         BigDecimal amountTotal = new BigDecimal(requestDTO.getAmount());
         // 检查最低提现额度
         if (amountTotal.compareTo(withdrawConfig.getMinAmount()) < 0) {
-            throw new RenException("Withdrawal amount cannot be less than 200 RS");
+            throw new RenException(ErrorCode.WITHDRAWAL_AMOUNT_TOO_SMALL);
         }
 
         // 检查最高提现额度
         if (amountTotal.compareTo(withdrawConfig.getMaxAmount()) > 0) {
-            throw new RenException("The withdrawal amount cannot be greater than 100000");
+            throw new RenException(ErrorCode.WITHDRAWAL_AMOUNT_TOO_LARGE);
         }
 
         // 生成订单号
@@ -346,12 +346,12 @@ public class WithdrawServiceImpl implements WithdrawService {
         //选择可用的提现渠道
         PayChannelEntity payChannelEntity = payChannelDao.selectWithdrawChannelInfo();
         if (payChannelEntity == null) {
-            throw new RenException("The withdrawal function is under maintenance, please apply again later");
+            throw new RenException(ErrorCode.WITHDRAWAL_MAINTENANCE);
         }
         //获取银行卡
         String payName = payInfoDao.selectPayNameByCardNo(requestDTO.getPayNo());
         if (!StringUtils.hasText(payName)) {
-            throw new RenException("Card No can't be empty");
+            throw new RenException(ErrorCode.WITHDRAWAL_CARD_EMPTY);
         }
         // 创建提现订单
         WithdrawOrderEntity withdrawOrder = new WithdrawOrderEntity();
