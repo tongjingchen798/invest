@@ -2,6 +2,7 @@ package io.renren.controller;
 
 import io.renren.common.exception.ErrorCode;
 import io.renren.common.exception.RenException;
+import io.renren.common.redis.RedisUtils;
 import io.renren.common.utils.Result;
 import io.renren.common.utils.VerificationCodeUtils;
 import io.renren.common.validator.ValidatorUtils;
@@ -24,13 +25,16 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
 import javax.servlet.http.HttpServletRequest;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Date;
@@ -45,12 +49,12 @@ import java.util.Objects;
  */
 @RestController
 @RequestMapping("/api")
-@Api(tags="注册接口")
+@Api(tags = "注册接口")
 @Slf4j
 public class ApiRegisterController {
     @Autowired
     private UserService userService;
-    
+
     @Autowired
     private ReferralRewardService referralRewardService;
 
@@ -64,12 +68,10 @@ public class ApiRegisterController {
 
     @Autowired
     private SysUserService sysUserService;
-    
+
     @Autowired
     private UserLogDao userLogDao;
 
-//    @Autowired
-//    private SmsService smsService;
 
     @Autowired
     private VerificationCodeUtils verificationCodeUtils;
@@ -77,9 +79,12 @@ public class ApiRegisterController {
     @Autowired
     private SmsUtils smsUtils;
 
+    @Autowired
+    private RedisUtils redisUtils;
+
     @PostMapping("register")
     @ApiOperation("注册")
-    public Result<Map<String, Object>> register(@RequestBody RegisterDTO dto, HttpServletRequest request){
+    public Result<Map<String, Object>> register(@RequestBody RegisterDTO dto, HttpServletRequest request) {
         //表单校验
         ValidatorUtils.validateEntity(dto);
 
@@ -88,12 +93,20 @@ public class ApiRegisterController {
             throw new RenException(ErrorCode.PHONE_NUMBER_HAS_BEEN_REGISTERED);
         }
 
+        if (!verificationCodeUtils.hasCode(dto.getMobile())) {
+            throw new RenException(ErrorCode.VERIFICATION_CODE_NOT_FOUND);
+        }
+        //短信校验
+        if (!verificationCodeUtils.verifyCode(dto.getMobile(), dto.getCode())) {
+            throw new RenException(ErrorCode.VERIFICATION_CODE_INCORRECT);
+        }
+
         UserEntity user = new UserEntity();
         user.setMobile(dto.getMobile());
         // 如果提供了真实姓名，使用真实姓名，否则使用手机号作为用户名
         user.setUsername(dto.getMobile());
         user.setPassword(DigestUtils.sha256Hex(dto.getPassword()));
-        
+
         // 设置新字段
         if (dto.getTwoPwd() != null) {
             user.setTwoPwd(DigestUtils.sha256Hex(dto.getTwoPwd()));
@@ -101,8 +114,8 @@ public class ApiRegisterController {
         String newInviteCode = InviteCodeGenerator.generateInviteCode();
         user.setInviteCode(newInviteCode);
         //根据渠道查询对应代理
-        if(Objects.nonNull(dto.getInviteCode())){
-            SysUserEntity sysUserEntity= sysUserService.selectByAgentInviteCode(dto.getInviteCode());
+        if (Objects.nonNull(dto.getInviteCode())) {
+            SysUserEntity sysUserEntity = sysUserService.selectByAgentInviteCode(dto.getInviteCode());
             if (Objects.nonNull(sysUserEntity)) {
                 // 设置业务员信息
                 user.setSalesmanid(sysUserEntity.getId());
@@ -110,10 +123,10 @@ public class ApiRegisterController {
                 // 设置代理信息
                 user.setAgent(sysUserEntity.getAgent());
 //                user.setAgentName(allocationResult.getAgentName());
-            }else {
+            } else {
                 user.setUpinviteCode(dto.getInviteCode());
                 user.setSuperiorCode(dto.getInviteCode());
-                UserEntity userEntity=userDao.selectByInviteCode(dto.getInviteCode());
+                UserEntity userEntity = userDao.selectByInviteCode(dto.getInviteCode());
                 if (Objects.nonNull(userEntity)) {
                     user.setSuperiorName(userEntity.getMobile());
                     user.setLiebian(1);
@@ -163,8 +176,8 @@ public class ApiRegisterController {
             // 不影响注册流程，只记录日志
         }
         //注册奖励
-        if(Objects.nonNull(user.getId())) {
-            Long regAmount=30000L;
+        if (Objects.nonNull(user.getId())) {
+            Long regAmount = 30000L;
             if (userDao.addUserBalance(user.getId(), regAmount) > 0) {
                 UserBalanceDetailEntity detail = new UserBalanceDetailEntity();
                 detail.setBusiType(BusinessTypeEnum.REGISTRATION_REWARD.getCode());
@@ -189,7 +202,7 @@ public class ApiRegisterController {
         Map<String, Object> map = new HashMap<>(2);
         map.put("token", tokenEntity.getToken());
         map.put("expire", tokenEntity.getExpireDate().getTime() - System.currentTimeMillis());
-        
+
         // 记录注册后的登录日志
         try {
             saveRegisterLoginLog(user, dto, request);
@@ -197,19 +210,21 @@ public class ApiRegisterController {
             // 登录日志记录失败不影响注册流程
             log.error("记录注册登录日志失败，用户ID: {}", user.getId(), e);
         }
-        
+
         return new Result().ok(map);
     }
 
+    private static final String CODE_KEY_PREFIX = "verification_code:";
 
-    @PostMapping("verificationBnkCode")
+
+    @PostMapping("verificationCode")
     @ApiOperation("发送短信验证码")
     public Result sendVerificationCode(
-            @ApiParam(value = "手机号码", required = false) 
+            @ApiParam(value = "手机号码", required = false)
             @RequestParam(value = "mobile", required = false) String mobile,
             @RequestParam(value = "register", required = false) Boolean register
-            ) {
-        
+    ) {
+
         // 验证手机号格式
         if (mobile == null || mobile.trim().isEmpty()) {
             throw new RenException(ErrorCode.PHONE_NUMBER_EMPTY);
@@ -222,7 +237,8 @@ public class ApiRegisterController {
             SmsUtils.SmsResult smsResult = smsUtils.sendSms(mobile, code);
             if (smsResult.isSuccess()) {
                 // 3. 短信发送成功后，存储验证码到Redis
-                verificationCodeUtils.storeCode(mobile, code);
+                String key = CODE_KEY_PREFIX + mobile;
+                redisUtils.set(key, code);
             } else {
                 throw new RenException(ErrorCode.VERIFICATION_CODE_SEND_FAILED);
             }
@@ -232,10 +248,11 @@ public class ApiRegisterController {
         }
         return new Result<Object>().ok("success");
     }
-    
+
 
     /**
      * 更新邀请人和邀请人上级的会员数
+     *
      * @param inviteCode 邀请码
      */
     private void updateInviterMemberCounts(String inviteCode) {
@@ -246,7 +263,7 @@ public class ApiRegisterController {
                 // 更新邀请人的一级会员数
                 userDao.updateUacnt(inviter.getId());
                 log.info("更新邀请人 {} 的一级会员数", inviter.getId());
-                
+
                 // 查找邀请人的上级（二级邀请人）
                 if (inviter.getUpinviteCode() != null && !inviter.getUpinviteCode().trim().isEmpty()) {
                     UserEntity secondLevelInviter = userDao.selectByInviteCode(inviter.getUpinviteCode());
@@ -254,7 +271,7 @@ public class ApiRegisterController {
                         // 更新二级邀请人的二级会员数
                         userDao.updateUbcnt(secondLevelInviter.getId());
                         log.info("更新二级邀请人 {} 的二级会员数", secondLevelInviter.getId());
-                        
+
                         // 查找二级邀请人的上级（三级邀请人）
                         if (secondLevelInviter.getUpinviteCode() != null && !secondLevelInviter.getUpinviteCode().trim().isEmpty()) {
                             UserEntity thirdLevelInviter = userDao.selectByInviteCode(secondLevelInviter.getUpinviteCode());
@@ -272,11 +289,12 @@ public class ApiRegisterController {
             throw e;
         }
     }
-    
+
     /**
      * 保存注册后的登录日志
-     * @param user 用户信息
-     * @param dto 注册DTO
+     *
+     * @param user    用户信息
+     * @param dto     注册DTO
      * @param request HTTP请求
      */
     private void saveRegisterLoginLog(UserEntity user, RegisterDTO dto, HttpServletRequest request) {
@@ -285,30 +303,30 @@ public class ApiRegisterController {
             logEntity.setUserId(user.getId());
             logEntity.setMobile(user.getMobile());
             logEntity.setLoginTime(new Date());
-            
+
             // 获取客户端IP地址
             String clientIp = IpUtils.getIpAddr(request);
             logEntity.setLoginIp(clientIp);
-            
+
             // 设置设备类型
             logEntity.setEquipment(dto.getEquipment() != null ? dto.getEquipment() : 4); // 4:未知
-            
+
             // 设置用户相关信息
             logEntity.setSalesmanid(user.getSalesmanid());
             logEntity.setAgent(user.getAgent());
             logEntity.setBiaoqian(user.getBiaoqian());
             logEntity.setCreateTime(new Date());
             logEntity.setUpdateTime(new Date());
-            
+
             // 设置销售员姓名
             if (user.getSalesmanName() != null) {
                 logEntity.setSalesmanName(user.getSalesmanName());
             }
-            
+
             // 保存登录日志
             userLogDao.insert(logEntity);
             log.info("用户 {} 注册后登录日志记录成功", user.getId());
-            
+
         } catch (Exception e) {
             log.error("保存注册登录日志失败，用户ID: {}", user.getId(), e);
             throw e;

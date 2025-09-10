@@ -111,6 +111,8 @@ public interface ErrorCode {
     int GET_BALANCE_INFO_FAILED = 70013;
     /** 您还没有获取验证码，请先获取验证码 */
     int VERIFICATION_CODE_NOT_FOUND = 70014;
+    /** 验证码不正确 */
+    int VERIFICATION_CODE_INCORRECT = 70015;
     
     // ==================== VIP相关错误码 (80xxx) ====================
     /** 不满足领取条件 */

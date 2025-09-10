@@ -48,7 +48,7 @@ public class VerificationCodeUtils {
      */
     public void storeCode(String mobile, String code) {
         String key = CODE_KEY_PREFIX + mobile;
-        redisUtils.set(key, code, CODE_EXPIRE_TIME);
+        redisUtils.set(key, code);
     }
     
     /**
