@@ -23,6 +23,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.TimeZone;
+import com.fasterxml.jackson.core.JsonParser;
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
@@ -63,6 +64,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
         //日期格式转换
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        // 允许控制字符，不抛出异常
+        mapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_CONTROL_CHARS, true);
+        // 允许单引号
+        mapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
         mapper.setDateFormat(new SimpleDateFormat(DateUtils.DATE_TIME_PATTERN));
         mapper.setTimeZone(TimeZone.getTimeZone("GMT+8"));
 
