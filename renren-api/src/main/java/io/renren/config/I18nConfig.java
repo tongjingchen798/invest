@@ -25,8 +25,8 @@ public class I18nConfig implements WebMvcConfigurer {
     @Bean
     public LocaleResolver localeResolver() {
         SessionLocaleResolver localeResolver = new SessionLocaleResolver();
-        // 设置默认语言为中文
-        localeResolver.setDefaultLocale(Locale.SIMPLIFIED_CHINESE);
+        // 设置默认语言为英文
+        localeResolver.setDefaultLocale(Locale.ENGLISH);
         return localeResolver;
     }
 

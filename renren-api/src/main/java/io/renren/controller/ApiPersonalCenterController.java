@@ -112,10 +112,20 @@ public class ApiPersonalCenterController {
             BalanceDTO balanceDTO = new BalanceDTO();
             balanceDTO.setId(user.getId());
             balanceDTO.setUserId(user.getId());
-            balanceDTO.setAssets(user.getAssets() != null ? user.getAssets() : 0L);           // 可用余额
+            // 获取可用余额
+            Long assets = user.getAssets();
+            balanceDTO.setAssets(assets);
+            
             Long dsAmount = investmentRecordDao.selectPendingInterestByUserId(user.getId());         // 待收利息
 
-            balanceDTO.setCashwithdrawable(user.getCashwithdrawable() != null ? user.getCashwithdrawable() : 0L); // 可提现
+            // 获取可提现余额
+            Long cashwithdrawable = user.getCashwithdrawable();
+            
+            // 如果可提现余额大于可用余额，则显示可用余额
+            if (cashwithdrawable > assets) {
+                cashwithdrawable = assets;
+            }
+            balanceDTO.setCashwithdrawable(cashwithdrawable);
             balanceDTO.setCumulative(user.getHistoryProfit() != null ? user.getHistoryProfit() : 0L);       // 累计收益
             balanceDTO.setCzAmount(user.getChargeSum() != null ? user.getChargeSum() : 0L);         // 累计充值
             

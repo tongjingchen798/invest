@@ -55,11 +55,24 @@ public class ApiUserController {
             BalanceDTO balanceDTO = new BalanceDTO();
             balanceDTO.setId(userBalance.getId());
             balanceDTO.setUserId(userBalance.getId());
-            balanceDTO.setAssets(userBalance.getAssets() != null ? userBalance.getAssets() : 0L);
+            
+            // 获取可用余额
+            Long assets = userBalance.getAssets();
+            balanceDTO.setAssets(assets);
+            
             Long dsAmount = investmentRecordDao.selectPendingInterestByUserId(user.getId());         // 待收利息
-            Long balance=balanceDTO.getAssets()+user.getCashwithdrawable()+dsAmount;
+            
+            // 获取可提现余额
+            Long cashwithdrawable = userBalance.getCashwithdrawable();
+            
+            // 如果可提现余额大于可用余额，则显示可用余额
+            if (cashwithdrawable > assets) {
+                cashwithdrawable = assets;
+            }
+            balanceDTO.setCashwithdrawable(cashwithdrawable);
+            
+            Long balance = assets + cashwithdrawable + dsAmount;
             balanceDTO.setBalance(balance);
-            balanceDTO.setCashwithdrawable(userBalance.getCashwithdrawable() != null ? userBalance.getCashwithdrawable() : 0L);
             
             // 累计收益 = 代收收益 + 已收收益
             Long cumulative = (userBalance.getHistoryProfit() != null ? userBalance.getHistoryProfit() : 0L) + 
