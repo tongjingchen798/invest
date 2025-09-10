@@ -474,6 +474,101 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
         }
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void withdrawCorrect(Long orderId, Long operatorId) {
+        try {
+            log.info("开始提现冲正操作，订单ID: {}, 操作人ID: {}", orderId, operatorId);
+            
+            // 查询提现订单
+            WithdrawOrderEntity withdrawOrder = withdrawOrderDao.selectById(orderId.toString());
+            if (withdrawOrder == null) {
+                throw new RenException("提现订单不存在，订单ID: " + orderId);
+            }
+            
+            // 检查订单状态，只有已提现的订单才能进行冲正
+            if (withdrawOrder.getState() != STATE_WITHDRAWN) {
+                throw new RenException("只有已提现的订单才能进行冲正，当前状态: " + withdrawOrder.getState());
+            }
+            
+            // 查询用户信息
+            MemberEntity user = memberDao.selectById(Long.valueOf(withdrawOrder.getUserId()));
+            if (user == null) {
+                throw new RenException("用户不存在，用户ID: " + withdrawOrder.getUserId());
+            }
+            
+            Long correctAmount = withdrawOrder.getAmount();
+            
+            // 以工资形式给用户加钱
+            addSalaryToUser(user, correctAmount, operatorId, withdrawOrder.getOrderno());
+            
+            // 更新订单状态为冲正
+            withdrawOrder.setState(STATE_FAILED); // 使用失败状态表示冲正
+            withdrawOrder.setRemark("提现冲正 - 三方打款被退回，已以工资形式补偿");
+            withdrawOrder.setStateTime(new Date());
+            withdrawOrder.setOperCode(operatorId.toString());
+            
+            int updateResult = withdrawOrderDao.updateById(withdrawOrder);
+            if (updateResult <= 0) {
+                throw new RenException("更新提现订单状态失败");
+            }
+            
+            log.info("提现冲正成功，订单ID: {}, 用户ID: {}, 冲正金额: {}, 操作人: {}", 
+                    orderId, user.getId(), correctAmount, operatorId);
+                    
+        } catch (Exception e) {
+            log.error("提现冲正失败，订单ID: {}, 操作人ID: {}", orderId, operatorId, e);
+            throw new RenException("提现冲正失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 以工资形式给用户加钱
+     */
+    private void addSalaryToUser(MemberEntity user, Long amount, Long operatorId, String orderNo) {
+        try {
+            log.info("开始以工资形式给用户加钱，用户ID: {}, 金额: {}, 操作人: {}", user.getId(), amount, operatorId);
+            
+            // 更新用户余额（同时更新assets和cashwithdrawable）
+            Long oldAssets = user.getAssets();
+            Long oldCashWithdrawable = user.getCashwithdrawable();
+            
+            user.setAssets(oldAssets + amount);
+            user.setCashwithdrawable(oldCashWithdrawable + amount);
+            
+            int updateResult = memberDao.updateById(user);
+            if (updateResult <= 0) {
+                throw new RenException("更新用户余额失败");
+            }
+            
+            // 记录账变明细
+            UserBalanceDetailEntity balanceDetail = new UserBalanceDetailEntity();
+            balanceDetail.setBusiType(12); // 工资业务类型
+            balanceDetail.setUserId(user.getId());
+            balanceDetail.setOriginalAmount(oldAssets);
+            balanceDetail.setUseAmount(amount);
+            balanceDetail.setTransactionAmount(oldAssets + amount);
+            balanceDetail.setStatus(1); // 成功状态
+            balanceDetail.setTransactionDate(new Date());
+            balanceDetail.setChannel("1");
+            balanceDetail.setSalesmanId(user.getSalesmanid());
+            balanceDetail.setCreateDate(new Date());
+            balanceDetail.setUpdateDate(new Date());
+            balanceDetail.setRemarks("提现冲正补偿 - 订单号: " + orderNo + " - 操作人: " + operatorId);
+            
+            int insertResult = userBalanceDetailDao.insert(balanceDetail);
+            if (insertResult <= 0) {
+                throw new RenException("记录账变明细失败");
+            }
+            
+            log.info("工资发放成功，用户ID: {}, 金额: {}, 新余额: {}", user.getId(), amount, user.getAssets());
+            
+        } catch (Exception e) {
+            log.error("工资发放失败，用户ID: {}, 金额: {}", user.getId(), amount, e);
+            throw new RenException("工资发放失败: " + e.getMessage());
+        }
+    }
+
     /**
      * 生成订单号
      */

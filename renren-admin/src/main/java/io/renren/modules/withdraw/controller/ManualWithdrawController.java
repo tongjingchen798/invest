@@ -101,6 +101,51 @@ public class ManualWithdrawController {
         }
     }
 
+    @PostMapping("/withdrawCorrect")
+    @ApiOperation("提现冲正")
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "state", value = "冲正状态，固定为2", paramType = "body", required = true, dataType = "int"),
+        @ApiImplicitParam(name = "id", value = "提现订单ID", paramType = "body", required = true, dataType = "long")
+    })
+    public Result<Object> withdrawCorrect(@RequestBody Map<String, Object> params,
+                                        HttpServletRequest request) {
+        try {
+            // 参数验证
+            if (params.get("id") == null) {
+                return new Result<>().error("提现订单ID不能为空");
+            }
+            if (params.get("state") == null) {
+                return new Result<>().error("冲正状态不能为空");
+            }
+
+            Long orderId = Long.valueOf(params.get("id").toString());
+            Integer state = Integer.valueOf(params.get("state").toString());
+
+            // 验证冲正状态必须为2
+            if (state != 2) {
+                return new Result<>().error("冲正状态必须为2");
+            }
+
+            // 从请求头获取操作人ID
+            String loginUserIdStr = request.getHeader("loginUserId");
+            if (loginUserIdStr == null || loginUserIdStr.trim().isEmpty()) {
+                return new Result<Object>().error("操作人ID不能为空");
+            }
+
+            Long loginUserId = Long.parseLong(loginUserIdStr);
+
+            // 执行冲正操作
+            adminWithdrawService.withdrawCorrect(orderId, loginUserId);
+
+            return new Result<>().ok("提现冲正成功");
+
+        } catch (NumberFormatException e) {
+            return new Result<Object>().error("参数格式错误");
+        } catch (Exception e) {
+            return new Result<Object>().error("提现冲正失败: " + e.getMessage());
+        }
+    }
+
     /**
      * 验证审核状态值是否合法
      */
