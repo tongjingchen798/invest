@@ -57,6 +57,12 @@ renren:
   redis:
     open: true  # 是否开启redis缓存  true开启   false关闭
 
+# 本地文件存储配置
+local:
+  storage:
+    path: /uploads  # 本地存储路径
+    url: http://206.238.68.208:8082/uploads  # 文件访问URL
+
 
 #mybatis
 mybatis-plus:

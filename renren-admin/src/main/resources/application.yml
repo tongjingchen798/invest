@@ -54,6 +54,12 @@ renren:
   redis:
     open: false
 
+# 本地文件存储配置
+local:
+  storage:
+    path: /uploads  # 本地存储路径
+    url: http://206.238.68.208:8088/admin/uploads  # 文件访问URL
+
 #mybatis
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml

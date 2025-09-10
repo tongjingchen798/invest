@@ -15,7 +15,9 @@ import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.support.AllEncompassingFormHttpMessageConverter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.text.SimpleDateFormat;
@@ -24,6 +26,9 @@ import java.util.TimeZone;
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
+    
+    @Value("${local.storage.path:/uploads}")
+    private String storagePath;
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
@@ -32,6 +37,13 @@ public class WebMvcConfig implements WebMvcConfigurer {
             .allowCredentials(true)
             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
             .maxAge(3600);
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // 配置静态资源访问路径
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:" + storagePath + "/");
     }
 
     @Override

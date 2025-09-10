@@ -2,9 +2,12 @@
 
 package io.renren.config;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import io.renren.common.utils.DateUtils;
 import io.renren.interceptor.AuthorizationInterceptor;
@@ -18,8 +21,10 @@ import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.support.AllEncompassingFormHttpMessageConverter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.text.SimpleDateFormat;
@@ -37,10 +42,22 @@ public class WebMvcConfig implements WebMvcConfigurer {
     private AuthorizationInterceptor authorizationInterceptor;
     @Autowired
     private LoginUserHandlerMethodArgumentResolver loginUserHandlerMethodArgumentResolver;
+    
+    @Value("${local.storage.path:/uploads}")
+    private String storagePath;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(authorizationInterceptor).addPathPatterns("/api/**");
+        registry.addInterceptor(authorizationInterceptor)
+                .addPathPatterns("/api/**")
+                .excludePathPatterns("/uploads/**", "/static/**", "/public/**");
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // 配置静态资源访问路径
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:" + storagePath + "/");
     }
 
     @Override
@@ -72,6 +89,25 @@ public class WebMvcConfig implements WebMvcConfigurer {
         SimpleModule simpleModule = new SimpleModule();
         simpleModule.addSerializer(Long.class, ToStringSerializer.instance);
         simpleModule.addSerializer(Long.TYPE, ToStringSerializer.instance);
+        
+        // 添加字符串序列化器，处理控制字符
+        simpleModule.addSerializer(String.class, new StdSerializer<String>(String.class) {
+            @Override
+            public void serialize(String value, JsonGenerator gen, SerializerProvider provider) throws java.io.IOException {
+                if (value == null) {
+                    gen.writeNull();
+                } else {
+                    // 转义控制字符
+                    String escaped = value.replace("\n", "\\n")
+                                        .replace("\r", "\\r")
+                                        .replace("\t", "\\t")
+                                        .replace("\b", "\\b")
+                                        .replace("\f", "\\f");
+                    gen.writeString(escaped);
+                }
+            }
+        });
+        
         mapper.registerModule(simpleModule);
 
         converter.setObjectMapper(mapper);

@@ -47,12 +47,6 @@ public class PasswordUtils {
     }
 
 
-    public static void main(String[] args) {
-        String str = "123456";
-        String password = encode(str);
 
-        System.out.println(password);
-        System.out.println(matches(str, password));
-    }
 
 }
