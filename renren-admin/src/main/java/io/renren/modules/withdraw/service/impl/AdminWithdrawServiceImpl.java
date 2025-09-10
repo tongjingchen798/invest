@@ -1,5 +1,6 @@
 package io.renren.modules.withdraw.service.impl;
 
+import io.renren.common.constant.BusinessTypeEnum;
 import io.renren.common.exception.RenException;
 import io.renren.modules.finance.dao.UserBalanceDetailDao;
 import io.renren.modules.finance.entity.UserBalanceDetailEntity;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.lang.reflect.Member;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -575,7 +577,7 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
     private String generateOrderNo() {
         long timestamp = System.currentTimeMillis();
         long sequence = orderNoGenerator.incrementAndGet();
-        return "RW" + timestamp + String.format("%04d", sequence % 10000);
+        return "W" + timestamp + String.format("%04d", sequence % 10000);
     }
 
     /**
@@ -586,7 +588,12 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
             log.info("提现驳回，需要将资金 {} 退回给用户 {}", withdrawAmount, withdrawOrder.getUserId());
 
             WithdrawOrderEntity order = withdrawOrderDao.selectByOrderno(withdrawOrder.getOrderno());
-//            MemberEntity user = memberDao.selectById(Long.valueOf(order.getUserId()));
+
+            MemberEntity user = memberDao.selectById(Long.valueOf(order.getUserId()));
+            if (user == null) {
+                throw new RenException("用户不存在");
+            }
+            recordWithdrawFailUnfreezeDetail(user,order.getAmount(),order.getOrderno(),user.getAssets(),order.getWithdrawType());
 
             // 解冻资金，返还到可用余额
             int result = memberDao.updateBalanceOnWithdrawFailure(
@@ -615,6 +622,38 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
         } catch (Exception e) {
             log.error("处理提现驳回失败，订单ID: {}, 错误信息: {}", withdrawOrder.getId(), e.getMessage(), e);
             throw new RuntimeException("处理提现驳回失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 记录驳回提现后解冻资金流水
+     */
+    private void recordWithdrawFailUnfreezeDetail(MemberEntity user, Long amount, String orderNo,
+                                                  Long oldAssets, Integer withdrawType) {
+        try {
+            UserBalanceDetailEntity detail = new UserBalanceDetailEntity();
+            detail.setBusiType(BusinessTypeEnum.UNFROZEN_AMOUNT.getCode());
+            detail.setUserId(user.getId());
+            detail.setSalesmanId(user.getSalesmanid());
+            detail.setAgentId(user.getAgent());
+            detail.setOriginalAmount(oldAssets);
+            detail.setUseAmount(amount);
+            detail.setTransactionAmount(oldAssets + amount);
+            detail.setStatus(1);
+            detail.setFormUserId(user.getId());
+            detail.setTransactionDate(new Date());
+            String withdrawTypeName = (withdrawType == 1) ? "余额提现" : "佣金提现";
+            detail.setRemarks(withdrawTypeName + "驳回,解冻冻结资金 - 订单号: " + orderNo);
+            detail.setCreateDate(new Date());
+            detail.setStreamId(orderNo);
+
+            userBalanceDetailDao.insert(detail);
+
+            log.info("记录{}失败解冻流水成功 - 用户ID: {}, 订单号: {}, 金额: {}",
+                    withdrawTypeName, user.getId(), orderNo, amount);
+        } catch (Exception e) {
+            log.error("记录提现失败解冻流水失败 - 用户ID: {}, 订单号: {}, 金额: {}, 错误: {}",
+                    user.getId(), orderNo, amount, e.getMessage());
         }
     }
 

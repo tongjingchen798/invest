@@ -934,7 +934,8 @@
     <!-- 批量更新用户余额（解冻金额并增加可提现金额） -->
     <update id="updateBalanceOnWithdrawFailure">
         UPDATE tb_user 
-        SET 
+        SET
+            assets = assets + #{amount},
             freeze_balance = freeze_balance - #{amount},
             <if test="withdrawType == 1">
                 cashwithdrawable = cashwithdrawable + #{amount}

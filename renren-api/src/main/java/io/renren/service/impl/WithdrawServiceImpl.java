@@ -2,13 +2,11 @@ package io.renren.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.renren.common.constant.BusinessTypeEnum;
 import io.renren.common.exception.ErrorCode;
 import io.renren.common.exception.RenException;
 import io.renren.config.WithdrawConfig;
-import io.renren.dao.PayChannelDao;
-import io.renren.dao.PayInfoDao;
-import io.renren.dao.UserDao;
-import io.renren.dao.WithdrawOrderDao;
+import io.renren.dao.*;
 import io.renren.dto.FirstWithdrawCheckDTO;
 import io.renren.dto.RewardWithdrawRequestDTO;
 import io.renren.dto.RewardWithdrawSumDTO;
@@ -16,6 +14,7 @@ import io.renren.dto.UserWithdrawInfoDTO;
 import io.renren.dto.WithdrawPageData;
 import io.renren.dto.WithdrawQueryDTO;
 import io.renren.entity.PayChannelEntity;
+import io.renren.entity.UserBalanceDetailEntity;
 import io.renren.entity.UserEntity;
 import io.renren.entity.WithdrawOrderEntity;
 import io.renren.service.WithdrawService;
@@ -24,11 +23,11 @@ import io.renren.utils.WithdrawRuleValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -41,35 +40,36 @@ import java.util.concurrent.atomic.AtomicLong;
  * 提现服务实现类
  *
  * @author renren
- * @email renren@gmail.com
- * @date 2024-01-01 00:00:00
  */
 @Service
 public class WithdrawServiceImpl implements WithdrawService {
 
     private static final Logger logger = LoggerFactory.getLogger(WithdrawServiceImpl.class);
 
-    @Autowired
+    @Resource
     private WithdrawOrderDao withdrawOrderDao;
 
-    @Autowired
+    @Resource
     private UserDao userDao;
 
-    @Autowired
+    @Resource
     private RedisDistributedLock redisDistributedLock;
 
-    @Autowired
+    @Resource
     private WithdrawRuleValidator withdrawRuleValidator;
 
-    @Autowired
+    @Resource
     private WithdrawConfig withdrawConfig;
 
     // 订单号生成器
     private static final AtomicLong orderNoGenerator = new AtomicLong(System.currentTimeMillis());
-    @Autowired
+    @Resource
     private PayChannelDao payChannelDao;
-    @Autowired
+    @Resource
     private PayInfoDao payInfoDao;
+
+    @Resource
+    private UserBalanceDetailDao userBalanceDetailDao;
 
     @Override
     public FirstWithdrawCheckDTO checkFirstWithdraw(Long userId) {
@@ -117,7 +117,6 @@ public class WithdrawServiceImpl implements WithdrawService {
             return pageData;
 
         } catch (Exception e) {
-            e.printStackTrace();
             throw new RenException(ErrorCode.GET_WITHDRAWAL_PAGE_DATA_FAILED);
         }
     }
@@ -150,7 +149,6 @@ public class WithdrawServiceImpl implements WithdrawService {
             return pageData;
 
         } catch (Exception e) {
-            e.printStackTrace();
             throw new RenException(ErrorCode.GET_COMMISSION_WITHDRAWAL_PAGE_DATA_FAILED);
         }
     }
@@ -391,6 +389,9 @@ public class WithdrawServiceImpl implements WithdrawService {
         user.setFreezeBalance(oldFreezeBalance + requestDTO.getAmount());
         userDao.updateById(user);
 
+        // 记录提现冻结资金流水
+        recordWithdrawFreezeDetail(user, requestDTO.getAmount(), orderNo, oldAssets, oldFreezeBalance);
+
         logger.info("余额提现申请处理完成 - 用户ID: {}, 订单号: {}, 提现金额: {}, 可用余额: {}, 可提现余额: {}, 冻结余额: {}",
                 userId, orderNo, requestDTO.getAmount(), user.getAssets(), user.getCashwithdrawable(), user.getFreezeBalance());
 
@@ -405,6 +406,36 @@ public class WithdrawServiceImpl implements WithdrawService {
 
         return result;
     }
+
+    /**
+     * 记录余额提现冻结资金流水
+     */
+    private void recordWithdrawFreezeDetail(UserEntity user, Long amount, String orderNo,
+                                          Long oldAssets,  Long oldFreezeBalance) {
+        try {
+            UserBalanceDetailEntity detail = new UserBalanceDetailEntity();
+            detail.setBusiType(BusinessTypeEnum.FROZEN_AMOUNT.getCode());
+            detail.setUserId(user.getId());
+            detail.setOriginalAmount(oldAssets);
+            detail.setAgentId(user.getAgent());
+            detail.setSalesmanId(user.getSalesmanid());
+            detail.setUseAmount(amount);
+            detail.setTransactionAmount(oldAssets - amount);
+            detail.setStatus(1);
+            detail.setFormUserId(user.getId());
+            detail.setTransactionDate(new Date());
+            detail.setRemarks("提现冻结 - 订单号: " + orderNo);
+            detail.setCreateDate(new Date());
+            detail.setStreamId(orderNo);
+            
+            userBalanceDetailDao.insert(detail);
+            logger.info("记录余额提现冻结流水成功 - 用户ID: {}, 订单号: {}, 金额: {}", user.getId(), orderNo, amount);
+        } catch (Exception e) {
+            logger.error("记录余额提现冻结流水失败 - 用户ID: {}, 订单号: {}, 金额: {}, 错误: {}",
+                    user.getId(), orderNo, amount, e.getMessage());
+        }
+    }
+
 
     @Override
     public RewardWithdrawSumDTO getRewardWithdrawSum(Long userId) {
@@ -445,22 +476,13 @@ public class WithdrawServiceImpl implements WithdrawService {
         }
     }
 
-//    /**
-//     * 验证支付密码
-//     */
-//    private boolean validatePayPassword(UserEntity user, String payPassword) {
-//        // 这里应该根据实际的密码验证逻辑来实现
-//        // 暂时使用简单的字符串比较，实际项目中应该使用加密验证
-//        return StringUtils.hasText(payPassword) && payPassword.equals(user.getPaymentPwd());
-//    }
-
     /**
      * 生成订单号
      */
     private String generateOrderNo() {
         long timestamp = System.currentTimeMillis();
         long sequence = orderNoGenerator.incrementAndGet();
-        return "RW" + timestamp + String.format("%04d", sequence % 10000);
+        return "W" + timestamp + String.format("%04d", sequence % 10000);
     }
 
     /**
@@ -471,26 +493,6 @@ public class WithdrawServiceImpl implements WithdrawService {
 
         // 用户ID条件
         queryWrapper.eq("user_id", queryDTO.getUserId().toString());
-
-//        // 第三方订单号条件
-//        if (StringUtils.hasText(queryDTO.getOrderno())) {
-//            queryWrapper.eq("threeorder_no", queryDTO.getOrderno());
-//        }
-//
-//        // 卡号条件
-//        if (StringUtils.hasText(queryDTO.getPayNo())) {
-//            queryWrapper.eq("pay_no", queryDTO.getPayNo());
-//        }
-//
-//        // 状态条件
-//        if (queryDTO.getState() != null) {
-//            queryWrapper.eq("state", queryDTO.getState());
-//        }
-//
-//        // 我方订单号条件
-//        if (StringUtils.hasText(queryDTO.getTransNo())) {
-//            queryWrapper.eq("orderno", queryDTO.getTransNo());
-//        }
 
         // 排序
         if (StringUtils.hasText(queryDTO.getOrderField())) {

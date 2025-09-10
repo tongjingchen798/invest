@@ -3,6 +3,7 @@ package io.renren.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 
+import io.renren.common.constant.BusinessTypeEnum;
 import io.renren.dao.PayMerchantDao;
 import io.renren.dao.UserBalanceDetailDao;
 import io.renren.dao.UserDao;
@@ -14,12 +15,12 @@ import io.renren.entity.WithdrawOrderEntity;
 import io.renren.utils.WePaySignatureUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Resource;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,8 +28,7 @@ import java.util.Map;
 /**
  * WePay代付回调控制器
  * 
- * @author renren
- * @date 2024-01-01
+ * @author lip
  */
 @RestController
 @RequestMapping("/api/payout")
@@ -36,16 +36,16 @@ public class PayoutCallbackController {
     
     private static final Logger logger = LoggerFactory.getLogger(PayoutCallbackController.class);
     
-    @Autowired
+    @Resource
     private PayMerchantDao payMerchantDao;
     
-    @Autowired
+    @Resource
     private WithdrawOrderDao withdrawOrderDao;
     
-    @Autowired
+    @Resource
     private UserDao userDao;
 
-    @Autowired
+    @Resource
     private UserBalanceDetailDao userBalanceDetailDao;
     
     /**
@@ -108,14 +108,12 @@ public class PayoutCallbackController {
             // 根据订单号查询提现订单
             WithdrawOrderEntity withdrawOrder = withdrawOrderDao.selectByOrderno(orderNo);
             if (withdrawOrder == null) {
-                logger.error("查询提现订单失败 - 订单号: {}", orderNo);
                 return false;
             }
             
             // 查询支付商户信息
             PayMerchantEntity payMerchant = payMerchantDao.selectById(withdrawOrder.getMerchantid());
             if (payMerchant == null) {
-                logger.error("查询支付商户信息失败 - 商户ID: {}", withdrawOrder.getMerchantid());
                 return false;
             }
             
@@ -193,13 +191,11 @@ public class PayoutCallbackController {
             // 查询提现订单
             WithdrawOrderEntity withdrawOrder = withdrawOrderDao.selectByOrderno(orderNo);
             if (withdrawOrder == null) {
-                logger.error("查询提现订单失败 - 订单号: {}", orderNo);
                 return false;
             }
             
             // 检查订单状态，避免重复处理
             if (withdrawOrder.getState() != null && withdrawOrder.getState() == 2) {
-                logger.warn("代付订单已处理过 - 订单号: {}, 当前状态: {}", orderNo, withdrawOrder.getState());
                 return true;
             }
             
@@ -211,12 +207,12 @@ public class PayoutCallbackController {
             
             int updateResult = withdrawOrderDao.updateById(withdrawOrder);
             if (updateResult <= 0) {
-                logger.error("更新代付订单状态失败 - 订单号: {}", orderNo);
                 return false;
             }
             UserEntity user=userDao.selectById(withdrawOrder.getUserId());
+            Long oldFreezeBalance = user.getFreezeBalance();
             //从冻结余额中真正扣减
-            user.setFreezeBalance(user.getFreezeBalance() - withdrawOrder.getAmount());
+            user.setFreezeBalance(oldFreezeBalance - withdrawOrder.getAmount());
             //2 余额提现 33佣金提现
             if (withdrawOrder.getWithdrawType() == 2) {
                 //佣金提现总额
@@ -304,16 +300,18 @@ public class PayoutCallbackController {
     private boolean updateWalletOnPayoutFailure(WithdrawOrderEntity withdrawOrder, UserEntity user) {
         try {
             Long amount = withdrawOrder.getAmount();
+            Long oldAssets=user.getAssets();
             Integer withdrawType = withdrawOrder.getWithdrawType();
             
             logger.info("开始更新钱包余额 - 用户ID: {}, 金额: {}, 提现类型: {}", 
                        user.getId(), amount, withdrawType);
             
             // 根据提现类型更新对应的钱包
+            Long oldFreezeBalance = user.getFreezeBalance();
             switch (withdrawType) {
                 case 1: // 余额提现
                     // 将冻结的余额提现金额返还到可用余额和可提现余额
-                    user.setFreezeBalance(user.getFreezeBalance() - amount);
+                    user.setFreezeBalance(oldFreezeBalance - amount);
                     user.setAssets(user.getAssets() + amount);
                     user.setCashwithdrawable(user.getCashwithdrawable() + amount);
                     logger.info("余额提现失败，返还到可用余额和可提现余额 - 用户ID: {}, 金额: {}", user.getId(), amount);
@@ -321,7 +319,7 @@ public class PayoutCallbackController {
                     
                 case 2: // 佣金提现
                     // 将冻结的佣金提现金额返还到佣金可提现余额
-                    user.setFreezeBalance(user.getFreezeBalance() - amount);
+                    user.setFreezeBalance(oldFreezeBalance - amount);
                     user.setCommissionBalance(user.getCommissionBalance() + amount);
                     logger.info("佣金提现失败，返还到佣金可提现余额 - 用户ID: {}, 金额: {}", user.getId(), amount);
                     break;
@@ -338,9 +336,11 @@ public class PayoutCallbackController {
                 return false;
             }
             
-//            // 记录账变明细
-//            recordBalanceDetailOnPayoutFailure(withdrawOrder, user, amount, withdrawType);
-            
+            // 记录提现失败解冻资金流水（仅余额提现）
+            if (withdrawType == 1) {
+                recordWithdrawFailUnfreezeDetail(user, amount, withdrawOrder.getOrderno(), oldAssets, withdrawType);
+            }
+
             logger.info("钱包余额更新成功 - 用户ID: {}, 提现类型: {}, 金额: {}", 
                        user.getId(), withdrawType, amount);
             return true;
@@ -388,6 +388,39 @@ public class PayoutCallbackController {
         } catch (Exception e) {
             logger.error("记录余额明细失败 - 用户ID: {}, 金额: {} 分", withdrawOrder.getUserId(), amountInCents, e);
             throw e;
+        }
+    }
+
+
+    /**
+     * 记录提现失败解冻资金流水
+     */
+    private void recordWithdrawFailUnfreezeDetail(UserEntity user, Long amount, String orderNo,
+                                                Long oldAssets, Integer withdrawType) {
+        try {
+            UserBalanceDetailEntity detail = new UserBalanceDetailEntity();
+            detail.setBusiType(BusinessTypeEnum.UNFROZEN_AMOUNT.getCode());
+            detail.setUserId(user.getId());
+            detail.setSalesmanId(user.getSalesmanid());
+            detail.setAgentId(user.getAgent());
+            detail.setOriginalAmount(oldAssets);
+            detail.setUseAmount(amount);
+            detail.setTransactionAmount(oldAssets + amount);
+            detail.setStatus(1);
+            detail.setFormUserId(user.getId());
+            detail.setTransactionDate(new Date());
+            String withdrawTypeName = (withdrawType == 1) ? "余额提现" : "佣金提现";
+            detail.setRemarks(withdrawTypeName + "失败解冻 - 订单号: " + orderNo);
+            detail.setCreateDate(new Date());
+            detail.setStreamId(orderNo);
+            
+            userBalanceDetailDao.insert(detail);
+
+            logger.info("记录{}失败解冻流水成功 - 用户ID: {}, 订单号: {}, 金额: {}",
+                       withdrawTypeName, user.getId(), orderNo, amount);
+        } catch (Exception e) {
+            logger.error("记录提现失败解冻流水失败 - 用户ID: {}, 订单号: {}, 金额: {}, 错误: {}",
+                    user.getId(), orderNo, amount, e.getMessage());
         }
     }
 }

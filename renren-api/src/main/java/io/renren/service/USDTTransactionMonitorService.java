@@ -37,21 +37,21 @@ public interface USDTTransactionMonitorService {
      */
     Map<String, Object> checkUSDTBalance(String usdtAddress);
     
-    /**
-     * 验证USDT转账
-     *
-     * @param txHash 交易哈希
-     * @param usdtAddress 目标地址
-     * @param amount 期望金额
-     * @return 验证结果
-     */
-    Map<String, Object> verifyUSDTTransaction(String txHash, String usdtAddress, Long amount);
-    
-    /**
-     * 获取未匹配的U收款记录
-     *
-     * @param usdtAddress USDT地址
-     * @return 未匹配的记录列表
-     */
-    List<Map<String, Object>> getUnmatchedUSDTRecords(String usdtAddress);
+//    /**
+//     * 验证USDT转账
+//     *
+//     * @param txHash 交易哈希
+//     * @param usdtAddress 目标地址
+//     * @param amount 期望金额
+//     * @return 验证结果
+//     */
+//    Map<String, Object> verifyUSDTTransaction(String txHash, String usdtAddress, Long amount);
+//
+//    /**
+//     * 获取未匹配的U收款记录
+//     *
+//     * @param usdtAddress USDT地址
+//     * @return 未匹配的记录列表
+//     */
+//    List<Map<String, Object>> getUnmatchedUSDTRecords(String usdtAddress);
 }

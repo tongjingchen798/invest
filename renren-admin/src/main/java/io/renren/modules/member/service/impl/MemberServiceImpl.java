@@ -627,10 +627,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             
             // 查询用户信息
             MemberEntity member = this.selectById(userId);
-            if (member == null) {
-                return new Result().error("User not found");
-            }
-            
+
             // 获取当前余额和冻结金额
             Long currentBalance = member.getAssets() != null ? member.getAssets() : 0L;
             Long currentFrozenBalance = member.getFreezeBalance() != null ? member.getFreezeBalance() : 0L;

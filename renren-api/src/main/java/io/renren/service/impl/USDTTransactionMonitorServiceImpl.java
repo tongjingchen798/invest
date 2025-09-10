@@ -172,40 +172,40 @@ public class USDTTransactionMonitorServiceImpl implements USDTTransactionMonitor
         return result;
     }
     
-    @Override
-    public Map<String, Object> verifyUSDTTransaction(String txHash, String usdtAddress, Long amount) {
-        Map<String, Object> result = new HashMap<>();
-        
-        try {
-            // 获取交易详情
-            String url = TRON_API_BASE + "/v1/transactions/" + txHash;
-            String response = HttpUtils.get(url);
-            
-            JSONObject transaction = JSON.parseObject(response);
-            
-            if (transaction.containsKey("error")) {
-                result.put("success", false);
-                result.put("message", "交易不存在或无效");
-                return result;
-            }
-            
-            // 验证交易
-            if (isValidUSDTTransaction(transaction, usdtAddress, amount)) {
-                result.put("success", true);
-                result.put("message", "交易验证成功");
-                result.put("txHash", txHash);
-            } else {
-                result.put("success", false);
-                result.put("message", "交易验证失败");
-            }
-            
-        } catch (Exception e) {
-            result.put("success", false);
-            result.put("message", "验证交易失败: " + e.getMessage());
-        }
-        
-        return result;
-    }
+//    @Override
+//    public Map<String, Object> verifyUSDTTransaction(String txHash, String usdtAddress, Long amount) {
+//        Map<String, Object> result = new HashMap<>();
+//
+//        try {
+//            // 获取交易详情
+//            String url = TRON_API_BASE + "/v1/transactions/" + txHash;
+//            String response = HttpUtils.get(url);
+//
+//            JSONObject transaction = JSON.parseObject(response);
+//
+//            if (transaction.containsKey("error")) {
+//                result.put("success", false);
+//                result.put("message", "交易不存在或无效");
+//                return result;
+//            }
+//
+//            // 验证交易
+//            if (isValidUSDTTransaction(transaction, usdtAddress, amount)) {
+//                result.put("success", true);
+//                result.put("message", "交易验证成功");
+//                result.put("txHash", txHash);
+//            } else {
+//                result.put("success", false);
+//                result.put("message", "交易验证失败");
+//            }
+//
+//        } catch (Exception e) {
+//            result.put("success", false);
+//            result.put("message", "验证交易失败: " + e.getMessage());
+//        }
+//
+//        return result;
+//    }
     
     /**
      * 获取USDT交易记录（只获取转入交易）
@@ -253,143 +253,143 @@ public class USDTTransactionMonitorServiceImpl implements USDTTransactionMonitor
         }
     }
     
-    /**
-     * 查找符合条件的USDT转账（按时间倒序，优先处理最新的交易）
-     */
-    private JSONObject findMatchingUSDTTransaction(JSONArray transactionList, String usdtAddress, Long amount) {
-        try {
-            // 按时间戳倒序排序，优先处理最新的交易
-            List<JSONObject> sortedTransactions = new ArrayList<>();
-            for (Object obj : transactionList) {
-                JSONObject transaction = (JSONObject) obj;
-                sortedTransactions.add(transaction);
-            }
-            
-            // 按block_timestamp倒序排序
-            sortedTransactions.sort((t1, t2) -> {
-                Long ts1 = t1.getLong("block_timestamp");
-                Long ts2 = t2.getLong("block_timestamp");
-                if (ts1 == null) ts1 = 0L;
-                if (ts2 == null) ts2 = 0L;
-                return ts2.compareTo(ts1); // 倒序
-            });
-            
-            // 查找符合条件的交易
-            for (JSONObject transaction : sortedTransactions) {
-                if (isValidUSDTTransaction(transaction, usdtAddress, amount)) {
-                    return transaction;
-                }
-            }
-            
-            return null;
-        } catch (Exception e) {
-            return null;
-        }
-    }
+//    /**
+//     * 查找符合条件的USDT转账（按时间倒序，优先处理最新的交易）
+//     */
+//    private JSONObject findMatchingUSDTTransaction(JSONArray transactionList, String usdtAddress, Long amount) {
+//        try {
+//            // 按时间戳倒序排序，优先处理最新的交易
+//            List<JSONObject> sortedTransactions = new ArrayList<>();
+//            for (Object obj : transactionList) {
+//                JSONObject transaction = (JSONObject) obj;
+//                sortedTransactions.add(transaction);
+//            }
+//
+//            // 按block_timestamp倒序排序
+//            sortedTransactions.sort((t1, t2) -> {
+//                Long ts1 = t1.getLong("block_timestamp");
+//                Long ts2 = t2.getLong("block_timestamp");
+//                if (ts1 == null) ts1 = 0L;
+//                if (ts2 == null) ts2 = 0L;
+//                return ts2.compareTo(ts1); // 倒序
+//            });
+//
+//            // 查找符合条件的交易
+//            for (JSONObject transaction : sortedTransactions) {
+//                if (isValidUSDTTransaction(transaction, usdtAddress, amount)) {
+//                    return transaction;
+//                }
+//            }
+//
+//            return null;
+//        } catch (Exception e) {
+//            return null;
+//        }
+//    }
     
-    /**
-     * 验证USDT交易是否有效
-     */
-    private boolean isValidUSDTTransaction(JSONObject transaction, String usdtAddress, Long amount) {
-        try {
-            // 检查交易状态
-            if (!"SUCCESS".equals(transaction.getString("contractRet"))) {
-                return false;
-            }
-            
-            // 检查是否为USDT转账
-            JSONObject rawData = transaction.getJSONObject("raw_data");
-            if (rawData == null) {
-                return false;
-            }
-            
-            JSONArray contract = rawData.getJSONArray("contract");
-            if (contract == null) {
-                return false;
-            }
-            
-            for (Object obj : contract) {
-                JSONObject contractObj = (JSONObject) obj;
-                if ("TriggerSmartContract".equals(contractObj.getString("type"))) {
-                    JSONObject parameter = contractObj.getJSONObject("parameter");
-                    if (parameter == null) continue;
-                    
-                    JSONObject value = parameter.getJSONObject("value");
-                    if (value == null) continue;
-                    
-                    // 检查合约地址是否为USDT
-                    String contractAddress = value.getString("contract_address");
-                    if (!USDT_CONTRACT_ADDRESS.equals(contractAddress)) {
-                        continue;
-                    }
-                    
-                    // 检查目标地址
-                    String data = value.getString("data");
-                    if (data == null) continue;
-                    
-                    // 解析data字段获取目标地址和金额
-                    TransactionData parsedData = parseTransactionData(data);
-                    if (parsedData != null && 
-                        usdtAddress.equals(parsedData.getToAddress()) && 
-                        amount.equals(parsedData.getAmount())) {
-                        return true;
-                    }
-                    
-                    // 如果无法解析data，则使用简化的验证方式
-                    // 检查data是否包含目标地址的hex编码
-                    if (isDataContainsAddress(data, usdtAddress)) {
-                        return true;
-                    }
-                }
-            }
-            
-            return false;
-        } catch (Exception e) {
-            return false;
-        }
-    }
+//    /**
+//     * 验证USDT交易是否有效
+//     */
+//    private boolean isValidUSDTTransaction(JSONObject transaction, String usdtAddress, Long amount) {
+//        try {
+//            // 检查交易状态
+//            if (!"SUCCESS".equals(transaction.getString("contractRet"))) {
+//                return false;
+//            }
+//
+//            // 检查是否为USDT转账
+//            JSONObject rawData = transaction.getJSONObject("raw_data");
+//            if (rawData == null) {
+//                return false;
+//            }
+//
+//            JSONArray contract = rawData.getJSONArray("contract");
+//            if (contract == null) {
+//                return false;
+//            }
+//
+//            for (Object obj : contract) {
+//                JSONObject contractObj = (JSONObject) obj;
+//                if ("TriggerSmartContract".equals(contractObj.getString("type"))) {
+//                    JSONObject parameter = contractObj.getJSONObject("parameter");
+//                    if (parameter == null) continue;
+//
+//                    JSONObject value = parameter.getJSONObject("value");
+//                    if (value == null) continue;
+//
+//                    // 检查合约地址是否为USDT
+//                    String contractAddress = value.getString("contract_address");
+//                    if (!USDT_CONTRACT_ADDRESS.equals(contractAddress)) {
+//                        continue;
+//                    }
+//
+//                    // 检查目标地址
+//                    String data = value.getString("data");
+//                    if (data == null) continue;
+//
+//                    // 解析data字段获取目标地址和金额
+//                    TransactionData parsedData = parseTransactionData(data);
+//                    if (parsedData != null &&
+//                        usdtAddress.equals(parsedData.getToAddress()) &&
+//                        amount.equals(parsedData.getAmount())) {
+//                        return true;
+//                    }
+//
+//                    // 如果无法解析data，则使用简化的验证方式
+//                    // 检查data是否包含目标地址的hex编码
+//                    if (isDataContainsAddress(data, usdtAddress)) {
+//                        return true;
+//                    }
+//                }
+//            }
+//
+//            return false;
+//        } catch (Exception e) {
+//            return false;
+//        }
+//    }
     
-    /**
-     * 解析交易数据
-     */
-    private TransactionData parseTransactionData(String data) {
-        try {
-            // 简化实现：直接返回null，让调用方使用其他方式验证
-            // 在实际应用中，这里应该解析TRON的hex数据来获取目标地址和金额
-            // 由于TRON的hex数据解析比较复杂，暂时返回null
-            // TODO: 实现完整的TRON交易数据解析
-            return null;
-        } catch (Exception e) {
-            return null;
-        }
-    }
+//    /**
+//     * 解析交易数据
+//     */
+//    private TransactionData parseTransactionData(String data) {
+//        try {
+//            // 简化实现：直接返回null，让调用方使用其他方式验证
+//            // 在实际应用中，这里应该解析TRON的hex数据来获取目标地址和金额
+//            // 由于TRON的hex数据解析比较复杂，暂时返回null
+//            // TODO: 实现完整的TRON交易数据解析
+//            return null;
+//        } catch (Exception e) {
+//            return null;
+//        }
+//    }
+//
+//    /**
+//     * 检查data是否包含目标地址
+//     */
+//    private boolean isDataContainsAddress(String data, String usdtAddress) {
+//        try {
+//            // 将地址转换为hex格式进行匹配
+//            // 这是一个简化的实现，实际应该根据TRON协议进行精确匹配
+//            String addressHex = addressToHex(usdtAddress);
+//            return data != null && data.contains(addressHex);
+//        } catch (Exception e) {
+//            return false;
+//        }
+//    }
     
-    /**
-     * 检查data是否包含目标地址
-     */
-    private boolean isDataContainsAddress(String data, String usdtAddress) {
-        try {
-            // 将地址转换为hex格式进行匹配
-            // 这是一个简化的实现，实际应该根据TRON协议进行精确匹配
-            String addressHex = addressToHex(usdtAddress);
-            return data != null && data.contains(addressHex);
-        } catch (Exception e) {
-            return false;
-        }
-    }
-    
-    /**
-     * 将TRON地址转换为hex格式
-     */
-    private String addressToHex(String address) {
-        try {
-            // 简化实现：直接返回地址的hash值
-            // 实际应该使用TRON的地址转换算法
-            return address.replace("T", "").toLowerCase();
-        } catch (Exception e) {
-            return address;
-        }
-    }
+//    /**
+//     * 将TRON地址转换为hex格式
+//     */
+//    private String addressToHex(String address) {
+//        try {
+//            // 简化实现：直接返回地址的hash值
+//            // 实际应该使用TRON的地址转换算法
+//            return address.replace("T", "").toLowerCase();
+//        } catch (Exception e) {
+//            return address;
+//        }
+//    }
     
     /**
      * 检查是否为有效的USDT转入交易
@@ -399,7 +399,7 @@ public class USDTTransactionMonitorServiceImpl implements USDTTransactionMonitor
             // 1. 检查交易类型
             String type = transaction.getString("type");
             if (!"Transfer".equals(type)) {
-                log.debug("交易类型不是Transfer: {}", type);
+//                log.debug("交易类型不是Transfer: {}", type);
                 return false;
             }
             
@@ -484,58 +484,7 @@ public class USDTTransactionMonitorServiceImpl implements USDTTransactionMonitor
             throw new RenException(ErrorCode.UPDATE_USDT_RECORD_FAILED);
         }
     }
-    
-    @Override
-    public List<Map<String, Object>> getUnmatchedUSDTRecords(String usdtAddress) {
-        List<Map<String, Object>> result = new ArrayList<>();
-        
-        try {
-            List<UsdtRecordEntity> records = usdtRecordDao.selectList(
-                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<UsdtRecordEntity>()
-                    .eq("to_address", usdtAddress)
-                    .eq("is_process", 0) // 未处理
-                    .orderByDesc("create_date")
-            );
-            
-            for (UsdtRecordEntity record : records) {
-                Map<String, Object> recordMap = new HashMap<>();
-                recordMap.put("id", record.getId());
-                recordMap.put("transactionId", record.getTransactionId());
-                recordMap.put("fromAddress", record.getFromAddress());
-                recordMap.put("toAddress", record.getToAddress());
-                recordMap.put("amount", record.getAmount());
-                recordMap.put("blockTime", record.getBlockTime());
-                recordMap.put("createDate", record.getCreateDate());
-                result.add(recordMap);
-            }
-            
-        } catch (Exception e) {
-            // 记录日志但不抛出异常
-        }
-        
-        return result;
-    }
-    
-    /**
-     * 交易数据内部类
-     */
-    private static class TransactionData {
-        private String toAddress;
-        private Long amount;
-        
-        public TransactionData(String toAddress, Long amount) {
-            this.toAddress = toAddress;
-            this.amount = amount;
-        }
-        
-        public String getToAddress() {
-            return toAddress;
-        }
-        
-        public Long getAmount() {
-            return amount;
-        }
-    }
+
     
     /**
      * 查找待处理的USDT充值订单
@@ -639,8 +588,6 @@ public class USDTTransactionMonitorServiceImpl implements USDTTransactionMonitor
             // 验证交易方向，确保是转入交易
             String toAddress = transaction.getString("to");
             if (toAddress == null || !usdtAddress.equals(toAddress)) {
-                log.warn("跳过非转入交易: txHash={}, toAddress={}, expectedAddress={}", 
-                        transaction.getString("transaction_id"), toAddress, usdtAddress);
                 return;
             }
             
@@ -700,45 +647,5 @@ public class USDTTransactionMonitorServiceImpl implements USDTTransactionMonitor
         }
     }
     
-    /**
-     * 从交易数据中解析金额
-     */
-    private BigDecimal parseAmountFromTransaction(JSONObject transaction) {
-        try {
-            // 简化实现，实际需要解析TRON的hex数据
-            // 这里返回一个默认值，实际应该从data字段解析
-            return BigDecimal.ZERO;
-        } catch (Exception e) {
-            return BigDecimal.ZERO;
-        }
-    }
-    
-    /**
-     * 从交易数据中提取转账地址
-     */
-    private String extractFromAddress(JSONObject transaction) {
-        try {
-            // 从raw_data中提取转账地址
-            JSONObject rawData = transaction.getJSONObject("raw_data");
-            if (rawData != null && rawData.containsKey("contract")) {
-                JSONArray contracts = rawData.getJSONArray("contract");
-                for (Object obj : contracts) {
-                    JSONObject contract = (JSONObject) obj;
-                    if ("TriggerSmartContract".equals(contract.getString("type"))) {
-                        JSONObject parameter = contract.getJSONObject("parameter");
-                        if (parameter != null && parameter.containsKey("value")) {
-                            JSONObject value = parameter.getJSONObject("value");
-                            if (value.containsKey("owner_address")) {
-                                return value.getString("owner_address");
-                            }
-                        }
-                    }
-                }
-            }
-            return "unknown";
-        } catch (Exception e) {
-            return "unknown";
-        }
-    }
 
 }
