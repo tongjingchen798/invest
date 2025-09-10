@@ -593,7 +593,7 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
             if (user == null) {
                 throw new RenException("用户不存在");
             }
-            recordWithdrawFailUnfreezeDetail(user,order.getAmount(),order.getOrderno(),user.getAssets(),order.getWithdrawType());
+//            recordWithdrawFailUnfreezeDetail(user,order.getAmount(),order.getOrderno(),user.getAssets(),order.getWithdrawType());
 
             // 解冻资金，返还到可用余额
             int result = memberDao.updateBalanceOnWithdrawFailure(
@@ -625,37 +625,37 @@ public class AdminWithdrawServiceImpl implements AdminWithdrawService {
         }
     }
 
-    /**
-     * 记录驳回提现后解冻资金流水
-     */
-    private void recordWithdrawFailUnfreezeDetail(MemberEntity user, Long amount, String orderNo,
-                                                  Long oldAssets, Integer withdrawType) {
-        try {
-            UserBalanceDetailEntity detail = new UserBalanceDetailEntity();
-            detail.setBusiType(BusinessTypeEnum.UNFROZEN_AMOUNT.getCode());
-            detail.setUserId(user.getId());
-            detail.setSalesmanId(user.getSalesmanid());
-            detail.setAgentId(user.getAgent());
-            detail.setOriginalAmount(oldAssets);
-            detail.setUseAmount(amount);
-            detail.setTransactionAmount(oldAssets + amount);
-            detail.setStatus(1);
-            detail.setFormUserId(user.getId());
-            detail.setTransactionDate(new Date());
-            String withdrawTypeName = (withdrawType == 1) ? "余额提现" : "佣金提现";
-            detail.setRemarks(withdrawTypeName + "驳回,解冻冻结资金 - 订单号: " + orderNo);
-            detail.setCreateDate(new Date());
-            detail.setStreamId(orderNo);
-
-            userBalanceDetailDao.insert(detail);
-
-            log.info("记录{}失败解冻流水成功 - 用户ID: {}, 订单号: {}, 金额: {}",
-                    withdrawTypeName, user.getId(), orderNo, amount);
-        } catch (Exception e) {
-            log.error("记录提现失败解冻流水失败 - 用户ID: {}, 订单号: {}, 金额: {}, 错误: {}",
-                    user.getId(), orderNo, amount, e.getMessage());
-        }
-    }
+//    /**
+//     * 记录驳回提现后解冻资金流水
+//     */
+//    private void recordWithdrawFailUnfreezeDetail(MemberEntity user, Long amount, String orderNo,
+//                                                  Long oldAssets, Integer withdrawType) {
+//        try {
+//            UserBalanceDetailEntity detail = new UserBalanceDetailEntity();
+//            detail.setBusiType(BusinessTypeEnum.UNFROZEN_AMOUNT.getCode());
+//            detail.setUserId(user.getId());
+//            detail.setSalesmanId(user.getSalesmanid());
+//            detail.setAgentId(user.getAgent());
+//            detail.setOriginalAmount(oldAssets);
+//            detail.setUseAmount(amount);
+//            detail.setTransactionAmount(oldAssets + amount);
+//            detail.setStatus(1);
+//            detail.setFormUserId(user.getId());
+//            detail.setTransactionDate(new Date());
+//            String withdrawTypeName = (withdrawType == 1) ? "余额提现" : "佣金提现";
+//            detail.setRemarks(withdrawTypeName + "驳回,解冻冻结资金 - 订单号: " + orderNo);
+//            detail.setCreateDate(new Date());
+//            detail.setStreamId(orderNo);
+//
+//            userBalanceDetailDao.insert(detail);
+//
+//            log.info("记录{}失败解冻流水成功 - 用户ID: {}, 订单号: {}, 金额: {}",
+//                    withdrawTypeName, user.getId(), orderNo, amount);
+//        } catch (Exception e) {
+//            log.error("记录提现失败解冻流水失败 - 用户ID: {}, 订单号: {}, 金额: {}, 错误: {}",
+//                    user.getId(), orderNo, amount, e.getMessage());
+//        }
+//    }
 
 //    /**
 //     * 检查订单状态是否允许审核

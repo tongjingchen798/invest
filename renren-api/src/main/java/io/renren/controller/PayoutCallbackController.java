@@ -336,10 +336,7 @@ public class PayoutCallbackController {
                 return false;
             }
             
-            // 记录提现失败解冻资金流水（仅余额提现）
-            if (withdrawType == 1) {
-                recordWithdrawFailUnfreezeDetail(user, amount, withdrawOrder.getOrderno(), oldAssets, withdrawType);
-            }
+            // 解冻操作不记录资金账变，因为只是状态恢复，不是真正的资金流动
 
             logger.info("钱包余额更新成功 - 用户ID: {}, 提现类型: {}, 金额: {}", 
                        user.getId(), withdrawType, amount);
@@ -392,35 +389,4 @@ public class PayoutCallbackController {
     }
 
 
-    /**
-     * 记录提现失败解冻资金流水
-     */
-    private void recordWithdrawFailUnfreezeDetail(UserEntity user, Long amount, String orderNo,
-                                                Long oldAssets, Integer withdrawType) {
-        try {
-            UserBalanceDetailEntity detail = new UserBalanceDetailEntity();
-            detail.setBusiType(BusinessTypeEnum.UNFROZEN_AMOUNT.getCode());
-            detail.setUserId(user.getId());
-            detail.setSalesmanId(user.getSalesmanid());
-            detail.setAgentId(user.getAgent());
-            detail.setOriginalAmount(oldAssets);
-            detail.setUseAmount(amount);
-            detail.setTransactionAmount(oldAssets + amount);
-            detail.setStatus(1);
-            detail.setFormUserId(user.getId());
-            detail.setTransactionDate(new Date());
-            String withdrawTypeName = (withdrawType == 1) ? "余额提现" : "佣金提现";
-            detail.setRemarks(withdrawTypeName + "失败解冻 - 订单号: " + orderNo);
-            detail.setCreateDate(new Date());
-            detail.setStreamId(orderNo);
-            
-            userBalanceDetailDao.insert(detail);
-
-            logger.info("记录{}失败解冻流水成功 - 用户ID: {}, 订单号: {}, 金额: {}",
-                       withdrawTypeName, user.getId(), orderNo, amount);
-        } catch (Exception e) {
-            logger.error("记录提现失败解冻流水失败 - 用户ID: {}, 订单号: {}, 金额: {}, 错误: {}",
-                    user.getId(), orderNo, amount, e.getMessage());
-        }
-    }
 }

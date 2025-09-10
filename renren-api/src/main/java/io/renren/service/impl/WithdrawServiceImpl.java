@@ -389,8 +389,7 @@ public class WithdrawServiceImpl implements WithdrawService {
         user.setFreezeBalance(oldFreezeBalance + requestDTO.getAmount());
         userDao.updateById(user);
 
-        // 记录提现冻结资金流水
-        recordWithdrawFreezeDetail(user, requestDTO.getAmount(), orderNo, oldAssets, oldFreezeBalance);
+        // 冻结操作不记录资金账变，因为只是状态锁定，不是真正的资金流动
 
         logger.info("余额提现申请处理完成 - 用户ID: {}, 订单号: {}, 提现金额: {}, 可用余额: {}, 可提现余额: {}, 冻结余额: {}",
                 userId, orderNo, requestDTO.getAmount(), user.getAssets(), user.getCashwithdrawable(), user.getFreezeBalance());
@@ -407,34 +406,6 @@ public class WithdrawServiceImpl implements WithdrawService {
         return result;
     }
 
-    /**
-     * 记录余额提现冻结资金流水
-     */
-    private void recordWithdrawFreezeDetail(UserEntity user, Long amount, String orderNo,
-                                          Long oldAssets,  Long oldFreezeBalance) {
-        try {
-            UserBalanceDetailEntity detail = new UserBalanceDetailEntity();
-            detail.setBusiType(BusinessTypeEnum.FROZEN_AMOUNT.getCode());
-            detail.setUserId(user.getId());
-            detail.setOriginalAmount(oldAssets);
-            detail.setAgentId(user.getAgent());
-            detail.setSalesmanId(user.getSalesmanid());
-            detail.setUseAmount(amount);
-            detail.setTransactionAmount(oldAssets - amount);
-            detail.setStatus(1);
-            detail.setFormUserId(user.getId());
-            detail.setTransactionDate(new Date());
-            detail.setRemarks("提现冻结 - 订单号: " + orderNo);
-            detail.setCreateDate(new Date());
-            detail.setStreamId(orderNo);
-            
-            userBalanceDetailDao.insert(detail);
-            logger.info("记录余额提现冻结流水成功 - 用户ID: {}, 订单号: {}, 金额: {}", user.getId(), orderNo, amount);
-        } catch (Exception e) {
-            logger.error("记录余额提现冻结流水失败 - 用户ID: {}, 订单号: {}, 金额: {}, 错误: {}",
-                    user.getId(), orderNo, amount, e.getMessage());
-        }
-    }
 
 
     @Override
