@@ -57,12 +57,12 @@ public class ProjectEntity implements Serializable {
 
         /**
      * 回款方式
-     * 1: 到期返还 (Return upon maturity)
+     * 1: 到期返还 (Return upon maturity) - 已移除
      * 2: 每日返利 (Daily rebate) 
      * 3: 不返本金 (No principal return)
-     * 4: 复利产品 (Compound interest product)
-     * 5: 阶梯日益 (Stepped daily increase)
-     * 6: 拼团 (Group buy/Team purchase)
+     * 4: 复利产品 (到期一起返回本金和利润)
+     * 5: 阶梯日益 (Stepped daily increase) - 已移除
+     * 6: 拼团 (Group buy/Team purchase) - 已移除
      */
     private Integer cycleType;
 
