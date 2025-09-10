@@ -2,7 +2,6 @@ package io.renren.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import io.renren.common.constant.BusinessTypeEnum;
 import io.renren.common.exception.ErrorCode;
 import io.renren.common.exception.RenException;
 import io.renren.config.WithdrawConfig;
@@ -14,7 +13,6 @@ import io.renren.dto.UserWithdrawInfoDTO;
 import io.renren.dto.WithdrawPageData;
 import io.renren.dto.WithdrawQueryDTO;
 import io.renren.entity.PayChannelEntity;
-import io.renren.entity.UserBalanceDetailEntity;
 import io.renren.entity.UserEntity;
 import io.renren.entity.WithdrawOrderEntity;
 import io.renren.service.WithdrawService;

@@ -2,8 +2,6 @@ package io.renren.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-
-import io.renren.common.constant.BusinessTypeEnum;
 import io.renren.dao.PayMerchantDao;
 import io.renren.dao.UserBalanceDetailDao;
 import io.renren.dao.UserDao;

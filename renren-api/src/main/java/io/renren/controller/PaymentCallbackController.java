@@ -1,18 +1,13 @@
 package io.renren.controller;
 
-import com.alibaba.fastjson.JSON;
-import io.renren.common.exception.RenException;
 import io.renren.common.utils.Result;
 import io.renren.dao.ChargeOrderDao;
 import io.renren.dao.PayMerchantDao;
 import io.renren.dao.UserDao;
 import io.renren.dao.UserBalanceDetailDao;
-import io.renren.dto.PaymentResponseDTO;
 import io.renren.dto.WePayCallbackDTO;
 import io.renren.entity.ChargeOrderEntity;
 import io.renren.entity.PayMerchantEntity;
-import io.renren.entity.UserEntity;
-import io.renren.entity.UserBalanceDetailEntity;
 import io.renren.service.WePayPaymentService;
 import io.renren.service.PaymentCallbackService;
 import io.renren.utils.WePaySignatureUtils;
@@ -22,9 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.math.BigDecimal;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,20 +34,12 @@ public class PaymentCallbackController {
     private static final Logger logger = LoggerFactory.getLogger(PaymentCallbackController.class);
     
     @Autowired
-    private WePayPaymentService wePayPaymentService;
-
-    @Autowired
     private PayMerchantDao payMerchantDao;
 
     @Autowired
     private ChargeOrderDao chargeOrderDao;
     
-    @Autowired
-    private UserDao userDao;
-    
-    @Autowired
-    private UserBalanceDetailDao userBalanceDetailDao;
-    
+
     @Autowired
     private PaymentCallbackService paymentCallbackService;
     
@@ -96,24 +80,6 @@ public class PaymentCallbackController {
         } catch (Exception e) {
             logger.error("处理WePay支付回调异常: {}", e.getMessage(), e);
             return "fail";
-        }
-    }
-    
-    @GetMapping("/callback")
-    @ApiOperation("支付成功页面回调")
-    public Result<String> paymentCallback(
-            @RequestParam(required = false) String orderNo,
-            @RequestParam(required = false) String status) {
-        try {
-            logger.info("收到支付页面回调 - 订单号: {}, 状态: {}", orderNo, status);
-            
-            // TODO: 根据订单号查询支付结果并更新订单状态
-            
-            return new Result<String>().ok("支付成功");
-            
-        } catch (Exception e) {
-            logger.error("处理支付页面回调异常: {}", e.getMessage(), e);
-            return new Result<String>().error("处理失败: " + e.getMessage());
         }
     }
     

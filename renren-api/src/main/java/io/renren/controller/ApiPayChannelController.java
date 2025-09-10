@@ -3,26 +3,17 @@ package io.renren.controller;
 import io.renren.common.utils.Result;
 import io.renren.dao.PayChannelDao;
 import io.renren.dao.SysParamsDao;
-import io.renren.dao.UAddressConfigDao;
-import io.renren.entity.UAddressConfigEntity;
 import io.renren.dto.PayChannelDTO;
 import io.renren.entity.PayChannelEntity;
-import io.renren.service.USDTRechargeService;
-import io.renren.service.USDTTransactionMonitorService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.Map;
-
-import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -40,15 +31,7 @@ public class ApiPayChannelController {
     
     @Autowired
     private SysParamsDao sysParamsDao;
-    
-    @Autowired
-    private UAddressConfigDao uAddressConfigDao;
-    
-    @Autowired
-    private USDTRechargeService usdtRechargeService;
-    
-    @Autowired
-    private USDTTransactionMonitorService usdtTransactionMonitorService;
+
 
     @GetMapping("getPay")
     @ApiOperation("查询支付方式")
@@ -130,60 +113,4 @@ public class ApiPayChannelController {
         
         return dto;
     }
-    
-//    @PostMapping("generateUSDTQRCode")
-//    @ApiOperation("生成USDT充值二维码")
-//    public Result<Map<String, Object>> generateUSDTQRCode(
-//            @ApiParam(value = "充值金额（可选）", required = false) @RequestParam(required = false) String amount) {
-//        try {
-//            Map<String, Object> result = usdtRechargeService.generateUSDTRechargeQRCode(amount);
-//            return new Result<Map<String, Object>>().ok(result);
-//        } catch (Exception e) {
-//            return new Result<Map<String, Object>>().error("生成USDT充值二维码失败: " + e.getMessage());
-//        }
-//    }
-//
-//    @GetMapping("getUSDTAddress")
-//    @ApiOperation("获取USDT-TRC20地址")
-//    public Result<String> getUSDTAddress() {
-//        try {
-//            String usdtAddress = usdtRechargeService.getUSDTAddress();
-//            if (usdtAddress == null || usdtAddress.isEmpty()) {
-//                return new Result<String>().error("USDT-TRC20地址未配置");
-//            }
-//            return new Result<String>().ok(usdtAddress);
-//        } catch (Exception e) {
-//            return new Result<String>().error("获取USDT地址失败: " + e.getMessage());
-//        }
-//    }
-//
-//    @PostMapping("checkUSDTTransaction")
-//    @ApiOperation("检查USDT转账")
-//    public Result<Map<String, Object>> checkUSDTTransaction(
-//            @ApiParam(value = "交易哈希", required = true) @RequestParam String txHash,
-//            @ApiParam(value = "USDT地址", required = true) @RequestParam String usdtAddress,
-//            @ApiParam(value = "金额", required = true) @RequestParam String amount) {
-//        try {
-//            Map<String, Object> result = usdtTransactionMonitorService.verifyUSDTTransaction(txHash, usdtAddress, amount);
-//            return new Result<Map<String, Object>>().ok(result);
-//        } catch (Exception e) {
-//            return new Result<Map<String, Object>>().error("检查USDT转账失败: " + e.getMessage());
-//        }
-//    }
-//
-//    @GetMapping("checkUSDTBalance")
-//    @ApiOperation("检查USDT余额")
-//    public Result<Map<String, Object>> checkUSDTBalance() {
-//        try {
-//            UAddressConfigEntity uAddressConfigEntity = uAddressConfigDao.selectAddrLimit();
-//            if (uAddressConfigEntity == null || uAddressConfigEntity.getAddr() == null) {
-//                return new Result<Map<String, Object>>().error("USDT-TRC20地址未配置");
-//            }
-//
-//            Map<String, Object> result = usdtTransactionMonitorService.checkUSDTBalance(uAddressConfigEntity.getAddr());
-//            return new Result<Map<String, Object>>().ok(result);
-//        } catch (Exception e) {
-//            return new Result<Map<String, Object>>().error("检查USDT余额失败: " + e.getMessage());
-//        }
-//    }
 }

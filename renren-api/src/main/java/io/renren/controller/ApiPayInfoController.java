@@ -6,6 +6,7 @@ import io.renren.annotation.LoginUser;
 import io.renren.common.exception.ErrorCode;
 import io.renren.common.exception.RenException;
 import io.renren.common.utils.Result;
+import io.renren.common.utils.VerificationCodeUtils;
 import io.renren.common.validator.ValidatorUtils;
 import io.renren.dto.PayInfoDTO;
 import io.renren.entity.UserEntity;
@@ -50,6 +51,9 @@ public class ApiPayInfoController {
     @Resource
     private PayInfoDao PayInfoDao;
 
+    @Autowired
+    private VerificationCodeUtils verificationCodeUtils;
+
     @Login
     @PostMapping
     @ApiOperation("新增支付方式")
@@ -57,9 +61,17 @@ public class ApiPayInfoController {
         // 参数校验
         ValidatorUtils.validateEntity(dto);
 
-         if(StringUtils.isBlank(dto.getCode())){
-             throw new RenException(ErrorCode.VERIFICATION_CODE_NOT_FOUND);
-         }
+        if(StringUtils.isBlank(dto.getCode())){
+            throw new RenException(ErrorCode.VERIFICATION_CODE_EMPTY);
+        }
+
+        if (!verificationCodeUtils.hasCode(dto.getMobile())) {
+            throw new RenException(ErrorCode.VERIFICATION_CODE_NOT_FOUND);
+        }
+        //短信校验
+        if (!verificationCodeUtils.verifyCode(dto.getMobile(), dto.getCode())) {
+            throw new RenException(ErrorCode.VERIFICATION_CODE_INCORRECT);
+        }
 
         // 检查是否已存在相同的银行账号
         QueryWrapper<PayInfoEntity> queryWrapper = new QueryWrapper<>();

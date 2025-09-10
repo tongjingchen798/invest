@@ -113,6 +113,8 @@ public interface ErrorCode {
     int VERIFICATION_CODE_NOT_FOUND = 70014;
     /** 验证码不正确 */
     int VERIFICATION_CODE_INCORRECT = 70015;
+    /** 验证码不能为空 */
+    int VERIFICATION_CODE_EMPTY = 70016;
     
     // ==================== VIP相关错误码 (80xxx) ====================
     /** 不满足领取条件 */

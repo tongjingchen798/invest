@@ -5,21 +5,12 @@ import io.renren.annotation.LoginUser;
 import io.renren.common.exception.ErrorCode;
 import io.renren.common.exception.RenException;
 import io.renren.common.utils.Result;
-import io.renren.dao.PayChannelDao;
-import io.renren.dao.PayMerchantDao;
-import io.renren.dao.SysParamsDao;
-import io.renren.dao.UAddressConfigDao;
 import io.renren.dto.ChargeOrderDetailDTO;
 import io.renren.dto.ChargePageData;
 import io.renren.dto.ChargeResponseDTO;
-import io.renren.dto.PaymentResponseDTO;
-import io.renren.entity.PayChannelEntity;
-import io.renren.entity.PayMerchantEntity;
-import io.renren.entity.UAddressConfigEntity;
 import io.renren.entity.UserEntity;
 import io.renren.enums.ChargeTypeEnum;
 import io.renren.service.ChargeOrderService;
-import io.renren.service.WePayPaymentService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -27,7 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 
 /**
  * 充值订单接口
@@ -107,7 +97,7 @@ public class ApiChargeController {
                 return new Result<ChargePageData>().ok(null);
             }
 
-            // 获取分页数据 TODO 可优化
+            // 获取分页数据
             ChargePageData pageData = chargeOrderService.getChargePageData(user.getId(), page, limit);
 
             return new Result<ChargePageData>().ok(pageData);
