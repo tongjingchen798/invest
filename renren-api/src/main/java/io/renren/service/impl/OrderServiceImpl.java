@@ -78,17 +78,20 @@ public class OrderServiceImpl implements OrderService {
 				throw new RenException(ErrorCode.PROJECT_NOT_AVAILABLE);
 			}
 
-			// 1. 获取用户信息
+			//获取用户信息
 			UserEntity user = userDao.selectById(userId);
-			// 3. 验证并扣减用户余额
-			Map<String, String> balanceResult = validateAndDeductBalance(user, dto.getAmount());
-			if (!"success".equals(balanceResult.get("status"))) {
-				result.put("status", "error");
-				result.put("message", balanceResult.get("message"));
-				return result;
+			//验证并扣减用户余额
+			Long currentAssets = user.getAssets();
+			if (currentAssets < dto.getAmount()) {
+				throw new RenException(ErrorCode.INSUFFICIENT_BALANCE);
+			}
+			//执行余额扣款（原子操作，包含余额验证）
+			int updateRows = userDao.updateBalanceForInvestment(user.getId(), dto.getAmount());
+			if (updateRows == 0) {
+				throw new RenException(ErrorCode.INSUFFICIENT_BALANCE);
 			}
 			
-			// 4. 生成订单号
+			//生成订单号
 			String orderNumber = generateOrderNumber();
 			Date transactionDate=new Date();
 			// 5. 创建投资记录
@@ -132,13 +135,16 @@ public class OrderServiceImpl implements OrderService {
 			investmentRecordDao.insert(investmentRecord);
 			
 			// 7. 记录账变明细
-			recordBalanceDetail(userId, dto.getAmount(), orderNumber, project.getInvestName(), balanceResult.get("originalBalance"));
+			recordBalanceDetail(userId, dto.getAmount(), orderNumber, project.getInvestName(), currentAssets);
 			
 			// 8. 更新项目参与人数
 			projectDao.updateInvestmentAmount(dto.getInvestId(), dto.getAmount());
 
 			// 9. 更新用户表中的投资相关字段（项目数、总本金等）
 			userDao.updateAllInvestmentFields(userId, dto.getAmount());
+
+			// 10. 处理本金返还逻辑
+			handlePrincipalReturn(project, user, investmentAmountTotal, investmentRecord.getOrderId(), transactionDate);
 
 			// 获取1级推荐人
 			String firstLevelInviteCode = user.getUpinviteCode();
@@ -229,7 +235,7 @@ public class OrderServiceImpl implements OrderService {
 	/**
 	 * 记录账变明细
 	 */
-	private void recordBalanceDetail(Long userId, Long amount, String orderNumber, String projectName, String originalBalance) {
+	private void recordBalanceDetail(Long userId, Long amount, String orderNumber, String projectName, Long originalBalance) {
 		try {
 			UserBalanceDetailEntity balanceDetail = new UserBalanceDetailEntity();
 			balanceDetail.setUserId(userId);
@@ -240,8 +246,8 @@ public class OrderServiceImpl implements OrderService {
 			balanceDetail.setChannel("1"); //TODO 要改
 			balanceDetail.setStreamId(orderNumber);
 			balanceDetail.setUseAmount(amount);
-			balanceDetail.setOriginalAmount(Long.parseLong(originalBalance));
-			balanceDetail.setTransactionAmount(Long.parseLong(originalBalance) - amount);
+			balanceDetail.setOriginalAmount(originalBalance);
+			balanceDetail.setTransactionAmount(originalBalance - amount);
 			balanceDetail.setRemarks("购买投资项目【" + projectName + "】");
 			balanceDetail.setStatus(1);
 			balanceDetail.setSalesmanId(1748403763980L);
@@ -310,7 +316,7 @@ public class OrderServiceImpl implements OrderService {
 
 	/**
 	 * 计算佣金金额
-	 *
+	 * 
 	 * @param investmentAmount 投资金额（分）
 	 * @param rate 佣金比例
 	 * @return 佣金金额（分）
@@ -318,5 +324,105 @@ public class OrderServiceImpl implements OrderService {
 	private Long calculateCommission(BigDecimal investmentAmount, BigDecimal rate) {
 		BigDecimal commission = investmentAmount.multiply(rate).setScale(0, RoundingMode.HALF_DOWN);
 		return commission.longValue();
+	}
+
+	/**
+	 * 处理本金返还逻辑
+	 * 
+	 * @param project 项目信息
+	 * @param user 用户信息
+	 * @param investmentAmount 投资金额
+	 * @param orderId 订单ID
+	 * @param transactionDate 交易时间
+	 */
+	private void handlePrincipalReturn(ProjectEntity project, UserEntity user, BigDecimal investmentAmount, Long orderId, Date transactionDate) {
+		try {
+			// 检查是否需要返还本金
+			if (project.getReturnPrincipal() == null || project.getReturnPrincipal() != 1) {
+				log.debug("项目 {} 不需要返还本金", project.getInvestId());
+				return;
+			}
+
+			// 获取返还金额
+			BigDecimal returnRatio = project.getReturnRatio();
+			if (returnRatio == null || returnRatio.compareTo(BigDecimal.ZERO) <= 0) {
+				log.warn("项目 {} 返还金额无效: {}", project.getInvestId(), returnRatio);
+				return;
+			}
+
+			// 返还金额转换为分
+			Long returnAmountInCents = returnRatio.multiply(new BigDecimal(100)).longValue();
+
+			if (returnAmountInCents <= 0) {
+				log.debug("项目 {} 返还金额为0，跳过处理", project.getInvestId());
+				return;
+			}
+
+			// 根据returnTo字段决定返还给谁
+			Integer returnTo = project.getReturnTo();
+			Long targetUserId = null;
+			String remarks = "";
+
+			if (returnTo == null || returnTo == 0) {
+				// 返还给自己
+				targetUserId = user.getId();
+				remarks = "项目本金返还";
+				log.info("项目 {} 本金返还给用户自己，金额: {} 分", project.getInvestId(), returnAmountInCents);
+			} else if (returnTo == 1) {
+				// 返还给上级
+				String upinviteCode = user.getUpinviteCode();
+				if (StringUtils.isNotBlank(upinviteCode)) {
+					UserEntity referrer = userDao.selectByInviteCode(upinviteCode);
+					if (referrer != null) {
+						targetUserId = referrer.getId();
+						remarks = "项目本金返还给上级";
+						log.info("项目 {} 本金返还给上级用户 {}，金额: {} 分", project.getInvestId(), targetUserId, returnAmountInCents);
+					} else {
+						log.warn("项目 {} 上级推荐人不存在，返还给用户自己", project.getInvestId());
+						targetUserId = user.getId();
+						remarks = "项目本金返还（上级不存在）";
+					}
+				} else {
+					log.warn("项目 {} 用户没有上级推荐人，返还给用户自己", project.getInvestId());
+					targetUserId = user.getId();
+					remarks = "项目本金返还（无上级）";
+				}
+			} else {
+				log.warn("项目 {} 未知的返还对象类型: {}，返还给用户自己", project.getInvestId(), returnTo);
+				targetUserId = user.getId();
+				remarks = "项目本金返还（未知类型）";
+			}
+
+			if (targetUserId != null) {
+				// 更新目标用户余额
+				userDao.updateCommissionFields(targetUserId, returnAmountInCents);
+
+				// 记录账变明细
+				UserBalanceDetailEntity detail = new UserBalanceDetailEntity();
+				if(returnTo == 1){
+					detail.setBusiType(BusinessTypeEnum.PROJECT_COMMISSION_UP.getCode()); //项目返上级
+				}else {
+					detail.setBusiType(BusinessTypeEnum.PROJECT_COMMISSION_SELF.getCode()); //项目返自己
+				}
+				detail.setUserId(targetUserId);
+				detail.setOriginalAmount(userDao.selectById(targetUserId).getAssets() - returnAmountInCents);
+				detail.setUseAmount(returnAmountInCents);
+				detail.setTransactionAmount(userDao.selectById(targetUserId).getAssets());
+				detail.setStatus(1);
+				detail.setFormUserId(user.getId());
+				detail.setTransactionDate(transactionDate);
+				detail.setCreateDate(transactionDate);
+				detail.setUpdateDate(transactionDate);
+				detail.setRemarks(remarks);
+				detail.setStreamId(orderId.toString());
+				userBalanceDetailDao.insert(detail);
+
+				log.info("项目 {} 本金返还处理完成，目标用户: {}，金额: {} 分", project.getInvestId(), targetUserId, returnAmountInCents);
+			}
+
+		} catch (Exception e) {
+			log.error("处理项目 {} 本金返还失败", project.getInvestId(), e);
+			// 本金返还失败不影响主流程，只记录错误日志
+		}
 	}
 }

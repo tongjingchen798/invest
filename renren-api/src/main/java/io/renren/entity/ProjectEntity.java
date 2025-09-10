@@ -173,11 +173,13 @@ public class ProjectEntity implements Serializable {
 
     /**
      * 返还到谁
+     * 0: 返还给自己
+     * 1: 返还给上级推荐人
      */
     private Integer returnTo;
 
     /**
-     * 返还比例
+     * 返还金额
      */
     private BigDecimal returnRatio;
 
