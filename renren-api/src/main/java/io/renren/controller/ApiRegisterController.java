@@ -238,7 +238,7 @@ public class ApiRegisterController {
             if (smsResult.isSuccess()) {
                 // 3. 短信发送成功后，存储验证码到Redis
                 String key = CODE_KEY_PREFIX + mobile;
-                redisUtils.set(key, code);
+                redisUtils.set(key, code,300);
             } else {
                 throw new RenException(ErrorCode.VERIFICATION_CODE_SEND_FAILED);
             }
