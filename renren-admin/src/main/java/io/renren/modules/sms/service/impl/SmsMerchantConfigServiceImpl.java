@@ -22,11 +22,11 @@ public class SmsMerchantConfigServiceImpl extends CrudServiceImpl<SmsMerchantCon
 
     @Override
     public QueryWrapper<SmsMerchantConfigEntity> getWrapper(Map<String, Object> params){
-        String id = (String)params.get("id");
+        String id = (String)params.get("captcha_id");
         String captchaName = (String)params.get("captchaName");
 
         QueryWrapper<SmsMerchantConfigEntity> wrapper = new QueryWrapper<>();
-        wrapper.eq(StringUtils.isNotBlank(id), "id", id);
+        wrapper.eq(StringUtils.isNotBlank(id), "captcha", id);
         wrapper.like(StringUtils.isNotBlank(captchaName), "captcha_name", captchaName);
 
         return wrapper;

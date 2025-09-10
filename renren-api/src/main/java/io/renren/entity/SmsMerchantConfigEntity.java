@@ -1,4 +1,4 @@
-package io.renren.modules.sms.entity;
+package io.renren.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -23,13 +23,14 @@ public class SmsMerchantConfigEntity {
 	private Long captchaId;
 
     /**
-     * api Secret
-     */
-    private String apiSecret;
-    /**
      * 商户名称
      */
 	private String captchaName;
+
+    /**
+     * api Secret
+     */
+    private String apiSecret;
     /**
      * 商户编号
      */

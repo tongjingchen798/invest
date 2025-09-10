@@ -3,6 +3,7 @@ package io.renren.controller;
 import io.renren.common.exception.ErrorCode;
 import io.renren.common.exception.RenException;
 import io.renren.common.utils.Result;
+import io.renren.common.utils.VerificationCodeUtils;
 import io.renren.common.validator.ValidatorUtils;
 import io.renren.dao.UserBalanceDetailDao;
 import io.renren.dao.UserDao;
@@ -14,14 +15,11 @@ import io.renren.entity.UserEntity;
 import io.renren.entity.UserLogEntity;
 import io.renren.dto.RegisterDTO;
 import io.renren.enums.BusinessTypeEnum;
-import io.renren.service.TokenService;
-import io.renren.service.UserService;
-import io.renren.service.ReferralRewardService;
-import io.renren.service.SysUserService;
-import io.renren.dto.ChannelAllocationResult;
+import io.renren.service.*;
 import io.renren.utils.InviteCodeGenerator;
 import io.renren.utils.IpAddressUtil;
 import io.renren.common.utils.IpUtils;
+import io.renren.utils.SmsUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -69,6 +67,15 @@ public class ApiRegisterController {
     
     @Autowired
     private UserLogDao userLogDao;
+
+//    @Autowired
+//    private SmsService smsService;
+
+    @Autowired
+    private VerificationCodeUtils verificationCodeUtils;
+
+    @Autowired
+    private SmsUtils smsUtils;
 
     @PostMapping("register")
     @ApiOperation("注册")
@@ -194,63 +201,38 @@ public class ApiRegisterController {
         return new Result().ok(map);
     }
 
+
     @PostMapping("verificationBnkCode")
     @ApiOperation("发送短信验证码")
     public Result sendVerificationCode(
             @ApiParam(value = "手机号码", required = false) 
-            @RequestParam(value = "mobile", required = false) String mobile) {
+            @RequestParam(value = "mobile", required = false) String mobile,
+            @RequestParam(value = "register", required = false) Boolean register
+            ) {
         
         // 验证手机号格式
         if (mobile == null || mobile.trim().isEmpty()) {
             throw new RenException(ErrorCode.PHONE_NUMBER_EMPTY);
         }
-        
-        // 验证手机号格式（10位数字）
-        if (!mobile.matches("^\\d{10}$")) {
-            throw new RenException(ErrorCode.PHONE_NUMBER_FORMAT_ERROR);
-        }
-        
+
         try {
-            // TODO: 这里需要集成具体的短信服务商API
-            String verificationCode = generateVerificationCode();
-            
-            // 发送短信验证码的逻辑
-            boolean sendResult = sendSmsCode(mobile, verificationCode);
-            
-            if (sendResult) {
-                // 将验证码存储到Redis或数据库中，设置过期时间
-                // TODO: 实现验证码存储逻辑
-                
-                return new Result().ok("验证码发送成功");
+            // 1. 生成验证码
+            String code = verificationCodeUtils.generateCode();
+            // 2. 发送短信
+            SmsUtils.SmsResult smsResult = smsUtils.sendSms(mobile, code);
+            if (smsResult.isSuccess()) {
+                // 3. 短信发送成功后，存储验证码到Redis
+                verificationCodeUtils.storeCode(mobile, code);
             } else {
                 throw new RenException(ErrorCode.VERIFICATION_CODE_SEND_FAILED);
             }
-            
+
         } catch (Exception e) {
             throw new RenException(ErrorCode.SYSTEM_EXCEPTION);
         }
+        return new Result<Object>().ok("success");
     }
     
-    /**
-     * 生成6位随机验证码
-     */
-    private String generateVerificationCode() {
-        return String.valueOf((int)((Math.random() * 9 + 1) * 100000));
-    }
-    
-    /**
-     * 发送短信验证码
-     * TODO: 需要集成具体的短信服务商
-     */
-    private boolean sendSmsCode(String mobile, String code) {
-        // 这里应该调用具体的短信服务商API
-        // 例如：阿里云短信、腾讯云短信等
-        // 暂时返回true，实际使用时需要替换为真实的短信发送逻辑
-        
-        // 模拟发送成功
-        System.out.println("向手机号 " + mobile + " 发送验证码: " + code);
-        return true;
-    }
 
     /**
      * 更新邀请人和邀请人上级的会员数

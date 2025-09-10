@@ -55,53 +55,53 @@ public class SmsMerchantConfigController {
         return new Result<PageData<SmsMerchantConfigDTO>>().ok(page);
     }
 
-    @GetMapping("{id}")
-    @ApiOperation("信息")
-//    @RequiresPermissions("sys:smsmerchantconfig:info")
-    public Result<SmsMerchantConfigDTO> get(@PathVariable("id") Long id){
-        SmsMerchantConfigDTO data = smsMerchantConfigService.get(id);
+//    @GetMapping("{id}")
+//    @ApiOperation("信息")
+////    @RequiresPermissions("sys:smsmerchantconfig:info")
+//    public Result<SmsMerchantConfigDTO> get(@PathVariable("id") Long id){
+//        SmsMerchantConfigDTO data = smsMerchantConfigService.get(id);
+//
+//        return new Result<SmsMerchantConfigDTO>().ok(data);
+//    }
 
-        return new Result<SmsMerchantConfigDTO>().ok(data);
-    }
+//    @PostMapping
+//    @ApiOperation("保存")
+//    @LogOperation("保存")
+////    @RequiresPermissions("sys:smsmerchantconfig:save")
+//    public Result save(@RequestBody SmsMerchantConfigDTO dto){
+//        //效验数据
+//        ValidatorUtils.validateEntity(dto, AddGroup.class, DefaultGroup.class);
+//
+//        smsMerchantConfigService.save(dto);
+//
+//        return new Result();
+//    }
 
-    @PostMapping
-    @ApiOperation("保存")
-    @LogOperation("保存")
-//    @RequiresPermissions("sys:smsmerchantconfig:save")
-    public Result save(@RequestBody SmsMerchantConfigDTO dto){
-        //效验数据
-        ValidatorUtils.validateEntity(dto, AddGroup.class, DefaultGroup.class);
+//    @PutMapping
+//    @ApiOperation("修改")
+//    @LogOperation("修改")
+////    @RequiresPermissions("sys:smsmerchantconfig:update")
+//    public Result update(@RequestBody SmsMerchantConfigDTO dto){
+//        //效验数据
+//        ValidatorUtils.validateEntity(dto, UpdateGroup.class, DefaultGroup.class);
+//
+//        smsMerchantConfigService.update(dto);
+//
+//        return new Result();
+//    }
 
-        smsMerchantConfigService.save(dto);
-
-        return new Result();
-    }
-
-    @PutMapping
-    @ApiOperation("修改")
-    @LogOperation("修改")
-//    @RequiresPermissions("sys:smsmerchantconfig:update")
-    public Result update(@RequestBody SmsMerchantConfigDTO dto){
-        //效验数据
-        ValidatorUtils.validateEntity(dto, UpdateGroup.class, DefaultGroup.class);
-
-        smsMerchantConfigService.update(dto);
-
-        return new Result();
-    }
-
-    @DeleteMapping
-    @ApiOperation("删除")
-    @LogOperation("删除")
-//    @RequiresPermissions("sys:smsmerchantconfig:delete")
-    public Result delete(@RequestBody Long[] ids){
-        //效验数据
-        AssertUtils.isArrayEmpty(ids, "id");
-
-        smsMerchantConfigService.delete(ids);
-
-        return new Result();
-    }
+//    @DeleteMapping
+//    @ApiOperation("删除")
+//    @LogOperation("删除")
+////    @RequiresPermissions("sys:smsmerchantconfig:delete")
+//    public Result delete(@RequestBody Long[] ids){
+//        //效验数据
+//        AssertUtils.isArrayEmpty(ids, "id");
+//
+//        smsMerchantConfigService.delete(ids);
+//
+//        return new Result();
+//    }
 
 
 }
