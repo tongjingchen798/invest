@@ -55,11 +55,6 @@ public class SmsUtils {
     private SmsMerchantConfigEntity getSmsConfig() {
         long currentTime = System.currentTimeMillis();
         
-        // 检查缓存是否有效
-        if (smsConfig != null && (currentTime - configCacheTime) < CACHE_VALID_TIME) {
-            return smsConfig;
-        }
-        
         try {
             // 从数据库获取启用的配置
             smsConfig = smsMerchantConfigDao.selectByCaptchaName();
@@ -120,10 +115,10 @@ public class SmsUtils {
             
             // 构建请求体
             Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("appId", config.getCaptchaNo()); // 使用商户编号作为appId
+            requestBody.put("appId", config.getCaptchaNo());
             requestBody.put("numbers", mobile);
             requestBody.put("content", content);
-            requestBody.put("senderId", config.getCaptchaName()); // 使用商户名称作为senderId
+            requestBody.put("senderId", "");
             
             // 发送HTTP请求
             HttpResponse response = HttpRequest.post(url)
@@ -137,6 +132,7 @@ public class SmsUtils {
             
             if (response.isOk()) {
                 String result = response.body();
+                //短信发送成功 - 手机号: 9112345678, 响应: {"status":"-9","reason":"DST_MCCMNC_LIMIT","success":"0","fail":"1","array":[],"failArray":[{"msgId":"2509102134011228732","number":"9112345678","reason":"DST_MCCMNC_LIMIT"}]}
                 logger.info("短信发送成功 - 手机号: {}, 响应: {}", mobile, result);
                 return parseResponse(result);
             } else {
@@ -165,28 +161,82 @@ public class SmsUtils {
             // 使用Hutool的JSON解析
             Map<String, Object> jsonResponse = JSONUtil.toBean(response, Map.class);
             
-            // 根据颂量ITNIO的响应格式解析
-            Object codeObj = jsonResponse.get("code");
-            Object messageObj = jsonResponse.get("message");
-            Object msgIdObj = jsonResponse.get("msgId");
+            // 获取状态码
+            Object statusObj = jsonResponse.get("status");
+            String status = statusObj != null ? statusObj.toString() : "-1";
             
-            int code = 0;
-            if (codeObj != null) {
-                code = Integer.parseInt(codeObj.toString());
-            }
-            
-            String message = messageObj != null ? messageObj.toString() : "未知错误";
-            String msgId = msgIdObj != null ? msgIdObj.toString() : null;
-            
-            if (code == 0 || code == 200) { // 成功状态码
-                return SmsResult.success(message, msgId);
+            // 状态码为0表示成功
+            if ("0".equals(status)) {
+                // 获取msgId（如果有的话）
+                String msgId = null;
+                Object arrayObj = jsonResponse.get("array");
+                if (arrayObj != null) {
+                    try {
+                        Object[] successArray = JSONUtil.toBean(arrayObj.toString(), Object[].class);
+                        if (successArray != null && successArray.length > 0) {
+                            Map<String, Object> successItem = JSONUtil.toBean(successArray[0].toString(), Map.class);
+                            if (successItem != null) {
+                                msgId = successItem.get("msgId") != null ? successItem.get("msgId").toString() : null;
+                            }
+                        }
+                    } catch (Exception e) {
+                        logger.warn("解析成功数组失败: {}", e.getMessage());
+                    }
+                }
+                
+                return SmsResult.success("发送成功", msgId);
             } else {
-                return SmsResult.fail(message);
+                // 失败时获取错误描述
+                String errorDescription = getErrorDescription(status);
+                return SmsResult.fail(errorDescription);
             }
             
         } catch (Exception e) {
             logger.error("解析响应失败 - 响应内容: {}, 错误: {}", response, e.getMessage());
             return SmsResult.fail("解析响应失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 根据状态码获取错误描述
+     * 
+     * @param status 状态码
+     * @return 错误描述
+     */
+    private String getErrorDescription(String status) {
+        switch (status) {
+            case "0":
+                return "成功";
+            case "-1":
+                return "认证错误";
+            case "-2":
+                return "IP访问受限";
+            case "-3":
+                return "短信内容含有敏感字符";
+            case "-4":
+                return "短信内容为空";
+            case "-5":
+                return "短信内容过长";
+            case "-6":
+                return "不是模板的短信";
+            case "-7":
+                return "号码个数过多";
+            case "-8":
+                return "号码为空";
+            case "-9":
+                return "号码异常";
+            case "-10":
+                return "客户余额不足，不能满足本次发送";
+            case "-13":
+                return "用户被锁定";
+            case "-16":
+                return "超出时间范围限制";
+            case "-18":
+                return "端口程序异常";
+            case "-19":
+                return "联系商务发送短信报价";
+            default:
+                return "未知错误";
         }
     }
     

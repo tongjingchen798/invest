@@ -2,7 +2,6 @@ package io.renren.common.utils;
 
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import io.renren.common.redis.RedisUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -48,15 +47,8 @@ public class VerificationCodeUtils {
      * @param code 验证码
      */
     public void storeCode(String mobile, String code) {
-        // 存储验证码信息到Redis
-        CodeInfo codeInfo = new CodeInfo();
-        codeInfo.setCode(code);
-        codeInfo.setMobile(mobile);
-        codeInfo.setCreateTime(System.currentTimeMillis());
-        codeInfo.setExpireTime(System.currentTimeMillis() + CODE_EXPIRE_TIME * 1000);
-        
         String key = CODE_KEY_PREFIX + mobile;
-        redisUtils.set(key, JSONUtil.toJsonStr(codeInfo), CODE_EXPIRE_TIME);
+        redisUtils.set(key, code, CODE_EXPIRE_TIME);
     }
     
     /**
@@ -78,29 +70,15 @@ public class VerificationCodeUtils {
             return false;
         }
         
-        try {
-            CodeInfo codeInfo = JSONUtil.toBean(codeObj.toString(), CodeInfo.class);
-            
-            // 检查是否过期
-            if (System.currentTimeMillis() > codeInfo.getExpireTime()) {
-                redisUtils.delete(key);
-                return false;
-            }
-            
-            // 验证码是否正确
-            boolean isValid = code.equals(codeInfo.getCode());
-            
-            // 验证成功后删除验证码
-            if (isValid) {
-                redisUtils.delete(key);
-            }
-            
-            return isValid;
-        } catch (Exception e) {
-            // 解析失败，删除无效数据
+        // 验证码是否正确
+        boolean isValid = code.equals(codeObj.toString());
+        
+        // 验证成功后删除验证码
+        if (isValid) {
             redisUtils.delete(key);
-            return false;
         }
+        
+        return isValid;
     }
     
     /**
@@ -117,25 +95,7 @@ public class VerificationCodeUtils {
         String key = CODE_KEY_PREFIX + mobile;
         Object codeObj = redisUtils.get(key);
         
-        if (codeObj == null) {
-            return false;
-        }
-        
-        try {
-            CodeInfo codeInfo = JSONUtil.toBean(codeObj.toString(), CodeInfo.class);
-            
-            // 检查是否过期
-            if (System.currentTimeMillis() > codeInfo.getExpireTime()) {
-                redisUtils.delete(key);
-                return false;
-            }
-            
-            return true;
-        } catch (Exception e) {
-            // 解析失败，删除无效数据
-            redisUtils.delete(key);
-            return false;
-        }
+        return codeObj != null;
     }
     
     /**
@@ -156,21 +116,8 @@ public class VerificationCodeUtils {
             return -1;
         }
         
-        try {
-            CodeInfo codeInfo = JSONUtil.toBean(codeObj.toString(), CodeInfo.class);
-            
-            long remaining = codeInfo.getExpireTime() - System.currentTimeMillis();
-            if (remaining <= 0) {
-                redisUtils.delete(key);
-                return -1;
-            }
-            
-            return remaining / 1000;
-        } catch (Exception e) {
-            // 解析失败，删除无效数据
-            redisUtils.delete(key);
-            return -1;
-        }
+        // Redis TTL会自动处理过期，这里返回固定值
+        return CODE_EXPIRE_TIME;
     }
     
     /**
@@ -195,45 +142,4 @@ public class VerificationCodeUtils {
         return "验证码存储在Redis中，自动过期清理";
     }
     
-    /**
-     * 验证码信息类
-     */
-    private static class CodeInfo {
-        private String code;
-        private String mobile;
-        private long createTime;
-        private long expireTime;
-        
-        public String getCode() {
-            return code;
-        }
-        
-        public void setCode(String code) {
-            this.code = code;
-        }
-        
-        public String getMobile() {
-            return mobile;
-        }
-        
-        public void setMobile(String mobile) {
-            this.mobile = mobile;
-        }
-        
-        public long getCreateTime() {
-            return createTime;
-        }
-        
-        public void setCreateTime(long createTime) {
-            this.createTime = createTime;
-        }
-        
-        public long getExpireTime() {
-            return expireTime;
-        }
-        
-        public void setExpireTime(long expireTime) {
-            this.expireTime = expireTime;
-        }
-    }
 }
