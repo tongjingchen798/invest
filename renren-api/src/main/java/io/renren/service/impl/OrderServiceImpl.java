@@ -1,6 +1,8 @@
 package io.renren.service.impl;
 
 import io.renren.common.exception.RenException;
+import io.renren.common.exception.ErrorCode;
+import io.renren.common.utils.MessageUtils;
 import io.renren.config.CommissionConfig;
 import io.renren.dao.InvestmentRecordDao;
 import io.renren.dao.ProjectDao;
@@ -57,20 +59,23 @@ public class OrderServiceImpl implements OrderService {
 	@Transactional(rollbackFor = Exception.class)
 	public Map<String, String> placeOrder(PlaceOrderDTO dto, Long userId) {
 		Map<String, String> result = new HashMap<>();
-			// 1. 验证投资条件
-			Map<String, String> validation = validateInvestment(dto, userId);
-			if (!"success".equals(validation.get("status"))) {
-				result.put("status", "error");
-				result.put("message", validation.get("message"));
-				return result;
+			//验证投资金额
+			if (dto.getAmount() <= 0) {
+				throw new RenException(ErrorCode.INVESTMENT_AMOUNT_INVALID);
+			}
+
+			//验证购买份数
+			if (dto.getCount() <= 0) {
+				throw new RenException(ErrorCode.INVESTMENT_COUNT_INVALID);
 			}
 
 			// 2. 获取项目信息
 			ProjectEntity project = projectDao.selectProjectById(dto.getInvestId());
 			if (project == null) {
-				result.put("status", "error");
-				result.put("message", "投资项目不存在");
-				return result;
+				throw new RenException(10031);
+			}
+			if (project.getStatus() != 1) {
+				throw new RenException(ErrorCode.PROJECT_NOT_AVAILABLE);
 			}
 
 			// 1. 获取用户信息
@@ -205,12 +210,12 @@ public class OrderServiceImpl implements OrderService {
 		Map<String, String> result = new HashMap<>();
 		Long currentAssets = user.getAssets() != null ? user.getAssets() : 0L;
 		if (currentAssets < amount) {
-			throw new RenException(10039);
+			throw new RenException(ErrorCode.INSUFFICIENT_BALANCE);
 		}
 		// 3. 执行余额扣款（原子操作，包含余额验证）
 		int updateRows = userDao.updateBalanceForInvestment(user.getId(), amount);
 		if (updateRows == 0) {
-			throw new RenException(10039);
+			throw new RenException(ErrorCode.INSUFFICIENT_BALANCE);
 		}
 
 		// 4. 记录原始余额，用于账变记录
@@ -251,88 +256,7 @@ public class OrderServiceImpl implements OrderService {
 			e.printStackTrace();
 		}
 	}
-	
-	@Override
-	public Map<String, String> validateInvestment(PlaceOrderDTO dto, Long userId) {
-		Map<String, String> result = new HashMap<>();
-		
-		try {
-			// 1. 验证项目是否存在
-			ProjectEntity project = projectDao.selectProjectById(dto.getInvestId());
-			if (project == null) {
-				result.put("status", "error");
-				result.put("message", "投资项目不存在");
-				return result;
-			}
-			
-			// 2. 验证项目状态
-			if (project.getStatus() != 1) {
-				result.put("status", "error");
-				result.put("message", "项目已下架或不可投资");
-				return result;
-			}
-			
-			// 3. 验证投资金额
-			if (dto.getAmount() <= 0) {
-				result.put("status", "error");
-				result.put("message", "投资金额必须大于0");
-				return result;
-			}
-			
-			// 4. 验证购买份数
-			if (dto.getCount() <= 0) {
-				result.put("status", "error");
-				result.put("message", "购买份数必须大于0");
-				return result;
-			}
-			
-			// 5. 验证项目投资限额
-			if (project.getScaleAmount() != null && dto.getAmount() > project.getScaleAmount()) {
-				result.put("status", "error");
-				result.put("message", "投资金额超过项目限额");
-				return result;
-			}
-			
-//			// 6. 验证可买台数
-//			if (project.getInvestRepeat() != null && dto.getCount() > project.getInvestRepeat()) {
-//				result.put("status", "error");
-//				result.put("message", "购买份数超过项目可买台数");
-//				return result;
-//			}
-			
-//			// 7. 验证项目投资限额（参与人数和剩余份数）
-//			boolean canInvest = projectDao.checkInvestmentLimit(dto.getInvestId(), dto.getAmount());
-//			if (!canInvest) {
-//				result.put("status", "error");
-//				result.put("message", "项目投资限额已满或剩余份数不足");
-//				return result;
-//			}
-			
-			// 8. 验证用户可用余额是否充足
-			UserEntity user = userDao.getUserByUserId(userId);
-			if (user == null) {
-				result.put("status", "error");
-				result.put("message", "User not found");
-				return result;
-			}
-			
-			Long currentAssets = user.getAssets() != null ? user.getAssets() : 0L;
-			if (currentAssets < dto.getAmount()) {
-				result.put("status", "error");
-				result.put("message", "Insufficient balance");
-				return result;
-			}
-			
-			result.put("status", "success");
-			result.put("message", "验证通过");
-			
-		} catch (Exception e) {
-			result.put("status", "error");
-			result.put("message", "验证失败: " + e.getMessage());
-		}
-		
-		return result;
-	}
+
 	
 	@Override
 	public Map<String, Object> calculateAmount(PlaceOrderDTO dto) {

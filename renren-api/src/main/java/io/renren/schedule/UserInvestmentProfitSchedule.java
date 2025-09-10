@@ -178,55 +178,56 @@ public class UserInvestmentProfitSchedule {
                 return;
             }
 
-            // 3. 记录每日投资收益明细
-            recordInvestmentProfitDetail(record, profitAmount);
-
-            // 4. 判断投资是否到期（是否是最后一期）
+            // 3. 判断投资是否到期（是否是最后一期）
             boolean isMatured = InvestmentProfitCalculator.isInvestmentMatured(
                 record.getOrderDate(), record.getCycle()
             );
             
-            // 5. 在更新余额之前获取原始余额，用于账变记录
+            // 4. 在更新余额之前获取原始余额，用于账变记录
             UserEntity userBeforeUpdate = userDao.getUserByUserId(record.getUserId());
             Long originalAssets = userBeforeUpdate.getAssets() != null ? userBeforeUpdate.getAssets() : 0L;
             
+            // 5. 计算最终需要更新的金额和备注信息
+            BigDecimal finalAmount = profitAmount;
+            String remark = "投资收益【"+record.getProjectId()+"】";
+            
             if (isMatured) {
-                log.debug("投资项目 {} 已到期，需要返还设备本金", record.getOrderId());
+                log.debug("投资项目 {} 已到期", record.getOrderId());
                 
-                // 6. 计算需要返还的本金金额（投资金额 × 购买数量）
-                BigDecimal principalAmount = new BigDecimal(record.getInvestmentAmount())
-                    .multiply(new BigDecimal(record.getInvestCount() != null ? record.getInvestCount() : 1));
+                // 获取项目信息以判断投资类型
+                ProjectEntity project = projectDao.selectProjectById(record.getProjectId());
+                Integer cycleType = project != null ? project.getCycleType() : null;
                 
-                // 7. 将本金直接加到收益中，作为最后一次收益
-                BigDecimal totalAmount = profitAmount.add(principalAmount);
+                // 根据投资类型设置不同的备注信息
+                if (cycleType != null && cycleType == 3) { // 不返本金类型
+                    remark = "投资收益【"+record.getProjectId()+"】";
+                    log.info("投资项目 {} 到期完成，收益: {} 元（不返本金类型）", record.getOrderId(), finalAmount);
+                } else {
+                    // 每日返利和复利产品类型已经在计算方法中包含了本金
+                    remark = "投资收益+本金返还【"+record.getProjectId()+"】";
+                    log.info("投资项目 {} 到期完成，收益（已包含本金）: {} 元", record.getOrderId(), finalAmount);
+                }
                 
-                // 8. 更新用户余额（收益 + 本金）
-                updateUserBalance(record.getUserId(), totalAmount);
-                
-                // 9. 更新投资记录状态为已收益
+                // 更新投资记录状态为已收益
                 record.setStatus(1);
-                record.setProfitPrincipal(principalAmount.longValue()); // 设置已返还的本金
+                record.setProfitPrincipal(record.getInvestmentAmount() * (record.getInvestCount() != null ? record.getInvestCount() : 1));
                 investmentRecordDao.updateById(record);
-                
-                log.info("投资项目 {} 到期完成，返还本金: {} 分（投资金额: {} × 购买数量: {}），收益: {} 元，总计: {} 元", 
-                         record.getOrderId(), principalAmount, record.getInvestmentAmount(), 
-                         record.getInvestCount() != null ? record.getInvestCount() : 1, profitAmount, totalAmount);
-                
-                // 10. 记录收益账变（包含本金返还）
-                recordProfitDetail(record, totalAmount, "投资收益+本金返还【"+record.getProjectId()+"】", originalAssets);
                 
             } else {
                 log.debug("投资项目 {} 未到期，当前为第 {} 期，总周期 {} 天", 
                          record.getOrderId(),
                          InvestmentProfitCalculator.calculateInvestmentDays(record.getOrderDate()) + 1,
                          record.getCycle());
-                
-                // 未到期时只更新收益
-                updateUserBalance(record.getUserId(), profitAmount);
-                
-                // 记录收益账变
-                recordProfitDetail(record, profitAmount, "投资收益【"+record.getProjectId()+"】", originalAssets);
             }
+            
+            // 6. 统一更新用户余额
+            updateUserBalance(record.getUserId(), finalAmount);
+            
+            // 7. 记录收益账变
+            recordProfitDetail(record, finalAmount, remark, originalAssets);
+            
+            // 8. 记录每日投资收益明细（防止重复记录）
+            recordInvestmentProfitDetail(record, finalAmount);
             
             log.debug("投资项目 {} 收益计算完成，收益金额: {}", record.getOrderId(), profitAmount);
             
@@ -433,88 +434,6 @@ public class UserInvestmentProfitSchedule {
         return profitAmount;
     }
     
-    /**
-     * 计算阶梯日益的收益
-     * 
-     * @param investmentAmount 投资金额
-     * @param cycle 项目周期
-     * @param investmentDays 投资天数
-     * @param project 项目信息
-     * @return 收益金额
-     */
-    private BigDecimal calculateSteppedDailyProfit(BigDecimal investmentAmount, Integer cycle, int investmentDays, ProjectEntity project) {
-        // 优先使用项目配置的阶梯收益率，如果没有则使用默认配置
-        BigDecimal totalProfit = BigDecimal.ZERO;
-        
-        for (int day = 1; day <= investmentDays; day++) {
-            BigDecimal dailyRate;
-            if (day <= 7) {
-                dailyRate = getProjectDailyRate(project, "steppedFirstWeek");
-            } else if (day <= 15) {
-                dailyRate = getProjectDailyRate(project, "steppedSecondWeek");
-            } else {
-                dailyRate = getProjectDailyRate(project, "steppedLater");
-            }
-            
-            totalProfit = totalProfit.add(investmentAmount.multiply(dailyRate));
-        }
-        
-        return totalProfit;
-    }
-    
-    /**
-     * 计算拼团的收益
-     * 
-     * @param investmentAmount 投资金额
-     * @param cycle 项目周期
-     * @param investmentDays 投资天数
-     * @param project 项目信息
-     * @return 收益金额
-     */
-    private BigDecimal calculateGroupBuyProfit(BigDecimal investmentAmount, Integer cycle, int investmentDays, ProjectEntity project) {
-        // 优先使用项目配置的拼团收益率，如果没有则使用默认配置
-        // 拼团收益：基础收益 + 拼团奖励
-        BigDecimal baseAnnualRate = getProjectAnnualRate(project, "groupBuyBase");
-        BigDecimal baseProfit = baseAnnualRate.multiply(new BigDecimal(investmentDays))
-                                             .divide(new BigDecimal(365), 4, BigDecimal.ROUND_DOWN);
-        
-        // 拼团奖励
-        BigDecimal groupBonus = getProjectAnnualRate(project, "groupBuyBonus");
-        
-        return investmentAmount.multiply(baseProfit).add(investmentAmount.multiply(groupBonus));
-    }
-    
-    /**
-     * 从项目信息中获取年化收益率
-     * 
-     * @param project 项目信息
-     * @param rateType 收益率类型
-     * @return 年化收益率
-     */
-    private BigDecimal getProjectAnnualRate(ProjectEntity project, String rateType) {
-        try {
-            if (project == null) {
-                log.error("项目信息为空，无法获取收益率");
-                return BigDecimal.ZERO;
-            }
-            
-            if (project.getConversion() == null || project.getConversion().trim().isEmpty()) {
-                log.error("项目 {} 的收益率配置为空，无法计算收益", project.getInvestId());
-                return BigDecimal.ZERO;
-            }
-            
-            // 从项目配置中解析收益率
-            String conversion = project.getConversion();
-            log.debug("项目 {} 配置收益率: {}", project.getInvestId(), conversion);
-            
-            // 根据收益率类型解析项目配置
-            return parseProjectRateByType(conversion, rateType);
-            
-        } catch (Exception e) {
-            log.error("获取项目收益率失败，项目ID: {}, 类型: {}", project != null ? project.getInvestId() : "null", rateType, e);
-            return BigDecimal.ZERO;
-        }
-    }
     
     /**
      * 从项目信息中获取日收益率
@@ -548,41 +467,6 @@ public class UserInvestmentProfitSchedule {
         }
     }
     
-    /**
-     * 根据收益率类型解析项目配置的年化收益率
-     * 
-     * @param conversion 项目收益率配置字符串
-     * @param rateType 收益率类型
-     * @return 年化收益率
-     */
-    private BigDecimal parseProjectRateByType(String conversion, String rateType) {
-        try {
-            // 解析项目配置的收益率
-            // 假设conversion是百分比字符串，如"10.5"或"10.5,12.0,15.0"（多个收益率用逗号分隔）
-            String[] rates = conversion.split(",");
-            
-            if (rates.length == 1) {
-                // 单一收益率，所有类型都使用这个值
-                return parseSingleRate(rates[0]);
-            } else if (rates.length >= 2) {
-                // 多个收益率，根据类型选择
-                switch (rateType) {
-                    case "dailyReturn":
-                    case "noPrincipal":
-                    case "compound":
-                        return parseSingleRate(rates[0]); // 使用第一个收益率
-                    default:
-                        return parseSingleRate(rates[0]);
-                }
-            } else {
-                log.error("无效的收益率配置格式: {}", conversion);
-                return BigDecimal.ZERO;
-            }
-        } catch (Exception e) {
-            log.error("解析项目收益率失败: {}, 类型: {}", conversion, rateType, e);
-            return BigDecimal.ZERO;
-        }
-    }
     
     /**
      * 根据收益率类型解析项目配置的日收益率
@@ -698,7 +582,14 @@ public class UserInvestmentProfitSchedule {
         try {
             Long profitAmountInCents = profitAmount.longValue();
             
-//            int assetsResult = userDao.addUserBalance(userId, profitAmountInCents);
+            // 1. 更新用户可用余额（assets字段）- 用于投资
+            int assetsResult = userDao.addUserBalance(userId, profitAmountInCents);
+            if (assetsResult > 0) {
+                log.debug("用户 {} 可用余额更新成功，增加: {} 分", userId, profitAmountInCents);
+            } else {
+                log.warn("用户 {} 可用余额更新失败", userId);
+            }
+            
             // 2. 更新用户可提现额度和收益统计字段（cashwithdrawable字段）- 用于提现
             int cashResult = userDao.updateAllCashProfitFields(userId, profitAmountInCents);
             if (cashResult > 0) {

@@ -21,14 +21,7 @@ public interface OrderService {
 	 */
 	Map<String, String> placeOrder(PlaceOrderDTO dto, Long userId);
 	
-	/**
-	 * 验证投资条件
-	 * @param dto 下单参数
-	 * @param userId 用户ID
-	 * @return 验证结果
-	 */
-	Map<String, String> validateInvestment(PlaceOrderDTO dto, Long userId);
-	
+
 	/**
 	 * 计算投资金额
 	 * @param dto 下单参数
