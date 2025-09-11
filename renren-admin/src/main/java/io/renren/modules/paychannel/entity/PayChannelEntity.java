@@ -1,6 +1,7 @@
 package io.renren.modules.paychannel.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -20,6 +21,7 @@ public class PayChannelEntity {
     /**
      * 渠道ID
      */
+    @TableId
 	private Long channelid;
     /**
      * 渠道名称
@@ -31,6 +33,9 @@ public class PayChannelEntity {
      */
     @TableField("channel_type")
 	private String channelType;
+
+    @TableField("channel_code")
+    private String channelCode;
     /**
      * 商户ID
      */

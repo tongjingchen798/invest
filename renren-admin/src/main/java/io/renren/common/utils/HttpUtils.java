@@ -176,4 +176,98 @@ public class HttpUtils {
     public static String get(String url) {
         return get(url, null);
     }
+    
+    /**
+     * HTTP响应结果类
+     */
+    public static class HttpResponseResult {
+        private final int statusCode;
+        private final String responseBody;
+        
+        public HttpResponseResult(int statusCode, String responseBody) {
+            this.statusCode = statusCode;
+            this.responseBody = responseBody;
+        }
+        
+        public int getStatusCode() {
+            return statusCode;
+        }
+        
+        public String getResponseBody() {
+            return responseBody;
+        }
+    }
+    
+    /**
+     * 发送POST JSON请求并返回状态码和响应体
+     * 
+     * @param url 请求URL
+     * @param jsonBody JSON请求体
+     * @param headers 请求头
+     * @return HTTP响应结果
+     */
+    public static HttpResponseResult postJsonWithStatus(String url, String jsonBody, Map<String, String> headers) {
+        HttpURLConnection connection = null;
+        try {
+            // 创建连接
+            URL requestUrl = new URL(url);
+            connection = (HttpURLConnection) requestUrl.openConnection();
+            
+            // 设置请求方法和属性
+            connection.setRequestMethod("POST");
+            connection.setDoOutput(true);
+            connection.setDoInput(true);
+            connection.setUseCaches(false);
+            connection.setConnectTimeout(30000); // 30秒连接超时
+            connection.setReadTimeout(60000);    // 60秒读取超时
+            
+            // 设置请求头
+            connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+            if (headers != null) {
+                for (Map.Entry<String, String> entry : headers.entrySet()) {
+                    connection.setRequestProperty(entry.getKey(), entry.getValue());
+                }
+            }
+            
+            // 发送请求体
+            if (jsonBody != null && !jsonBody.isEmpty()) {
+                try (OutputStream os = connection.getOutputStream()) {
+                    byte[] input = jsonBody.getBytes(StandardCharsets.UTF_8);
+                    os.write(input, 0, input.length);
+                }
+            }
+            
+            // 获取响应
+            int responseCode = connection.getResponseCode();
+            logger.debug("HTTP响应码: {}", responseCode);
+            
+            // 读取响应体
+            StringBuilder response = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(
+                        responseCode >= 200 && responseCode < 300 ? 
+                        connection.getInputStream() : 
+                        connection.getErrorStream(), 
+                        StandardCharsets.UTF_8))) {
+                
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    response.append(line);
+                }
+            }
+            
+            String responseBody = response.toString();
+            logger.debug("HTTP响应体: {}", responseBody);
+            
+            return new HttpResponseResult(responseCode, responseBody);
+            
+        } catch (Exception e) {
+            logger.error("HTTP请求失败 - URL: {}, 错误: {}", url, e.getMessage(), e);
+            throw new RuntimeException("HTTP请求失败: " + e.getMessage());
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+    }
 }

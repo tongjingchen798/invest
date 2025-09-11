@@ -2,6 +2,9 @@ package io.renren.modules.withdraw.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import io.renren.common.exception.RenException;
+import io.renren.modules.paychannel.dao.PayChannelDao;
+import io.renren.modules.paychannel.entity.PayChannelEntity;
 import io.renren.modules.withdraw.dto.PayAgentResponse;
 import io.renren.modules.withdraw.dto.PayoutRequestDTO;
 import io.renren.modules.paymerchant.entity.PayMerchantEntity;
@@ -43,7 +46,12 @@ public class WePayPayoutServiceImpl implements PayAgentService {
      * WePay渠道标识
      */
     private static final String CHANNEL_CODE = "WePay";
-    
+    private final PayChannelDao payChannelDao;
+
+    public WePayPayoutServiceImpl(PayChannelDao payChannelDao) {
+        this.payChannelDao = payChannelDao;
+    }
+
     @Override
     public PayAgentResponse createPayoutOrder(WithdrawOrderEntity withdrawOrder, PayMerchantEntity payMerchant) {
         try {
@@ -60,16 +68,43 @@ public class WePayPayoutServiceImpl implements PayAgentService {
             String requestBody = JSON.toJSONString(requestData);
             logger.info("代付请求参数: {}", requestBody);
 
-            String responseBody = HttpUtils.postJson(WEPAY_PAYOUT_URL, requestBody, headers);
+            // 使用改进的HTTP请求方法，返回状态码和响应体
+            HttpUtils.HttpResponseResult httpResult = HttpUtils.postJsonWithStatus(WEPAY_PAYOUT_URL, requestBody, headers);
             
-            if (responseBody != null && !responseBody.isEmpty()) {
-                logger.info("代付请求成功 - 订单号: {}, 响应: {}", 
-                           withdrawOrder.getOrderno(), responseBody);
-                return parsePayoutResponse(responseBody);
+            if (httpResult.getStatusCode() >= 200 && httpResult.getStatusCode() < 300) {
+                // HTTP状态码成功，解析响应内容
+                if (!httpResult.getResponseBody().isEmpty()) {
+                    logger.info("代付请求成功 - 订单号: {}, HTTP状态码: {}, 响应: {}", 
+                               withdrawOrder.getOrderno(), httpResult.getStatusCode(), httpResult.getResponseBody());
+                    return parsePayoutResponse(httpResult.getResponseBody());
+                } else {
+                    logger.error("代付请求失败 - 订单号: {}, HTTP状态码: {}, 响应为空", 
+                                withdrawOrder.getOrderno(), httpResult.getStatusCode());
+                    return PayAgentResponse.failure("EMPTY_RESPONSE", "代付请求失败: 响应为空", 
+                                                  CHANNEL_CODE, null, "响应为空");
+                }
             } else {
-                logger.error("代付请求失败 - 订单号: {}, 响应为空", withdrawOrder.getOrderno());
-                return PayAgentResponse.failure("EMPTY_RESPONSE", "代付请求失败: 响应为空", 
-                                              CHANNEL_CODE, null, "响应为空");
+                // HTTP状态码错误（如400, 500等）
+                logger.error("代付请求失败 - 订单号: {}, HTTP状态码: {}, 响应: {}", 
+                           withdrawOrder.getOrderno(), httpResult.getStatusCode(), httpResult.getResponseBody());
+                
+                // 尝试解析错误响应
+                if (!httpResult.getResponseBody().isEmpty()) {
+                    try {
+                        JSONObject errorResponse = JSON.parseObject(httpResult.getResponseBody());
+                        String errorCode = errorResponse.getString("code");
+                        String errorMsg = errorResponse.getString("msg");
+                        return PayAgentResponse.failure(errorCode, errorMsg, CHANNEL_CODE, 
+                                                      httpResult.getResponseBody(), errorMsg);
+                    } catch (Exception e) {
+                        return PayAgentResponse.failure("HTTP_ERROR", "代付请求失败: HTTP " + httpResult.getStatusCode(), 
+                                                      CHANNEL_CODE, httpResult.getResponseBody(), 
+                                                      "HTTP状态码: " + httpResult.getStatusCode());
+                    }
+                } else {
+                    return PayAgentResponse.failure("HTTP_ERROR", "代付请求失败: HTTP " + httpResult.getStatusCode(), 
+                                                  CHANNEL_CODE, null, "HTTP状态码: " + httpResult.getStatusCode());
+                }
             }
             
         } catch (Exception e) {
@@ -92,7 +127,6 @@ public class WePayPayoutServiceImpl implements PayAgentService {
         return merchantCode != null && (
             merchantCode.startsWith("WEPAY_") || 
             merchantCode.startsWith("WP_") ||
-            "WEPAY001".equals(merchantCode) ||
             "WEPAY002".equals(merchantCode)
         );
     }
@@ -101,10 +135,14 @@ public class WePayPayoutServiceImpl implements PayAgentService {
      * 构建代付请求参数
      */
     private Map<String, Object> buildPayoutRequest(WithdrawOrderEntity withdrawOrder, PayMerchantEntity payMerchant) {
+            PayChannelEntity payChannelEntity=payChannelDao.selectById(withdrawOrder.getChannelid());
+            if(payChannelEntity==null){
+                throw new RenException("渠道不存在");
+            }
             Map<String, Object> data = new HashMap<>();
             // 必填参数
             data.put("mchId", payMerchant.getMerchantno()); // 商户ID
-            data.put("passageId", "101"); // 通道ID (TODO: 先用测试通道)
+            data.put("passageId", payChannelEntity.getChannelCode()); // 通道ID (TODO: 先用测试通道)
             // 金额转换（分转元）
             BigDecimal amountInYuan = new BigDecimal(withdrawOrder.getRealAmount()).divide(new BigDecimal("100"));
             data.put("amount", amountInYuan.intValue()); // 金额(法币)

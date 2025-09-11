@@ -2,6 +2,7 @@ package io.renren.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import io.renren.common.constant.BusinessTypeEnum;
 import io.renren.dao.PayMerchantDao;
 import io.renren.dao.UserBalanceDetailDao;
 import io.renren.dao.UserDao;
@@ -360,10 +361,10 @@ public class PayoutCallbackController {
             balanceDetail.setAgentName(user.getAgentName());
             //2 余额提现 33佣金提现
             if (withdrawOrder.getWithdrawType() == 1) {
-                balanceDetail.setBusiType(2);
+                balanceDetail.setBusiType(BusinessTypeEnum.BALANCE_WITHDRAWAL_FLOW.getCode());
                 balanceDetail.setRemarks("余额提现");
             } else {
-                balanceDetail.setBusiType(33);
+                balanceDetail.setBusiType(BusinessTypeEnum.COMMISSION_WITHDRAWAL_FLOW.getCode());
                 balanceDetail.setRemarks("佣金提现");
             }
 

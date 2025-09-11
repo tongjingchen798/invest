@@ -3,6 +3,7 @@ package io.renren.modules.member.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.renren.common.constant.BusinessTypeEnum;
 import io.renren.common.constant.Constant;
 import io.renren.common.page.PageData;
 import io.renren.common.service.impl.BaseServiceImpl;
@@ -344,7 +345,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             balanceDetail.setTransactionDate(new Date());
             balanceDetail.setAgentId(member.getAgent());
             balanceDetail.setAgentName(member.getAgentName());
-            balanceDetail.setBusiType(12); // 12表示工资
+            balanceDetail.setBusiType(BusinessTypeEnum.SALARY.getCode()); // 12表示工资
             balanceDetail.setChannel("1");
             balanceDetail.setOriginalAmount(amount);
             balanceDetail.setRemarks("工资发放");

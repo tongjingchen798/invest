@@ -1,5 +1,6 @@
 package io.renren.service.impl;
 
+import io.renren.common.constant.BusinessTypeEnum;
 import io.renren.dao.ChargeOrderDao;
 import io.renren.dao.UserDao;
 import io.renren.dao.UserBalanceDetailDao;
@@ -181,7 +182,7 @@ public class PaymentCallbackServiceImpl implements PaymentCallbackService {
             balanceDetail.setTransactionDate(new Date());
             balanceDetail.setAgentId(user.getAgent());
             balanceDetail.setAgentName(user.getAgentName());
-            balanceDetail.setBusiType(11); // 11-线上充值
+            balanceDetail.setBusiType(BusinessTypeEnum.ONLINE_RECHARGE.getCode()); // 11-线上充值
             balanceDetail.setChannel("1");
             balanceDetail.setOriginalAmount(user.getAssets());
             balanceDetail.setTransactionAmount(user.getAssets()+amountInCents);

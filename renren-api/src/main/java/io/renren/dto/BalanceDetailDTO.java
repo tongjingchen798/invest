@@ -1,10 +1,12 @@
 package io.renren.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * 账变记录DTO
@@ -42,8 +44,9 @@ public class BalanceDetailDTO implements Serializable {
     @ApiModelProperty(value = "交易后金额")
     private Long transactionAmount;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+5:30")
     @ApiModelProperty(value = "交易时间")
-    private String transactionDate;
+    private Date transactionDate;
 
     @ApiModelProperty(value = "状态 0：交易失败 1：正常")
     private Integer status;

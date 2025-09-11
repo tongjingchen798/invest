@@ -221,8 +221,6 @@ public class VipClaimServiceImpl implements VipClaimService {
 	 * 更新系统统计信息（可以配置定时任务调用）
 	 */
 	public void updateSystemStats() {
-		// TODO: 实际项目中应该从数据库统计
-		// 这里只是示例
 		systemPayCount.set(0);
 		systemPaySumAmount.set(0L);
 		systemVipCont.set(0);

@@ -55,10 +55,10 @@ public class UserInvestmentProfitSchedule {
 
 
     /**
-     * 每天晚上9点30分执行用户投资收益计算
+     * 每天凌晨2点30分执行用户投资收益计算
      * cron表达式：0 1 0 * * ? (秒 分 时 日 月 周)
      */
-    @Scheduled(cron = "0 30 21 * * ?")
+    @Scheduled(cron = "0 30 2 * * ?")
     @Transactional(rollbackFor = Exception.class)
     public void calculateUserInvestmentProfit() {
         log.info("开始执行用户投资收益计算定时任务，执行时间：{}", new Date());

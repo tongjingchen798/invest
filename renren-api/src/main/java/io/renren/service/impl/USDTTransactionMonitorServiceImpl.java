@@ -357,7 +357,6 @@ public class USDTTransactionMonitorServiceImpl implements USDTTransactionMonitor
 //            // 简化实现：直接返回null，让调用方使用其他方式验证
 //            // 在实际应用中，这里应该解析TRON的hex数据来获取目标地址和金额
 //            // 由于TRON的hex数据解析比较复杂，暂时返回null
-//            // TODO: 实现完整的TRON交易数据解析
 //            return null;
 //        } catch (Exception e) {
 //            return null;

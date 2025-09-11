@@ -4,14 +4,17 @@ package io.renren.controller;
 
 
 import io.renren.annotation.Login;
+import io.renren.annotation.LoginUser;
 import io.renren.common.exception.ErrorCode;
 import io.renren.common.exception.RenException;
 import io.renren.common.utils.Result;
+import io.renren.common.utils.VerificationCodeUtils;
 import io.renren.common.validator.ValidatorUtils;
 import io.renren.dto.LoginDTO;
 import io.renren.dto.CustomerServiceDTO;
 import io.renren.dto.RetrievePasswordDTO;
 import io.renren.dto.UpdatePasswordDTO;
+import io.renren.entity.UserEntity;
 import io.renren.service.TokenService;
 import io.renren.service.UserService;
 import io.renren.service.CustomerServiceService;
@@ -45,6 +48,9 @@ public class ApiLoginController {
     private CustomerServiceService customerServiceService;
     @Autowired
     private UserLogDao userLogDao;
+
+    @Autowired
+    private VerificationCodeUtils verificationCodeUtils;
 
 
     @PostMapping("login")
@@ -110,24 +116,23 @@ public class ApiLoginController {
 			// 表单校验
 			ValidatorUtils.validateEntity(dto);
 			
-//			// 验证手机号格式（10位数字）
-//			if (!dto.getMobile().matches("^\\d{10}$")) {
-//				return new Result().error("手机号格式错误");
-//			}
-//
 			// 验证两次密码是否一致
 			if (!dto.getPassword().equals(dto.getPassword2())) {
 				throw new RenException(ErrorCode.PASSWORD_NOT_MATCH);
 			}
-			
-			// 验证短信验证码（这里需要根据实际业务逻辑实现）
-			// TODO: 调用短信验证码验证服务
-			
+
+            if (!verificationCodeUtils.hasCode(dto.getMobile())) {
+                throw new RenException(ErrorCode.VERIFICATION_CODE_NOT_FOUND);
+            }
+            //短信校验
+            if (!verificationCodeUtils.verifyCode(dto.getMobile(), dto.getCode())) {
+                throw new RenException(ErrorCode.VERIFICATION_CODE_INCORRECT);
+            }
 			// 更新用户密码
 			boolean success = userService.updatePasswordByMobile(dto.getMobile(), dto.getPassword());
 			
 			if (success) {
-				return new Result().ok("密码重置成功");
+				return new Result().ok("success");
 			} else {
 				throw new RenException(ErrorCode.PASSWORD_RESET_FAILED);
 			}
@@ -140,8 +145,7 @@ public class ApiLoginController {
 	@Login
 	@PostMapping("updatePws")
 	@ApiOperation("修改密码")
-	public Result updatePassword(@RequestBody UpdatePasswordDTO dto, @ApiIgnore @RequestAttribute("userId") Long userId) {
-		try {
+	public Result updatePassword(@RequestBody UpdatePasswordDTO dto, @ApiIgnore @RequestAttribute("userId") Long userId,@LoginUser UserEntity user) {
 			// 表单校验
 			ValidatorUtils.validateEntity(dto);
 			
@@ -151,20 +155,22 @@ public class ApiLoginController {
 			}
 			
 			// 验证短信验证码（这里需要根据实际业务逻辑实现）
-			// TODO: 调用短信验证码验证服务
+            if (!verificationCodeUtils.hasCode(user.getMobile())) {
+                throw new RenException(ErrorCode.VERIFICATION_CODE_NOT_FOUND);
+            }
+            //短信校验
+            if (!verificationCodeUtils.verifyCode(user.getMobile(), dto.getCode())) {
+                throw new RenException(ErrorCode.VERIFICATION_CODE_INCORRECT);
+            }
 			
 			// 更新用户密码
 			boolean success = userService.updatePasswordByUserId(userId, dto.getPassword());
 			
 			if (success) {
-				return new Result().ok("密码修改成功");
+				return new Result().ok("success");
 			} else {
 				throw new RenException(ErrorCode.PASSWORD_CHANGE_FAILED);
 			}
-			
-		} catch (Exception e) {
-			throw new RenException(ErrorCode.PASSWORD_CHANGE_FAILED);
-		}
 	}
 
 }

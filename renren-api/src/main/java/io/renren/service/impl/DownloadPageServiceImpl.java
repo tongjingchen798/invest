@@ -53,7 +53,6 @@ public class DownloadPageServiceImpl implements DownloadPageService {
 			// 增加本月访问量
 			monthVisitCount.incrementAndGet();
 			
-			// TODO: 实际项目中应该同步到数据库或Redis
 			// 这里可以添加数据库更新逻辑
 			
 			return true;
@@ -73,9 +72,7 @@ public class DownloadPageServiceImpl implements DownloadPageService {
 			// 增加本月下载量
 			monthDownloadCount.incrementAndGet();
 			
-			// TODO: 实际项目中应该同步到数据库或Redis
-			// 这里可以添加数据库更新逻辑
-			
+
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();

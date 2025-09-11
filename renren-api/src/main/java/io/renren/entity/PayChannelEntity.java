@@ -1,5 +1,6 @@
 package io.renren.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -33,6 +34,12 @@ public class PayChannelEntity implements Serializable {
      * 通道类型 UPI/SWIPE/USDT
      */
     private String channelType;
+
+    /**
+     * 渠道编码
+     */
+    @TableField("channel_code")
+    private String channelCode;
 
     /**
      * 充值 1 或者提现 2

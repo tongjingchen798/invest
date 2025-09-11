@@ -243,7 +243,7 @@ public class OrderServiceImpl implements OrderService {
 			Date now = new Date();
 			balanceDetail.setTransactionDate(now);
 			balanceDetail.setBusiType(BusinessTypeEnum.PURCHASE_FLOW.getCode()); // 1:购买流水
-			balanceDetail.setChannel("1"); //TODO 要改
+			balanceDetail.setChannel("1"); //先全部设置为默认
 			balanceDetail.setStreamId(orderNumber);
 			balanceDetail.setUseAmount(amount);
 			balanceDetail.setOriginalAmount(originalBalance);
@@ -283,7 +283,6 @@ public class OrderServiceImpl implements OrderService {
 			
 			// 处理优惠券折扣（如果有）
 			if (dto.getCouponType() != null && dto.getCouponType() == 1 && dto.getUserCouponId() != null && !dto.getUserCouponId().isEmpty()) {
-				// TODO: 实现优惠券折扣计算逻辑
 				// finalAmount = baseAmount * discountRate;
 			}
 			

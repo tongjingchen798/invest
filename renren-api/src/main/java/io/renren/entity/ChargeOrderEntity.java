@@ -2,6 +2,7 @@ package io.renren.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -149,11 +150,13 @@ public class ChargeOrderEntity implements Serializable {
     /**
      * 充值日期
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+5:30")
     private Date chargeTime;
 
     /**
      * 创建日期
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+5:30")
     private Date createTime;
 
     /**

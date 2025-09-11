@@ -74,7 +74,7 @@ public class WePayPaymentService {
         
         // 必填参数
         data.put("mchId", payMerchant.getMerchantno()); // 商户ID
-        data.put("passageId", "101"); // 通道ID (TODO: 先用测试通道)
+        data.put("passageId", payChannel.getChannelCode()); // 通道ID (TODO: 先用测试通道)
         data.put("amount", amount); // 金额(法币)
         data.put("orderNo", orderNo); // 商户订单号
         data.put("notifyUrl", "http://206.238.68.208:8082/api/payment/notify"); // 异步通知回调地址
@@ -128,16 +128,5 @@ public class WePayPaymentService {
         }
     }
     
-    /**
-     * 验证WePay支付响应签名
-     * 
-     * @param response 支付响应
-     * @param secretKey 商户密钥
-     * @return 签名是否有效
-     */
-    public boolean verifyPaymentResponse(PaymentResponseDTO response, String secretKey) {
-        // TODO: 实现WePay支付响应签名验证逻辑
-        // 根据WePay支付平台的签名规则验证响应数据的完整性
-        return true;
-    }
+
 }

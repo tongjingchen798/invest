@@ -111,8 +111,7 @@ public class BalanceDetailServiceImpl implements BalanceDetailService {
      */
     private List<BalanceDetailDTO> convertToDTOList(List<UserBalanceDetailEntity> entityList) {
         List<BalanceDetailDTO> dtoList = new ArrayList<>();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        
+
         for (UserBalanceDetailEntity entity : entityList) {
             BalanceDetailDTO dto = new BalanceDetailDTO();
             
@@ -123,10 +122,8 @@ public class BalanceDetailServiceImpl implements BalanceDetailService {
             dto.setFormuserid(entity.getFormUserId());
             
             // 格式化日期字段
-            if (entity.getTransactionDate() != null) {
-                dto.setTransactionDate(sdf.format(entity.getTransactionDate()));
-            }
-            
+            dto.setTransactionDate(entity.getTransactionDate());
+
             dtoList.add(dto);
         }
         
@@ -174,7 +171,7 @@ public class BalanceDetailServiceImpl implements BalanceDetailService {
     public boolean recordReferralReward(Long currentAssets,Long assets,Long userId, Long amount, Long newUserId) {
         try {
             UserBalanceDetailEntity detail = new UserBalanceDetailEntity();
-            detail.setBusiType(14);
+            detail.setBusiType(BusinessTypeEnum.INVITATION_WELFARE.getCode());
             // 设置基本信息
             detail.setUserId(userId);
             detail.setOriginalAmount(currentAssets);
