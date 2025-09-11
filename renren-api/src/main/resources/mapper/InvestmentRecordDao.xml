@@ -90,7 +90,7 @@
 
 	<!-- 查询用户待收本金金额 -->
 	<select id="selectPendingPrincipalByUserId" resultType="long">
-		SELECT COALESCE(SUM(investment_amount), 0) 
+		SELECT COALESCE(SUM(investment_amount*invest_count), 0)
 		FROM tb_investment_record 
 		WHERE user_id = #{userId} AND status = 0
 	</select>
@@ -141,7 +141,7 @@
 	<select id="selectInvestmentStatistics" resultType="map">
 		SELECT 
 			COUNT(*) as totalCount,
-			COALESCE(SUM(investment_amount), 0) as totalInvestment,
+			COALESCE(SUM(investment_amount*invest_count), 0) as totalInvestment,
 			COALESCE(SUM(CASE WHEN status = 0 THEN investment_amount ELSE 0 END), 0) as pendingInvestment,
 			COALESCE(SUM(CASE WHEN status = 1 THEN investment_amount ELSE 0 END), 0) as completedInvestment,
 			COALESCE(SUM(CASE WHEN status = 1 THEN profit_amount ELSE 0 END), 0) as totalProfit,
@@ -154,7 +154,7 @@
 	<select id="getProfitEndedStatistics" resultType="map">
 		SELECT 
 			COUNT(DISTINCT ir.project_id) as items,
-			COALESCE(SUM(ir.investment_amount), 0) as totalPrincipal,
+			COALESCE(SUM(ir.investment_amount*invest_count), 0) as totalPrincipal,
 			COALESCE(SUM(ir.profit_amount), 0) as totalProfit
 		FROM tb_investment_record ir
 		INNER JOIN tb_project p ON ir.project_id = p.invest_id
@@ -166,12 +166,12 @@
 	<select id="getProfitInvestingStatistics" resultType="map">
 		SELECT 
 			COUNT(DISTINCT ir.project_id) as items,
-			COALESCE(SUM(ir.investment_amount), 0) as totalPrincipal,
+			COALESCE(SUM(ir.investment_amount*invest_count), 0) as totalPrincipal,
 			COALESCE(SUM(ir.profit_amount), 0) as totalProfit
 		FROM tb_investment_record ir
 		INNER JOIN tb_project p ON ir.project_id = p.invest_id
 		WHERE ir.user_id = #{userId}
-		AND ir.status = 0  -- 投资中的项目
+		AND ir.status = 0
 	</select>
 
 </mapper>

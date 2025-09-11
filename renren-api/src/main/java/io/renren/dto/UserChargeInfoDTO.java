@@ -1,11 +1,13 @@
 package io.renren.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * 用户充值信息DTO
@@ -43,11 +45,13 @@ public class UserChargeInfoDTO implements Serializable {
     @ApiModelProperty(value = "充值ID")
     private Integer chargeId;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+5:30")
     @ApiModelProperty(value = "充值日期")
-    private String chargeTime;
+    private Date chargeTime;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+5:30")
     @ApiModelProperty(value = "创建日期")
-    private String createTime;
+    private Date createTime;
 
     @ApiModelProperty(value = "用户IP")
     private String infoIp;

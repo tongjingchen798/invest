@@ -59,8 +59,9 @@ public class OrderServiceImpl implements OrderService {
 	@Transactional(rollbackFor = Exception.class)
 	public Map<String, String> placeOrder(PlaceOrderDTO dto, Long userId) {
 		Map<String, String> result = new HashMap<>();
-			//验证投资金额
-			if (dto.getAmount() <= 0) {
+			Long buyAmount=dto.getAmount()*dto.getCount();
+				//验证投资金额
+			if (buyAmount <= 0L) {
 				throw new RenException(ErrorCode.INVESTMENT_AMOUNT_INVALID);
 			}
 
@@ -82,11 +83,11 @@ public class OrderServiceImpl implements OrderService {
 			UserEntity user = userDao.selectById(userId);
 			//验证并扣减用户余额
 			Long currentAssets = user.getAssets();
-			if (currentAssets < dto.getAmount()) {
+			if (currentAssets < buyAmount) {
 				throw new RenException(ErrorCode.INSUFFICIENT_BALANCE);
 			}
 			//执行余额扣款（原子操作，包含余额验证）
-			int updateRows = userDao.updateBalanceForInvestment(user.getId(), dto.getAmount());
+			int updateRows = userDao.updateBalanceForInvestment(user.getId(), buyAmount);
 			if (updateRows == 0) {
 				throw new RenException(ErrorCode.INSUFFICIENT_BALANCE);
 			}
@@ -114,7 +115,7 @@ public class OrderServiceImpl implements OrderService {
 			BigDecimal rate = new BigDecimal(conversion);
 			rate = rate.divide(new BigDecimal("100"), 4, BigDecimal.ROUND_DOWN);
 
-			BigDecimal investmentAmountTotal = new BigDecimal(dto.getAmount());
+			BigDecimal investmentAmountTotal = new BigDecimal(buyAmount);
 			// 计算每日收益金额
 			BigDecimal ddsy=investmentAmountTotal.multiply(rate).multiply(new BigDecimal(dto.getCount()));
 			investmentRecord.setInvestmentAmount(investmentAmountTotal.longValue());
@@ -135,13 +136,13 @@ public class OrderServiceImpl implements OrderService {
 			investmentRecordDao.insert(investmentRecord);
 			
 			// 7. 记录账变明细
-			recordBalanceDetail(userId, dto.getAmount(), orderNumber, project.getInvestName(), currentAssets);
+			recordBalanceDetail(userId, buyAmount, orderNumber, project.getInvestName(), currentAssets);
 			
 			// 8. 更新项目参与人数
-			projectDao.updateInvestmentAmount(dto.getInvestId(), dto.getAmount());
+			projectDao.updateInvestmentAmount(dto.getInvestId(), buyAmount);
 
 			// 9. 更新用户表中的投资相关字段（项目数、总本金等）
-			userDao.updateAllInvestmentFields(userId, dto.getAmount());
+			userDao.updateAllInvestmentFields(userId, buyAmount);
 
 			// 10. 处理本金返还逻辑
 			handlePrincipalReturn(project, user, investmentAmountTotal, investmentRecord.getOrderId(), transactionDate);

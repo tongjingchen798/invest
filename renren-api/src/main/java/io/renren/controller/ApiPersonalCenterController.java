@@ -211,7 +211,7 @@ public class ApiPersonalCenterController {
 
     @Login
     @GetMapping("profitInvesting")
-    @ApiOperation("付息还本【代收，已收】- 投资中项目")
+    @ApiOperation("投资中项目")
     public Result<ProfitEndedDTO> getProfitInvesting(@LoginUser UserEntity user) {
         try {
             ProfitEndedDTO profitEndedDTO = profitEndedService.getProfitInvestingRecord(user.getId());

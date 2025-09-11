@@ -1,5 +1,6 @@
 package io.renren.dto;
 
+import io.renren.entity.ChargeOrderEntity;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -21,7 +22,7 @@ public class ChargePageData implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "列表数据")
-    private List<UserChargeInfoDTO> list;
+    private List<ChargeOrderEntity> list;
 
     @ApiModelProperty(value = "汇总")
     private Map<String, Object> sum;

@@ -123,8 +123,8 @@ public class MemberInfoDTO implements Serializable {
     @ApiModelProperty(value = "上级邀请码")
     private String superiorCode;
 
-//    @ApiModelProperty(value = "上级会员名称")
-//    private String superiorName;
+    @ApiModelProperty(value = "上级会员名称")
+    private String superiorName;
 
     @ApiModelProperty(value = "历史总收益")
     private Long sySum;

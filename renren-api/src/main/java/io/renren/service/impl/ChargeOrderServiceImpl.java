@@ -149,7 +149,7 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
             // 转换为分页数据
             ChargePageData pageData = new ChargePageData();
             pageData.setTotal((int) result.getTotal());
-            pageData.setList(convertToUserChargeInfoList(result.getRecords()));
+            pageData.setList(result.getRecords());
             pageData.setSum(new HashMap<>());
             
             return pageData;
@@ -169,19 +169,17 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
             return result;
         }
         
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        
         for (ChargeOrderEntity order : orders) {
             UserChargeInfoDTO dto = new UserChargeInfoDTO();
             
             // 基本信息
-            dto.setChargeId(order.getChargeId() != null ? order.getChargeId().intValue() : 0);
+            dto.setChargeId(order.getChargeId().intValue());
             dto.setOrderno(order.getOrderno());
             dto.setThreeorderNo(order.getThreeorderNo());
             dto.setAmount(order.getAmount() != null ? new BigDecimal(order.getAmount()) : BigDecimal.ZERO);
             dto.setState(order.getState());
-            dto.setCreateTime(order.getCreateTime() != null ? sdf.format(order.getCreateTime()) : "");
-            dto.setChargeTime(order.getChargeTime() != null ? sdf.format(order.getChargeTime()) : "");
+            dto.setCreateTime(order.getCreateTime());
+            dto.setChargeTime(order.getChargeTime());
             
             // 用户信息
             dto.setUserId(order.getUserId());
@@ -201,13 +199,9 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
             
             // 代理信息
             dto.setAgent(order.getAgent());
-            dto.setAgentName("");
-            
             // 业务员信息
             dto.setSalesmanid(order.getSalesmanid());
-
             // 其他字段
-//            dto.setBiaoqian(order.getBiaoqian());
 //            dto.setLiebian(order.getLiebian());
 //            dto.setInviteCodeStatus(order.getInviteCodeStatus());
             dto.setOperCode(order.getOperCode());
@@ -224,14 +218,9 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
             
             // 真实金额
             dto.setRealAmount(order.getRealAmount());
-            
             // 成功统计（暂时设置为默认值）
             dto.setSuccesscnt(1);
             dto.setSuccesscz(1);
-            
-            // 用户创建时间（暂时设置为空）
-            dto.setUsercreateTime("");
-            
             result.add(dto);
         }
         
