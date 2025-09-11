@@ -64,12 +64,11 @@ public class ApiPayInfoController {
         if(StringUtils.isBlank(dto.getCode())){
             throw new RenException(ErrorCode.VERIFICATION_CODE_EMPTY);
         }
-
-        if (!verificationCodeUtils.hasCode(dto.getMobile())) {
+        if (!verificationCodeUtils.hasBankCardCode(dto.getMobile())) {
             throw new RenException(ErrorCode.VERIFICATION_CODE_NOT_FOUND);
         }
         //短信校验
-        if (!verificationCodeUtils.verifyCode(dto.getMobile(), dto.getCode())) {
+        if (!verificationCodeUtils.verifyBankCardCode(dto.getMobile(), dto.getCode())) {
             throw new RenException(ErrorCode.VERIFICATION_CODE_INCORRECT);
         }
 

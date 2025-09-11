@@ -97,6 +97,48 @@ public class VerificationCodeUtils {
         
         return codeObj != null;
     }
+
+    private static final String BANK_CARD_BIND_PREFIX = "verification_code_card:";
+
+    /**
+     * 检查验证码是否存在
+     *
+     * @param mobile 手机号码
+     * @return 是否存在有效验证码
+     */
+    public boolean hasBankCardCode(String mobile) {
+        if (StrUtil.isBlank(mobile)) {
+            return false;
+        }
+
+        String key = BANK_CARD_BIND_PREFIX + mobile;
+        Object codeObj = redisUtils.get(key);
+
+        return codeObj != null;
+    }
+
+    public boolean verifyBankCardCode(String mobile, String code) {
+        if (StrUtil.isBlank(mobile) || StrUtil.isBlank(code)) {
+            return false;
+        }
+
+        String key = BANK_CARD_BIND_PREFIX + mobile;
+        Object codeObj = redisUtils.get(key);
+
+        if (codeObj == null) {
+            return false;
+        }
+
+        // 验证码是否正确
+        boolean isValid = code.equals(codeObj.toString());
+
+        // 验证成功后删除验证码
+        if (isValid) {
+            redisUtils.delete(key);
+        }
+
+        return isValid;
+    }
     
     /**
      * 获取验证码剩余有效时间（秒）

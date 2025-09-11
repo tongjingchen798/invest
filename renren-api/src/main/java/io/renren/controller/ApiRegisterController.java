@@ -216,6 +216,8 @@ public class ApiRegisterController {
 
     private static final String CODE_KEY_PREFIX = "verification_code:";
 
+    private static final String BANK_CARD_BIND_PREFIX = "verification_code_card:";
+
 
     @PostMapping("verificationCode")
     @ApiOperation("发送短信验证码")
@@ -248,6 +250,36 @@ public class ApiRegisterController {
         }
         return new Result<Object>().ok("success");
     }
+
+
+    @PostMapping("verificationBnkCode")
+    @ApiOperation("发送银行卡绑定验证码")
+    public Result verificationBnkCode(@RequestParam(value = "mobile") String mobile) {
+
+        // 验证手机号格式
+        if (mobile == null || mobile.trim().isEmpty()) {
+            throw new RenException(ErrorCode.PHONE_NUMBER_EMPTY);
+        }
+
+        try {
+            // 1. 生成验证码
+            String code = verificationCodeUtils.generateCode();
+            // 2. 发送短信
+            SmsUtils.SmsResult smsResult = smsUtils.sendSms(mobile, code);
+            if (smsResult.isSuccess()) {
+                // 3. 短信发送成功后，存储验证码到Redis
+                String key = BANK_CARD_BIND_PREFIX + mobile;
+                redisUtils.set(key, code,900);
+            } else {
+                throw new RenException(ErrorCode.VERIFICATION_CODE_SEND_FAILED);
+            }
+
+        } catch (Exception e) {
+            throw new RenException(ErrorCode.SYSTEM_EXCEPTION);
+        }
+        return new Result<>().ok("success");
+    }
+
 
 
     /**
