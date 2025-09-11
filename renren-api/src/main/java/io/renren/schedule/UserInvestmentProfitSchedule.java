@@ -55,23 +55,23 @@ public class UserInvestmentProfitSchedule {
 
 
     /**
-     * 每天0点1分执行用户投资收益计算
+     * 每天晚上9点30分执行用户投资收益计算
      * cron表达式：0 1 0 * * ? (秒 分 时 日 月 周)
      */
-    @Scheduled(cron = "0 1 0 * * ?")
+    @Scheduled(cron = "0 30 21 * * ?")
     @Transactional(rollbackFor = Exception.class)
     public void calculateUserInvestmentProfit() {
         log.info("开始执行用户投资收益计算定时任务，执行时间：{}", new Date());
         
         try {
+            int result = userDao.resetTodayInvestmentAndProfit();
+            log.info("用户今日字段重置完成，影响用户数: {}", result);
             // 1. 获取所有有投资的用户
             List<Long> userIds = getUserIdsWithInvestment();
             
             if (userIds == null || userIds.isEmpty()) {
-                log.info("没有找到有投资的用户，任务结束");
                 return;
             }
-            
             log.info("找到 {} 个有投资的用户，开始计算收益", userIds.size());
             
             // 2. 遍历用户计算投资收益
@@ -589,7 +589,7 @@ public class UserInvestmentProfitSchedule {
             } else {
                 log.warn("用户 {} 可用余额更新失败", userId);
             }
-            
+
             // 2. 更新用户可提现额度和收益统计字段（cashwithdrawable字段）- 用于提现
             int cashResult = userDao.updateAllCashProfitFields(userId, profitAmountInCents);
             if (cashResult > 0) {
@@ -656,19 +656,19 @@ public class UserInvestmentProfitSchedule {
         }
     }
     
-    /**
-     * 每天0点重置用户今日收益、投资和充值字段
-     */
-    @Scheduled(cron = "0 0 0 * * ?")
-    public void resetTodayFields() {
-        log.info("开始重置用户今日收益、投资和充值字段...");
-        
-        try {
-            int result = userDao.resetTodayInvestmentAndProfit();
-            log.info("用户今日字段重置完成，影响用户数: {}", result);
-        } catch (Exception e) {
-            log.error("重置用户今日字段失败", e);
-        }
-    }
+//    /**
+//     * 每天0点重置用户今日收益、投资和充值字段
+//     */
+//    @Scheduled(cron = "0 0 0 * * ?")
+//    public void resetTodayFields() {
+//        log.info("开始重置用户今日收益、投资和充值字段...");
+//
+//        try {
+//            int result = userDao.resetTodayInvestmentAndProfit();
+//            log.info("用户今日字段重置完成，影响用户数: {}", result);
+//        } catch (Exception e) {
+//            log.error("重置用户今日字段失败", e);
+//        }
+//    }
     
 }
