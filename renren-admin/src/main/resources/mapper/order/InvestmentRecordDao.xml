@@ -16,7 +16,7 @@
         ir.project_id,
         ir.order_date,
         ir.profit_date expirationTime,
-        ir.investment_amount actualAmount,
+        ir.investment_amount*ir.invest_count  actualAmount,
         ir.invest_count,
         u.biaoqian,
         u.username,
