@@ -85,16 +85,17 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
         // 标签筛选
         if (StringUtils.isNotBlank(biaoqian)) {
             queryWrapper.eq("biaoqian", biaoqian);
-        }
-        
-        // 标签存在性筛选
-        if (biaoqianFlag != null) {
+        } else if (biaoqianFlag != null) {
+            // 标签存在性筛选
             if (biaoqianFlag == 1) {
-                queryWrapper.isNotNull("biaoqian").ne("biaoqian", ""); // 有标签
-            } else if (biaoqianFlag == 0) {
-                queryWrapper.and(wrapper -> wrapper.isNull("biaoqian").or().eq("biaoqian", "")); // 无标签
+                // 有标签：标签不为空且不为空字符串
+                queryWrapper.isNotNull("biaoqian").ne("biaoqian", "");
+            } else {
+                // 无标签：标签为空或空字符串
+                queryWrapper.and(wrapper -> wrapper.isNull("biaoqian").or().eq("biaoqian", ""));
             }
         }
+        
         
         // 渠道筛选
         if (StringUtils.isNotBlank(channel)) {
@@ -396,7 +397,7 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
                 log.info("设置用户标签，用户ID: {}, 标签: {}", userId, biaoqian);
             } else if (type == 2) {
                 // 清除标签
-                member.setBiaoqian(null);
+                member.setBiaoqian(biaoqian);
                 log.info("清除用户标签，用户ID: {}", userId);
             }
             

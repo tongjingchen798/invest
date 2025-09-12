@@ -859,46 +859,46 @@
             <if test="params.currentUserId != null and params.currentUserId != ''">
                 <if test="params.currentUserType != null and params.currentUserType == 1">
                     <!-- 代理用户：只能查看自己代理的用户数据 -->
-                    AND m.agent = #{params.currentUserId}
+                    AND u.agent = #{params.currentUserId}
                 </if>
                 <if test="params.currentUserType != null and params.currentUserType == 2">
                     <!-- 业务员用户：只能查看自己负责的用户数据 -->
-                    AND m.salesmanid = #{params.currentUserId}
+                    AND u.salesmanid = #{params.currentUserId}
                 </if>
                 <!-- type=0是系统管理员，可以查看所有数据，不需要添加权限限制 -->
             </if>
 
             <!-- 基础查询条件 -->
             <if test="params.mobile != null and params.mobile != ''">
-                AND m.mobile LIKE CONCAT('%', #{params.mobile}, '%')
+                AND u.mobile LIKE CONCAT('%', #{params.mobile}, '%')
             </if>
             <if test="params.username != null and params.username != ''">
-                AND m.username LIKE CONCAT('%', #{params.username}, '%')
+                AND u.username LIKE CONCAT('%', #{params.username}, '%')
             </if>
 
             <if test="params.inviteCode != null and params.inviteCode != ''">
-                AND m.invite_code LIKE CONCAT('%', #{params.inviteCode}, '%')
+                AND u.invite_code LIKE CONCAT('%', #{params.inviteCode}, '%')
             </if>
 
             <if test="params.channel != null and params.channel != ''">
-                AND m.channel = #{params.channel}
+                AND u.channel = #{params.channel}
             </if>
             <if test="params.biaoqian != null and params.biaoqian != ''">
-                AND m.biaoqian = #{params.biaoqian}
+                AND u.biaoqian = #{params.biaoqian}
             </if>
             <if test="params.vip != null and params.vip != ''">
-                AND m.vip = #{params.vip}
+                AND u.vip = #{params.vip}
             </if>
 
             <!-- 余额筛选 -->
             <if test="params.balanceFlag != null and params.balanceFlag != ''">
                 <if test="params.balanceFlag == '1'">
                     <!-- 有余额 -->
-                    AND m.assets > 0
+                    AND u.assets > 0
                 </if>
                 <if test="params.balanceFlag == '0'">
                     <!-- 无余额 -->
-                    AND m.assets = 0
+                    AND u.assets = 0
                 </if>
             </if>
 
@@ -906,11 +906,11 @@
             <if test="params.biaoqianFlag != null and params.biaoqianFlag != ''">
                 <if test="params.biaoqianFlag == '1'">
                     <!-- 有标签 -->
-                    AND m.biaoqian IS NOT NULL AND m.biaoqian != ''
+                    AND u.biaoqian IS NOT NULL AND u.biaoqian != ''
                 </if>
                 <if test="params.biaoqianFlag == '0'">
                     <!-- 无标签 -->
-                    AND (m.biaoqian IS NULL OR m.biaoqian = '')
+                    AND (u.biaoqian IS NULL OR u.biaoqian = '')
                 </if>
             </if>
 
@@ -918,11 +918,11 @@
             <if test="params.chargeFlag != null and params.chargeFlag != ''">
                 <if test="params.chargeFlag == '1'">
                     <!-- 有充值 -->
-                    AND m.charge_sum > 0
+                    AND u.charge_sum > 0
                 </if>
                 <if test="params.chargeFlag == '0'">
                     <!-- 无充值 -->
-                    AND m.charge_sum = 0
+                    AND u.charge_sum = 0
                 </if>
             </if>
 
@@ -930,11 +930,11 @@
             <if test="params.tzFlag != null and params.tzFlag != ''">
                 <if test="params.tzFlag == '1'">
                     <!-- 有投资 -->
-                    AND m.history_investment > 0
+                    AND u.history_investment > 0
                 </if>
                 <if test="params.tzFlag == '0'">
                     <!-- 无投资 -->
-                    AND m.history_investment = 0
+                    AND u.history_investment = 0
                 </if>
             </if>
 
@@ -942,11 +942,11 @@
             <if test="params.withdrawFlag != null and params.withdrawFlag != ''">
                 <if test="params.withdrawFlag == '1'">
                     <!-- 有提现 -->
-                    AND m.withdraw_sum > 0
+                    AND u.withdraw_sum > 0
                 </if>
                 <if test="params.withdrawFlag == '0'">
                     <!-- 无提现 -->
-                    AND m.withdraw_sum = 0
+                    AND u.withdraw_sum = 0
                 </if>
             </if>
 
@@ -954,20 +954,20 @@
             <if test="params.liebian != null and params.liebian != ''">
                 <if test="params.liebian == '1'">
                     <!-- 是裂变 - 有上级 -->
-                    AND m.superior_name IS NOT NULL AND m.superior_name != ''
+                    AND u.superior_name IS NOT NULL AND u.superior_name != ''
                 </if>
                 <if test="params.liebian == '0'">
                     <!-- 否裂变 - 无上级 -->
-                    AND (m.superior_name IS NULL OR m.superior_name = '')
+                    AND (u.superior_name IS NULL OR u.superior_name = '')
                 </if>
             </if>
 
             <!-- 时间范围查询 -->
             <if test="params.startTime != null and params.startTime != ''">
-                AND m.create_date >= FROM_UNIXTIME(#{params.startTime}/1000)
+                AND u.create_date >= FROM_UNIXTIME(#{params.startTime}/1000)
             </if>
             <if test="params.endTime != null and params.endTime != ''">
-                AND m.create_date &lt;= FROM_UNIXTIME(#{params.endTime}/1000)
+                AND u.create_date &lt;= FROM_UNIXTIME(#{params.endTime}/1000)
             </if>
         </where>
     </select>

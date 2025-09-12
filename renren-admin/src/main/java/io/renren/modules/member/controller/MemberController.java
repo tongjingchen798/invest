@@ -183,7 +183,7 @@ public class MemberController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "id", value = "用户ID", paramType = "query", required = true, dataType = "long"),
             @ApiImplicitParam(name = "biaoqian", value = "标签值", paramType = "query", required = true, dataType = "string"),
-            @ApiImplicitParam(name = "type", value = "操作类型：1-设置标签，2-清除标签", paramType = "query", required = true, dataType = "int")
+            @ApiImplicitParam(name = "type", value = "操作类型：1-设置标签，2-编辑标签", paramType = "query", required = true, dataType = "int")
     })
 //    @RequiresPermissions("member:user:updateBq")
     public Result updateUserBq(@RequestParam("id") Long userId, @RequestParam("biaoqian") String biaoqian, @RequestParam("type") Integer type) {
@@ -208,6 +208,39 @@ public class MemberController {
             return new Result().error("标签修改失败: " + e.getMessage());
         }
     }
+
+//
+//    @PutMapping("getBiaoQianUD")
+//    @ApiOperation("设置用户标签")
+//    @LogOperation("设置用户标签")
+//    @ApiImplicitParams({
+//            @ApiImplicitParam(name = "biaoqiannew", value = "用户ID", paramType = "query", required = true, dataType = "long"),
+//            @ApiImplicitParam(name = "biaoqian", value = "标签值", paramType = "query", required = true, dataType = "string"),
+//            @ApiImplicitParam(name = "type", value = "操作类型：1-设置标签，2-清除标签", paramType = "query", required = true, dataType = "int")
+//    })
+////    @RequiresPermissions("member:user:updateBq")
+//    public Result getBiaoQianUD(@RequestParam("id") Long userId, @RequestParam("biaoqian") String biaoqian, @RequestParam("type") Integer type) {
+//        try {
+//            // 参数验证
+//            if (userId == null || userId <= 0) {
+//                return new Result().error("用户ID不能为空");
+//            }
+//            if (biaoqian == null) {
+//                return new Result().error("标签值不能为空");
+//            }
+//            if (type == null || (type != 1 && type != 2)) {
+//                return new Result().error("操作类型必须为1(设置标签)或2(清除标签)");
+//            }
+//
+//            // 调用服务修改用户标签
+//            Result result = memberService.updateUserBiaoqian(userId, biaoqian, type);
+//            return result;
+//
+//        } catch (Exception e) {
+//            log.error("用户标签修改异常，用户ID: {}, 标签: {}, 操作类型: {}", userId, biaoqian, type, e);
+//            return new Result().error("标签修改失败: " + e.getMessage());
+//        }
+//    }
 
     @PutMapping("updateUserToAgent")
     @ApiOperation("修改用户业务员")
