@@ -332,11 +332,11 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
                 return new Result().error("User not found");
             }
             
-            // 更新用户余额
-            Long currentBalance = member.getAssets() != null ? member.getAssets() : 0L;
+            // 更新用户余额 TODO 看是否统计佣金收益
+            Long currentBalance = member.getCommissionBalance();
             Long newBalance = currentBalance + amount;
             
-            member.setAssets(newBalance);
+            member.setCommissionBalance(newBalance);
             this.updateById(member);
             
             // 记录余额明细
@@ -347,11 +347,13 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             balanceDetail.setAgentName(member.getAgentName());
             balanceDetail.setBusiType(BusinessTypeEnum.SALARY.getCode()); // 12表示工资
             balanceDetail.setChannel("1");
-            balanceDetail.setOriginalAmount(amount);
-            balanceDetail.setRemarks("工资发放");
+            balanceDetail.setOriginalAmount(currentBalance);
+            balanceDetail.setRemarks("工资发放(佣金账户)");
+            balanceDetail.setUseAmount(amount);
+            balanceDetail.setTransactionAmount(newBalance);
             balanceDetail.setSalesmanName(member.getSalesmanName());
-            balanceDetail.setSalesmanId(member.getSalesmanid() != null ? Long.valueOf(member.getSalesmanid()) : null);
-            balanceDetail.setStatus(1); // 1表示正常
+            balanceDetail.setSalesmanId(member.getSalesmanid());
+            balanceDetail.setStatus(1);
             
             userBalanceDetailService.insert(balanceDetail);
             

@@ -582,7 +582,23 @@
     <select id="selectFissionRewardSummary" resultType="map">
         SELECT
         COALESCE(SUM(m.commission_balance), 0) AS rewardBalance,
-        COALESCE(SUM(m.withdraw_quota), 0) AS ytReward
+        COALESCE(SUM(m.withdraw_quota), 0) AS ytReward,
+        -- 工资统计（业务类型12）
+        COALESCE((
+            SELECT SUM(ubd.use_amount)
+            FROM user_balance_detail ubd
+            WHERE ubd.user_id = m.id
+            AND ubd.busi_type = 12
+            AND ubd.status = 1
+        ), 0) AS gz,
+        -- 注册奖励统计（业务类型27）
+        COALESCE((
+            SELECT SUM(ubd.use_amount)
+            FROM user_balance_detail ubd
+            WHERE ubd.user_id = m.id
+            AND ubd.busi_type = 27
+            AND ubd.status = 1
+        ), 0) AS zcfl
         FROM tb_user m
         LEFT JOIN sys_user agent_user ON m.agent = agent_user.id
         LEFT JOIN sys_user salesman_user ON m.salesmanid = salesman_user.id
