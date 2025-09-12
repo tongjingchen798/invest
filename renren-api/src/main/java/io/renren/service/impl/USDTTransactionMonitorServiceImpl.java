@@ -63,28 +63,50 @@ public class USDTTransactionMonitorServiceImpl implements USDTTransactionMonitor
             }
             
             JSONArray transactionList = (JSONArray) transactions.get("data");
+            if (transactionList == null || transactionList.isEmpty()) {
+                return;
+            }
+            
+            log.info("获取到 {} 条USDT交易记录，开始处理", transactionList.size());
+            
+            int processedCount = 0;
+            int skippedCount = 0;
+            int errorCount = 0;
             
             // 2. 遍历所有交易记录，存储到U收款记录表
             for (Object obj : transactionList) {
                 JSONObject transaction = (JSONObject) obj;
                 String txHash = transaction.getString("transaction_id");
                 
-                // 检查是否已存在记录
-                UsdtRecordEntity existingRecord = findUsdtRecordByTxHash(txHash);
-                if (existingRecord != null) {
-                    continue;
-                }
-                
-                // 检查是否为USDT转账
-                if (isUSDTTransaction(transaction)) {
-                    // 创建U收款记录
-                    createUsdtRecord(transaction, usdtAddress, null, null);
+                try {
+                    // 使用新的去重方法检查是否已存在记录
+                    if (usdtRecordDao.existsByTxHash(txHash)) {
+                        skippedCount++;
+                        continue;
+                    }
+                    
+                    // 检查是否为USDT转账
+                    if (isUSDTTransaction(transaction)) {
+                        // 创建U收款记录
+                        createUsdtRecord(transaction, usdtAddress, null, null);
+                        processedCount++;
+                        log.debug("新USDT交易记录创建成功: {}", txHash);
+                    } else {
+                        skippedCount++;
+                    }
+                    
+                } catch (Exception e) {
+                    errorCount++;
+                    log.error("处理交易失败，Hash: {}, 错误: {}", txHash, e.getMessage(), e);
                 }
             }
             
+            log.info("USDT交易记录处理完成 - 地址: {}, 处理: {}, 跳过: {}, 错误: {}", 
+                    usdtAddress, processedCount, skippedCount, errorCount);
+            
         } catch (Exception e) {
             // 记录错误日志，但不抛出异常，避免影响定时任务
-            log.error("拉取USDT交易记录失败: {}", e.getMessage(), e);
+            log.error("拉取USDT交易记录失败，地址: {}, 错误: {}", usdtAddress, e.getMessage(), e);
         }
     }
     
@@ -144,32 +166,369 @@ public class USDTTransactionMonitorServiceImpl implements USDTTransactionMonitor
     public Map<String, Object> checkUSDTBalance(String usdtAddress) {
         Map<String, Object> result = new HashMap<>();
         try {
-            // 调用TRON API获取USDT余额
-            String url = TRON_API_BASE + "/v1/accounts/" + usdtAddress + "/tokens";
-            String response = HttpUtils.get(url);
+            // 验证地址格式
+            if (usdtAddress == null || usdtAddress.trim().isEmpty()) {
+                result.put("success", false);
+                result.put("message", "USDT地址不能为空");
+                return result;
+            }
             
-            JSONObject jsonResponse = JSON.parseObject(response);
-            JSONArray tokens = jsonResponse.getJSONArray("data");
+            // 验证TRON地址格式（以T开头，34位字符）
+            if (!usdtAddress.startsWith("T") || usdtAddress.length() != 34) {
+                result.put("success", false);
+                result.put("message", "无效的TRON地址格式: " + usdtAddress);
+                return result;
+            }
             
-            BigDecimal usdtBalance = BigDecimal.ZERO;
-            for (Object obj : tokens) {
-                JSONObject token = (JSONObject) obj;
-                if (USDT_CONTRACT_ADDRESS.equals(token.getString("token_id"))) {
-                    usdtBalance = token.getBigDecimal("balance").divide(new BigDecimal("1000000")); // USDT有6位小数
-                    break;
-                }
+            // 方案1：使用TronScan.org网页API获取USDT余额（推荐）
+            BigDecimal usdtBalance = getUSDTBalanceFromAccount(usdtAddress);
+            
+            // 如果主要方案失败，尝试使用专门的USDT查询
+            if (usdtBalance == null || usdtBalance.compareTo(BigDecimal.ZERO) == 0) {
+                usdtBalance = getUSDTBalanceFromTronScanUSDT(usdtAddress);
+            }
+            
+            if (usdtBalance == null) {
+                // 方案2：如果TronScan.org网页API失败，尝试使用TronScan.org代币列表API
+                usdtBalance = getUSDTBalanceFromContract(usdtAddress);
+            }
+            
+            if (usdtBalance == null) {
+                // 方案3：如果TronScan.org代币列表API也失败，尝试使用TronScan.org地址页面API
+                usdtBalance = getUSDTBalanceFromTronGrid(usdtAddress);
+            }
+            
+            if (usdtBalance == null) {
+                // 方案4：如果TronScan.org地址页面API也失败，尝试使用TronScan.org账户详情API
+                usdtBalance = getUSDTBalanceFromTronScanDetail(usdtAddress);
+            }
+            
+            if (usdtBalance == null) {
+                result.put("success", false);
+                result.put("message", "无法获取USDT余额，请检查地址是否有效");
+                return result;
             }
             
             result.put("success", true);
             result.put("balance", usdtBalance.toString());
             result.put("address", usdtAddress);
             
+            log.debug("USDT余额查询成功 - 地址: {}, 余额: {} USDT", usdtAddress, usdtBalance);
+            
         } catch (Exception e) {
             result.put("success", false);
             result.put("message", "获取USDT余额失败: " + e.getMessage());
+            log.error("获取USDT余额异常 - 地址: {}, 错误: {}", usdtAddress, e.getMessage(), e);
         }
         
         return result;
+    }
+    
+    /**
+     * 方案1：通过TronScan.org网页API获取USDT余额
+     */
+    private BigDecimal getUSDTBalanceFromAccount(String usdtAddress) {
+        try {
+            // 使用TronScan.org的网页API获取账户信息
+            String url = "https://apilist.tronscanapi.com/api/account?address=" + usdtAddress;
+            log.debug("调用TronScan.org网页API获取账户信息: {}", url);
+            
+            String response = HttpUtils.get(url);
+            if (response == null || response.trim().isEmpty()) {
+                return null;
+            }
+            
+            JSONObject jsonResponse = JSON.parseObject(response);
+            if (jsonResponse.containsKey("error")) {
+                log.warn("TronScan.org API返回错误: {}", jsonResponse.getString("error"));
+                return null;
+            }
+            
+            // 检查账户是否存在
+            if (!jsonResponse.containsKey("data") || jsonResponse.get("data") == null) {
+                log.warn("账户不存在: {}", usdtAddress);
+                return null;
+            }
+            
+            JSONObject accountData = jsonResponse.getJSONObject("data");
+            if (accountData == null) {
+                return null;
+            }
+            
+            // 首先检查TRC20代币余额
+            JSONArray trc20Tokens = accountData.getJSONArray("trc20token_balances");
+            if (trc20Tokens != null && !trc20Tokens.isEmpty()) {
+                // 查找USDT余额
+                for (Object obj : trc20Tokens) {
+                    JSONObject token = (JSONObject) obj;
+                    if (USDT_CONTRACT_ADDRESS.equals(token.getString("tokenId"))) {
+                        String balanceStr = token.getString("balance");
+                        if (balanceStr != null && !balanceStr.isEmpty()) {
+                            BigDecimal balance = new BigDecimal(balanceStr).divide(new BigDecimal("1000000"));
+                            log.debug("通过TronScan.org网页API获取USDT余额成功: {} USDT", balance);
+                            return balance;
+                        }
+                    }
+                }
+            }
+            
+            // 如果TRC20代币列表为空，检查tokenBalances数组
+            JSONArray tokenBalances = accountData.getJSONArray("tokenBalances");
+            if (tokenBalances != null && !tokenBalances.isEmpty()) {
+                // 查找USDT余额
+                for (Object obj : tokenBalances) {
+                    JSONObject token = (JSONObject) obj;
+                    String tokenId = token.getString("tokenId");
+                    String tokenAbbr = token.getString("tokenAbbr");
+                    
+                    // 检查是否是USDT (通过合约地址或代币简称)
+                    if (USDT_CONTRACT_ADDRESS.equals(tokenId) || "USDT".equalsIgnoreCase(tokenAbbr)) {
+                        String balanceStr = token.getString("balance");
+                        if (balanceStr != null && !balanceStr.isEmpty()) {
+                            BigDecimal balance = new BigDecimal(balanceStr).divide(new BigDecimal("1000000"));
+                            log.debug("通过TronScan.org网页API获取USDT余额成功: {} USDT", balance);
+                            return balance;
+                        }
+                    }
+                }
+            }
+            
+            // 如果都没有找到，检查tokens数组
+            JSONArray tokens = accountData.getJSONArray("tokens");
+            if (tokens != null && !tokens.isEmpty()) {
+                // 查找USDT余额
+                for (Object obj : tokens) {
+                    JSONObject token = (JSONObject) obj;
+                    String tokenId = token.getString("tokenId");
+                    String tokenAbbr = token.getString("tokenAbbr");
+                    
+                    // 检查是否是USDT (通过合约地址或代币简称)
+                    if (USDT_CONTRACT_ADDRESS.equals(tokenId) || "USDT".equalsIgnoreCase(tokenAbbr)) {
+                        String balanceStr = token.getString("balance");
+                        if (balanceStr != null && !balanceStr.isEmpty()) {
+                            BigDecimal balance = new BigDecimal(balanceStr).divide(new BigDecimal("1000000"));
+                            log.debug("通过TronScan.org网页API获取USDT余额成功: {} USDT", balance);
+                            return balance;
+                        }
+                    }
+                }
+            }
+            
+            log.debug("账户 {} 没有USDT余额 - TRC20代币数量: {}, 代币余额数量: {}, 代币数量: {}", 
+                usdtAddress, 
+                trc20Tokens != null ? trc20Tokens.size() : 0,
+                tokenBalances != null ? tokenBalances.size() : 0,
+                tokens != null ? tokens.size() : 0);
+            return BigDecimal.ZERO;
+            
+        } catch (Exception e) {
+            log.warn("通过TronScan.org网页API获取USDT余额失败: {}", e.getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * 专门的USDT余额查询方法
+     */
+    private BigDecimal getUSDTBalanceFromTronScanUSDT(String usdtAddress) {
+        try {
+            // 使用TronScan.org的USDT专用API
+            String url = "https://apilist.tronscanapi.com/api/token_trc20/transfers?address=" + usdtAddress + "&contract_address=" + USDT_CONTRACT_ADDRESS + "&limit=1";
+            log.debug("调用TronScan.org USDT专用API: {}", url);
+            
+            String response = HttpUtils.get(url);
+            if (response == null || response.trim().isEmpty()) {
+                return null;
+            }
+            
+            JSONObject jsonResponse = JSON.parseObject(response);
+            if (jsonResponse.containsKey("data") && jsonResponse.getJSONArray("data") != null) {
+                JSONArray transfers = jsonResponse.getJSONArray("data");
+                if (!transfers.isEmpty()) {
+                    // 如果有USDT交易记录，说明地址有效，但无法直接获取余额
+                    // 这里返回0，表示地址有效但没有余额
+                    log.debug("地址 {} 有USDT交易记录，但无法获取当前余额", usdtAddress);
+                    return BigDecimal.ZERO;
+                }
+            }
+            
+            // 尝试使用TronScan.org的账户API获取USDT余额
+            String accountUrl = "https://apilist.tronscanapi.com/api/account?address=" + usdtAddress;
+            log.debug("调用TronScan.org账户API获取USDT: {}", accountUrl);
+            
+            String accountResponse = HttpUtils.get(accountUrl);
+            if (accountResponse != null && !accountResponse.trim().isEmpty()) {
+                JSONObject accountJson = JSON.parseObject(accountResponse);
+                if (accountJson.containsKey("data") && accountJson.getJSONObject("data") != null) {
+                    JSONObject accountData = accountJson.getJSONObject("data");
+                    
+                    // 检查所有可能的代币数组
+                    String[] tokenArrays = {"trc20token_balances", "tokenBalances", "tokens", "balances"};
+                    
+                    for (String arrayName : tokenArrays) {
+                        JSONArray tokenArray = accountData.getJSONArray(arrayName);
+                        if (tokenArray != null && !tokenArray.isEmpty()) {
+                            log.debug("检查 {} 数组，包含 {} 个代币", arrayName, tokenArray.size());
+                            
+                            for (Object obj : tokenArray) {
+                                JSONObject token = (JSONObject) obj;
+                                String tokenId = token.getString("tokenId");
+                                String tokenAbbr = token.getString("tokenAbbr");
+                                String tokenName = token.getString("tokenName");
+                                
+                                log.debug("检查代币: tokenId={}, tokenAbbr={}, tokenName={}", tokenId, tokenAbbr, tokenName);
+                                
+                                // 检查是否是USDT
+                                if (USDT_CONTRACT_ADDRESS.equals(tokenId) || 
+                                    "USDT".equalsIgnoreCase(tokenAbbr) || 
+                                    "USDT".equalsIgnoreCase(tokenName)) {
+                                    
+                                    String balanceStr = token.getString("balance");
+                                    if (balanceStr != null && !balanceStr.isEmpty()) {
+                                        BigDecimal balance = new BigDecimal(balanceStr).divide(new BigDecimal("1000000"));
+                                        log.debug("通过TronScan.org USDT专用API获取USDT余额成功: {} USDT", balance);
+                                        return balance;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            log.debug("通过TronScan.org USDT专用API未找到USDT余额");
+            return BigDecimal.ZERO;
+            
+        } catch (Exception e) {
+            log.warn("通过TronScan.org USDT专用API获取USDT余额失败: {}", e.getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * 方案2：通过TronScan.org代币列表API获取USDT余额
+     */
+    private BigDecimal getUSDTBalanceFromContract(String usdtAddress) {
+        try {
+            // 使用TronScan.org代币列表API获取USDT余额
+            String url = "https://apilist.tronscanapi.com/api/account/tokens?address=" + usdtAddress + "&start=0&limit=20&token=";
+            log.debug("调用TronScan.org代币列表API获取USDT余额: {}", url);
+            
+            String response = HttpUtils.get(url);
+            if (response == null || response.trim().isEmpty()) {
+                return null;
+            }
+            
+            JSONObject jsonResponse = JSON.parseObject(response);
+            if (jsonResponse.containsKey("data") && jsonResponse.getJSONArray("data") != null) {
+                JSONArray tokens = jsonResponse.getJSONArray("data");
+                
+                for (Object obj : tokens) {
+                    JSONObject token = (JSONObject) obj;
+                    String tokenId = token.getString("tokenId");
+                    if (USDT_CONTRACT_ADDRESS.equals(tokenId)) {
+                        String balanceStr = token.getString("balance");
+                        if (balanceStr != null && !balanceStr.isEmpty()) {
+                            BigDecimal balance = new BigDecimal(balanceStr).divide(new BigDecimal("1000000"));
+                            log.debug("通过TronScan.org代币列表API获取USDT余额成功: {} USDT", balance);
+                            return balance;
+                        }
+                    }
+                }
+            }
+            
+            log.debug("通过TronScan.org代币列表API未获取到USDT余额");
+            return BigDecimal.ZERO;
+            
+        } catch (Exception e) {
+            log.warn("通过TronScan.org代币列表API获取USDT余额失败: {}", e.getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * 方案3：通过TronScan.org地址页面API获取USDT余额
+     */
+    private BigDecimal getUSDTBalanceFromTronGrid(String usdtAddress) {
+        try {
+            // 使用TronScan.org地址页面的API获取USDT余额
+            String url = "https://apilist.tronscanapi.com/api/account/tokens?address=" + usdtAddress + "&start=0&limit=50&token=";
+            log.debug("调用TronScan.org地址页面API获取USDT余额: {}", url);
+            
+            String response = HttpUtils.get(url);
+            if (response == null || response.trim().isEmpty()) {
+                return null;
+            }
+            
+            JSONObject jsonResponse = JSON.parseObject(response);
+            if (jsonResponse.containsKey("data") && jsonResponse.getJSONArray("data") != null) {
+                JSONArray tokens = jsonResponse.getJSONArray("data");
+                
+                for (Object obj : tokens) {
+                    JSONObject token = (JSONObject) obj;
+                    String tokenId = token.getString("tokenId");
+                    if (USDT_CONTRACT_ADDRESS.equals(tokenId)) {
+                        String balanceStr = token.getString("balance");
+                        if (balanceStr != null && !balanceStr.isEmpty()) {
+                            BigDecimal balance = new BigDecimal(balanceStr).divide(new BigDecimal("1000000"));
+                            log.debug("通过TronScan.org地址页面API获取USDT余额成功: {} USDT", balance);
+                            return balance;
+                        }
+                    }
+                }
+            }
+            
+            log.debug("通过TronScan.org地址页面API未获取到USDT余额");
+            return BigDecimal.ZERO;
+            
+        } catch (Exception e) {
+            log.warn("通过TronScan.org地址页面API获取USDT余额失败: {}", e.getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * 方案4：通过TronScan.org账户详情API获取USDT余额
+     */
+    private BigDecimal getUSDTBalanceFromTronScanDetail(String usdtAddress) {
+        try {
+            // 使用TronScan.org的账户详情API
+            String url = "https://apilist.tronscanapi.com/api/account?address=" + usdtAddress;
+            log.debug("调用TronScan.org账户详情API: {}", url);
+            
+            String response = HttpUtils.get(url);
+            if (response == null || response.trim().isEmpty()) {
+                return null;
+            }
+            
+            JSONObject jsonResponse = JSON.parseObject(response);
+            if (jsonResponse.containsKey("data") && jsonResponse.getJSONObject("data") != null) {
+                JSONObject accountData = jsonResponse.getJSONObject("data");
+                if (accountData.containsKey("trc20token_balances") && accountData.getJSONArray("trc20token_balances") != null) {
+                    JSONArray tokenBalances = accountData.getJSONArray("trc20token_balances");
+                    
+                    for (Object obj : tokenBalances) {
+                        JSONObject token = (JSONObject) obj;
+                        String tokenId = token.getString("tokenId");
+                        if (USDT_CONTRACT_ADDRESS.equals(tokenId)) {
+                            String balanceStr = token.getString("balance");
+                            if (balanceStr != null && !balanceStr.isEmpty()) {
+                                BigDecimal balance = new BigDecimal(balanceStr).divide(new BigDecimal("1000000"));
+                                log.debug("通过TronScan.org账户详情API获取USDT余额成功: {} USDT", balance);
+                                return balance;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            log.debug("通过TronScan.org账户详情API未获取到USDT余额");
+            return BigDecimal.ZERO;
+            
+        } catch (Exception e) {
+            log.warn("通过TronScan.org账户详情API获取USDT余额失败: {}", e.getMessage());
+            return null;
+        }
     }
     
 //    @Override
@@ -564,20 +923,6 @@ public class USDTTransactionMonitorServiceImpl implements USDTTransactionMonitor
         }
     }
     
-    /**
-     * 根据交易哈希查找U收款记录
-     */
-    private UsdtRecordEntity findUsdtRecordByTxHash(String txHash) {
-        try {
-            // 使用MyBatis-Plus的查询方法
-            return usdtRecordDao.selectOne(
-                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<UsdtRecordEntity>()
-                    .eq("transaction_id", txHash)
-            );
-        } catch (Exception e) {
-            return null;
-        }
-    }
     
     /**
      * 创建U收款记录（只处理转入交易）

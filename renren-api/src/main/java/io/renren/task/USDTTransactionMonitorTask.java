@@ -9,7 +9,6 @@ import io.renren.entity.ChargeOrderEntity;
 import io.renren.service.USDTTransactionMonitorService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -67,13 +66,12 @@ public class USDTTransactionMonitorTask {
     /**
      * 每30秒拉取USDT交易记录
      */
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedRate = 300000)
     public void fetchUSDTTransactions() {
         try {
             // 获取USDT地址（使用缓存）
             UAddressConfigEntity uAddressConfigEntity = getUAddressConfig();
             if (uAddressConfigEntity == null || uAddressConfigEntity.getAddr() == null) {
-                log.warn("未找到可用的USDT地址配置");
                 return;
             }
             String usdtAddress = uAddressConfigEntity.getAddr();
@@ -159,7 +157,13 @@ public class USDTTransactionMonitorTask {
                     }
                 }
             } else {
-                log.warn("获取USDT地址 {} 余额失败: {}", usdtAddress, balanceResult != null ? balanceResult.get("message") : "未知错误");
+                String errorMsg = balanceResult != null ? (String) balanceResult.get("message") : "未知错误";
+                log.warn("获取USDT地址 {} 余额失败: {}", usdtAddress, errorMsg);
+                
+                // 如果是地址格式错误，记录更详细的日志
+                if (errorMsg.contains("无效的TRON地址格式") || errorMsg.contains("USDT地址不存在")) {
+                    log.error("USDT地址配置可能有问题，请检查数据库中的地址配置: {}", usdtAddress);
+                }
             }
 
         } catch (Exception e) {

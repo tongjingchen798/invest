@@ -93,13 +93,14 @@ public class ApiRegisterController {
             throw new RenException(ErrorCode.PHONE_NUMBER_HAS_BEEN_REGISTERED);
         }
 
-        if (!verificationCodeUtils.hasCode(dto.getMobile())) {
-            throw new RenException(ErrorCode.VERIFICATION_CODE_NOT_FOUND);
-        }
-        //短信校验
-        if (!verificationCodeUtils.verifyCode(dto.getMobile(), dto.getCode())) {
-            throw new RenException(ErrorCode.VERIFICATION_CODE_INCORRECT);
-        }
+        //TODO 先去掉注册校验
+//        if (!verificationCodeUtils.hasCode(dto.getMobile())) {
+//            throw new RenException(ErrorCode.VERIFICATION_CODE_NOT_FOUND);
+//        }
+//        //短信校验
+//        if (!verificationCodeUtils.verifyCode(dto.getMobile(), dto.getCode())) {
+//            throw new RenException(ErrorCode.VERIFICATION_CODE_INCORRECT);
+//        }
 
         UserEntity user = new UserEntity();
         user.setMobile(dto.getMobile());
@@ -232,22 +233,18 @@ public class ApiRegisterController {
             throw new RenException(ErrorCode.PHONE_NUMBER_EMPTY);
         }
 
-        try {
-            // 1. 生成验证码
-            String code = verificationCodeUtils.generateCode();
-            // 2. 发送短信
-            SmsUtils.SmsResult smsResult = smsUtils.sendSms(mobile, code);
-            if (smsResult.isSuccess()) {
-                // 3. 短信发送成功后，存储验证码到Redis
-                String key = CODE_KEY_PREFIX + mobile;
-                redisUtils.set(key, code,300);
-            } else {
-                throw new RenException(ErrorCode.VERIFICATION_CODE_SEND_FAILED);
-            }
-
-        } catch (Exception e) {
-            throw new RenException(ErrorCode.SYSTEM_EXCEPTION);
+        // 1. 生成验证码
+        String code = verificationCodeUtils.generateCode();
+        // 2. 发送短信
+        SmsUtils.SmsResult smsResult = smsUtils.sendSms(mobile, code);
+        if (smsResult.isSuccess()) {
+            // 3. 短信发送成功后，存储验证码到Redis
+            String key = CODE_KEY_PREFIX + mobile;
+            redisUtils.set(key, code,300);
+        } else {
+            throw new RenException(ErrorCode.VERIFICATION_CODE_SEND_FAILED);
         }
+
         return new Result<Object>().ok("success");
     }
 
