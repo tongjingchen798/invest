@@ -12,8 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import io.renren.config.InvestmentProfitConfig;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import io.renren.dao.InvestmentRecordDao;
 import io.renren.dao.UserDao;
 import io.renren.dao.InvestmentProfitDetailDao;
@@ -56,7 +55,7 @@ public class UserInvestmentProfitSchedule {
 
     /**
      * 每天凌晨2点30分执行用户投资收益计算
-     * cron表达式：0 1 0 * * ? (秒 分 时 日 月 周)
+     * cron表达式：0 30 2 * * ? (秒 分 时 日 月 周)
      */
     @Scheduled(cron = "0 30 2 * * ?")
     @Transactional(rollbackFor = Exception.class)
@@ -64,7 +63,7 @@ public class UserInvestmentProfitSchedule {
         log.info("开始执行用户投资收益计算定时任务，执行时间：{}", new Date());
         
         try {
-            int result = userDao.resetTodayInvestmentAndProfit();
+            int result = resetTodayFieldsByMybatisPlus();
             log.info("用户今日字段重置完成，影响用户数: {}", result);
             // 1. 获取所有有投资的用户
             List<Long> userIds = getUserIdsWithInvestment();
@@ -652,6 +651,122 @@ public class UserInvestmentProfitSchedule {
             
         } catch (Exception e) {
             log.error("记录投资项目 {} 投资收益账变失败", record.getOrderId(), e);
+            throw e;
+        }
+    }
+    
+    /**
+     * 重置所有用户的今日字段
+     * 使用四个独立的SQL语句，提高性能和可维护性
+     * 
+     * @return 总影响行数
+     */
+    private int resetTodayFieldsByMybatisPlus() {
+        log.debug("开始重置所有用户的今日字段");
+        
+        int totalResult = 0;
+        
+        try {
+            // 1. 重置今日收益
+            int profitResult = resetTodayProfit();
+            totalResult += profitResult;
+            
+            // 2. 重置今日提现
+            int withdrawResult = resetTodayWithdraw();
+            totalResult += withdrawResult;
+            
+            // 3. 重置今日投资
+            int investmentResult = resetTodayInvestment();
+            totalResult += investmentResult;
+            
+            // 4. 重置今日充值
+            int rechargeResult = resetTodayRecharge();
+            totalResult += rechargeResult;
+            
+            log.info("所有用户的今日字段重置完成，总影响行数: {}", totalResult);
+            return totalResult;
+            
+        } catch (Exception e) {
+            log.error("重置所有用户的今日字段失败", e);
+            throw e;
+        }
+    }
+    
+    /**
+     * 重置今日收益字段
+     * 只更新有收益记录的用户，提高性能
+     */
+    private int resetTodayProfit() {
+        try {
+            LambdaUpdateWrapper<UserEntity> updateWrapper = new LambdaUpdateWrapper<>();
+            updateWrapper.set(UserEntity::getTodayProfit, 0)
+                        .gt(UserEntity::getTodayProfit, 0); // 只更新有收益的用户
+            
+            int result = userDao.update(null, updateWrapper);
+            log.debug("今日收益字段重置完成，影响行数: {}", result);
+            return result;
+        } catch (Exception e) {
+            log.error("重置今日收益字段失败", e);
+            throw e;
+        }
+    }
+    
+    /**
+     * 重置今日提现字段
+     * 只更新有提现记录的用户，提高性能
+     */
+    private int resetTodayWithdraw() {
+        try {
+            LambdaUpdateWrapper<UserEntity> updateWrapper = new LambdaUpdateWrapper<>();
+            updateWrapper.set(UserEntity::getTodayWithdraw, 0)
+                        .gt(UserEntity::getTodayWithdraw, 0); // 只更新有提现的用户
+            
+            int result = userDao.update(null, updateWrapper);
+            log.debug("今日提现字段重置完成，影响行数: {}", result);
+            return result;
+        } catch (Exception e) {
+            log.error("重置今日提现字段失败", e);
+            throw e;
+        }
+    }
+    
+    /**
+     * 重置今日投资字段
+     * 只更新有投资记录的用户，提高性能
+     */
+    private int resetTodayInvestment() {
+        try {
+            LambdaUpdateWrapper<UserEntity> updateWrapper = new LambdaUpdateWrapper<>();
+            updateWrapper.set(UserEntity::getTodayInvestment, 0)
+                        .gt(UserEntity::getTodayInvestment, 0); // 只更新有投资的用户
+            
+            int result = userDao.update(null, updateWrapper);
+            log.debug("今日投资字段重置完成，影响行数: {}", result);
+            return result;
+        } catch (Exception e) {
+            log.error("重置今日投资字段失败", e);
+            throw e;
+        }
+    }
+    
+    /**
+     * 重置今日充值字段
+     * 只更新有充值记录的用户，提高性能
+     */
+    private int resetTodayRecharge() {
+        try {
+            LambdaUpdateWrapper<UserEntity> updateWrapper = new LambdaUpdateWrapper<>();
+            updateWrapper.set(UserEntity::getTodayRecharge, 0)
+                        .set(UserEntity::getTodayRechargeCnt, 0)
+                        .and(wrapper -> wrapper.gt(UserEntity::getTodayRecharge, 0)
+                                           .or()
+                                           .gt(UserEntity::getTodayRechargeCnt, 0)); // 只更新有充值的用户
+            
+            int result = userDao.update(null, updateWrapper);
+            log.debug("今日充值字段重置完成，影响行数: {}", result);
+            return result;
+        } catch (Exception e) {
+            log.error("重置今日充值字段失败", e);
             throw e;
         }
     }
