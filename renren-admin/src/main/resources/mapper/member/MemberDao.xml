@@ -584,22 +584,20 @@
         COALESCE(SUM(m.commission_balance), 0) AS rewardBalance,
         COALESCE(SUM(m.withdraw_quota), 0) AS ytReward,
         -- 工资统计（业务类型12）
-        COALESCE((
-            SELECT SUM(ubd.use_amount)
-            FROM user_balance_detail ubd
-            WHERE ubd.user_id = m.id
-            AND ubd.busi_type = 12
-            AND ubd.status = 1
-        ), 0) AS gz,
+        COALESCE(SUM(gz_data.use_amount), 0) AS gz,
         -- 注册奖励统计（业务类型27）
-        COALESCE((
-            SELECT SUM(ubd.use_amount)
-            FROM user_balance_detail ubd
-            WHERE ubd.user_id = m.id
-            AND ubd.busi_type = 27
-            AND ubd.status = 1
-        ), 0) AS zcfl
+        COALESCE(SUM(zcfl_data.use_amount), 0) AS zcfl
         FROM tb_user m
+        LEFT JOIN (
+            SELECT user_id, use_amount
+            FROM user_balance_detail
+            WHERE busi_type = 12 AND status = 1
+        ) gz_data ON m.id = gz_data.user_id
+        LEFT JOIN (
+            SELECT user_id, use_amount
+            FROM user_balance_detail
+            WHERE busi_type = 27 AND status = 1
+        ) zcfl_data ON m.id = zcfl_data.user_id
         LEFT JOIN sys_user agent_user ON m.agent = agent_user.id
         LEFT JOIN sys_user salesman_user ON m.salesmanid = salesman_user.id
         <where>
