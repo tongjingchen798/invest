@@ -392,8 +392,35 @@
         0 AS zztReward,
         0 AS cce3fl,
         0 AS fxfl,
-        0 AS gz,
-        0 AS zcfl
+        -- 工资统计（业务类型12）
+        COALESCE((
+            SELECT SUM(ubd.use_amount)
+            FROM user_balance_detail ubd
+            WHERE ubd.user_id = m.id
+            AND ubd.busi_type = 12
+            AND ubd.status = 1
+            <if test="params.startTime != null">
+                AND ubd.transaction_date >= FROM_UNIXTIME(#{params.startTime}/1000)
+            </if>
+            <if test="params.endTime != null">
+                AND ubd.transaction_date &lt;= FROM_UNIXTIME(#{params.endTime}/1000)
+            </if>
+        ), 0) AS gz,
+        -- 注册奖励统计（业务类型27）
+        COALESCE((
+            SELECT SUM(ubd.use_amount)
+            FROM user_balance_detail ubd
+            WHERE ubd.user_id = m.id
+            AND ubd.busi_type = 27
+            AND ubd.status = 1
+            <if test="params.startTime != null">
+                AND ubd.transaction_date >= FROM_UNIXTIME(#{params.startTime}/1000)
+            </if>
+            <if test="params.endTime != null">
+                AND ubd.transaction_date &lt;= FROM_UNIXTIME(#{params.endTime}/1000)
+            </if>
+        ), 0) AS zcfl
+
         FROM
         tb_user m
         LEFT JOIN sys_user agent_user ON m.agent = agent_user.id
