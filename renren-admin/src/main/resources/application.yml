@@ -38,9 +38,9 @@ spring:
       enabled: true
   redis:
     database: 0
-    host: 192.168.10.10
+    host: 156.254.5.88
     port: 6379
-    password:    # 密码（默认为空）
+    password: Lip@798    # 密码（默认为空）
     timeout: 6000ms  # 连接超时时长（毫秒）
     jedis:
       pool:
@@ -58,8 +58,7 @@ renren:
 local:
   storage:
     path: /uploads  # 本地存储路径
-    url: http://206.238.68.208:8088/admin/uploads  # 文件访问URL
-
+    url: https://admin.profit-game.com/admin/uploads  # 文件访问URL（使用HTTPS域名）
 #mybatis
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
