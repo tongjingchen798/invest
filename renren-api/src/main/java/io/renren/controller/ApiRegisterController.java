@@ -97,10 +97,15 @@ public class ApiRegisterController {
 //        if (!verificationCodeUtils.hasCode(dto.getMobile())) {
 //            throw new RenException(ErrorCode.VERIFICATION_CODE_NOT_FOUND);
 //        }
-//        //短信校验
+        //短信校验
 //        if (!verificationCodeUtils.verifyCode(dto.getMobile(), dto.getCode())) {
 //            throw new RenException(ErrorCode.VERIFICATION_CODE_INCORRECT);
 //        }
+
+        // 检查邀请码是否为空
+        if (StringUtils.isBlank(dto.getInviteCode())) {
+            throw new RenException(ErrorCode.INVITE_CODE_EMPTY);
+        }
 
         UserEntity user = new UserEntity();
         user.setMobile(dto.getMobile());
@@ -114,30 +119,29 @@ public class ApiRegisterController {
         }
         String newInviteCode = InviteCodeGenerator.generateInviteCode();
         user.setInviteCode(newInviteCode);
-        //根据渠道查询对应代理
-        if (Objects.nonNull(dto.getInviteCode())) {
-            SysUserEntity sysUserEntity = sysUserService.selectByAgentInviteCode(dto.getInviteCode());
-            if (Objects.nonNull(sysUserEntity)) {
+        SysUserEntity sysUserEntity = sysUserService.selectByAgentInviteCode(dto.getInviteCode());
+        if (Objects.nonNull(sysUserEntity)) {
+            // 设置业务员信息
+            user.setSalesmanid(sysUserEntity.getId());
+            user.setSalesmanName(sysUserEntity.getUsername());
+            // 设置代理信息
+            user.setAgent(sysUserEntity.getAgent());
+        } else {
+            user.setUpinviteCode(dto.getInviteCode());
+            user.setSuperiorCode(dto.getInviteCode());
+            UserEntity userEntity = userDao.selectByInviteCode(dto.getInviteCode());
+            if (Objects.nonNull(userEntity)) {
+                user.setSuperiorName(userEntity.getMobile());
+                user.setLiebian(1);
                 // 设置业务员信息
-                user.setSalesmanid(sysUserEntity.getId());
-                user.setSalesmanName(sysUserEntity.getUsername());
+                user.setSalesmanid(userEntity.getSalesmanid());
+                user.setSalesmanName(userEntity.getSalesmanName());
                 // 设置代理信息
-                user.setAgent(sysUserEntity.getAgent());
-//                user.setAgentName(allocationResult.getAgentName());
-            } else {
-                user.setUpinviteCode(dto.getInviteCode());
-                user.setSuperiorCode(dto.getInviteCode());
-                UserEntity userEntity = userDao.selectByInviteCode(dto.getInviteCode());
-                if (Objects.nonNull(userEntity)) {
-                    user.setSuperiorName(userEntity.getMobile());
-                    user.setLiebian(1);
-                    // 设置业务员信息
-                    user.setSalesmanid(userEntity.getSalesmanid());
-                    user.setSalesmanName(userEntity.getSalesmanName());
-                    // 设置代理信息
-                    user.setAgent(userEntity.getAgent());
-                    user.setAgentName(userEntity.getAgentName());
-                }
+                user.setAgent(userEntity.getAgent());
+                user.setAgentName(userEntity.getAgentName());
+            }else {
+                // 邀请码不存在
+                throw new RenException(ErrorCode.INVITE_CODE_NOT_EXISTS);
             }
         }
         user.setChannel(dto.getChannel());
@@ -240,7 +244,7 @@ public class ApiRegisterController {
         if (smsResult.isSuccess()) {
             // 3. 短信发送成功后，存储验证码到Redis
             String key = CODE_KEY_PREFIX + mobile;
-            redisUtils.set(key, code,300);
+            redisUtils.set(key, code, 300);
         } else {
             throw new RenException(ErrorCode.VERIFICATION_CODE_SEND_FAILED);
         }
@@ -266,7 +270,7 @@ public class ApiRegisterController {
             if (smsResult.isSuccess()) {
                 // 3. 短信发送成功后，存储验证码到Redis
                 String key = BANK_CARD_BIND_PREFIX + mobile;
-                redisUtils.set(key, code,900);
+                redisUtils.set(key, code, 900);
             } else {
                 throw new RenException(ErrorCode.VERIFICATION_CODE_SEND_FAILED);
             }
@@ -276,7 +280,6 @@ public class ApiRegisterController {
         }
         return new Result<>().ok("success");
     }
-
 
 
     /**

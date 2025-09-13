@@ -115,6 +115,10 @@ public interface ErrorCode {
     int VERIFICATION_CODE_INCORRECT = 70015;
     /** 验证码不能为空 */
     int VERIFICATION_CODE_EMPTY = 70016;
+    /** 邀请码不能为空 */
+    int INVITE_CODE_EMPTY = 70017;
+    /** 邀请码不存在 */
+    int INVITE_CODE_NOT_EXISTS = 70018;
     
     // ==================== VIP相关错误码 (80xxx) ====================
     /** 不满足领取条件 */
