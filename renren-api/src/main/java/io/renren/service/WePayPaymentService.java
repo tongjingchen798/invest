@@ -74,10 +74,10 @@ public class WePayPaymentService {
         
         // 必填参数
         data.put("mchId", payMerchant.getMerchantno()); // 商户ID
-        data.put("passageId", payChannel.getChannelCode()); // 通道ID (TODO: 先用测试通道)
+        data.put("passageId", payChannel.getChannelCode()); // 通道ID
         data.put("amount", amount); // 金额(法币)
         data.put("orderNo", orderNo); // 商户订单号
-        data.put("notifyUrl", "http://206.238.68.208:8082/api/payment/notify"); // 异步通知回调地址
+        data.put("notifyUrl", payMerchant.getNotifyUrl()); // 异步通知回调地址
         
         // 可选参数
         data.put("callBackUrl", ""); // 充值成功回跳地址

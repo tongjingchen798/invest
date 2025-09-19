@@ -86,6 +86,8 @@ public class PayMerchantEntity implements Serializable {
      */
     private Integer degreeheat;
 
+    private String notifyUrl;
+
     /**
      * 状态（0:下架,1:上架）
      */

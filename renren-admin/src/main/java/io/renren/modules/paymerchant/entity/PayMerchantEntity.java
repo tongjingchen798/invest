@@ -68,6 +68,11 @@ public class PayMerchantEntity {
      * 代付-通道代码
      */
 	private String channeltypedf;
+
+    /**
+     * 回调地址
+     */
+    private String notifyUrl;
     /**
      * 优先级
      */
