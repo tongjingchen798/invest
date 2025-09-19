@@ -28,23 +28,12 @@ import java.util.Map;
  * @date 2024-01-01
  */
 @Service
-public class QePayPaymentService implements PaymentService {
+public class QePayPaymentService{
     
     private static final Logger logger = LoggerFactory.getLogger(QePayPaymentService.class);
     
     @Autowired
     private OkHttpUtil okHttpUtil;
-    
-    @Override
-    public String getServiceName() {
-        return "QePay";
-    }
-    
-    @Override
-    public boolean supports(String merchantName) {
-        // QePay支持除Wepay2886之外的所有商户
-        return merchantName != null && !merchantName.equals("Wepay2886");
-    }
     
     /**
      * 创建支付订单
@@ -56,8 +45,7 @@ public class QePayPaymentService implements PaymentService {
      * @param payMerchant 支付商户
      * @return 支付响应结果
      */
-    @Override
-    public PaymentResponseDTO createPaymentOrder(UserEntity user, Long amount, String orderNo, 
+    public PaymentResponseDTO createPaymentOrder(UserEntity user, Long amount, String orderNo,
                                                 PayChannelEntity payChannel, PayMerchantEntity payMerchant) {
         try {
             // 构建支付请求参数
