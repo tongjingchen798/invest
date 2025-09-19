@@ -123,12 +123,8 @@ public class WePayPayoutServiceImpl implements PayAgentService {
     public boolean supports(String merchantCode) {
         // WePay支持特定的商户CODE
         // 这里可以根据实际业务逻辑进行判断
-        // 例如：检查商户CODE是否以"WEPAY"开头，或者检查是否在WePay支持的商户列表中
-        return merchantCode != null && (
-            merchantCode.startsWith("WEPAY_") || 
-            merchantCode.startsWith("WP_") ||
-            "WEPAY002".equals(merchantCode)
-        );
+        // 例如：检查商户CODE是否"WEPAY"开头，或者检查是否在WePay支持的商户列表中
+        return merchantCode != null && merchantCode.startsWith("WEPAY");
     }
     
     /**

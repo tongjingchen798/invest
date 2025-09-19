@@ -36,6 +36,8 @@ public class PayMerchantEntity implements Serializable {
      */
     private String merchantno;
 
+    private String merchantCode;
+
     /**
      * 商户名
      */

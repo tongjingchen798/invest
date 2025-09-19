@@ -352,11 +352,11 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
                         responseDTO.setUprice(BigDecimal.ZERO);
                         responseDTO.setURealAmount(BigDecimal.ZERO);
                         PaymentResponseDTO paymentResponse =null;
-                        if(payMerchantEntity.getMerchantname().equals("Wepay2886")) {
+                        if(payMerchantEntity.getMerchantCode().equals("WEPAY")) {
                             // 调用WePay支付服务创建支付订单 分转换为元
                             paymentResponse = wePayPaymentService.createPaymentOrder(
                                     user, amount / 100, orderno, payChannelEntity, payMerchantEntity);
-                        }else {
+                        }else if(payMerchantEntity.getMerchantCode().equals("QEPAY")){
                             //调用qePay
                             paymentResponse = qePayPaymentService.createPaymentOrder(
                                     user, amount / 100, orderno, payChannelEntity, payMerchantEntity);
