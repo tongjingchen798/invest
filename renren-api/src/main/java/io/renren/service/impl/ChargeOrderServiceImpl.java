@@ -8,6 +8,7 @@ import io.renren.dto.*;
 import io.renren.entity.*;
 import io.renren.enums.ChargeTypeEnum;
 import io.renren.service.ChargeOrderService;
+import io.renren.service.QePayPaymentService;
 import io.renren.service.WePayPaymentService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -54,6 +55,9 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
 
     @Autowired
     private UAddressConfigDao uAddressConfigDao;
+
+    @Autowired
+    private QePayPaymentService qePayPaymentService;
 
     @Override
     public ChargeOrderDetailDTO getChargeOrderDetail(Long userId) {
@@ -262,11 +266,12 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
     public ChargeResponseDTO createChargeOrder(Long userId, Long amount, Integer chargeType, Long channelid) {
             PayChannelEntity payChannelEntity = payChannelDao.selectById(channelid);
             if (payChannelEntity == null) {
-                throw new RenException(500, "通道已关闭");
+//                throw new RenException(500, "该通道已关闭,请选择其他充值通道");
+                throw new RenException(500, "This channel has been closed, please choose another recharge channel");
             }
             PayMerchantEntity payMerchantEntity = payMerchantDao.selectById(payChannelEntity.getMerchantid());
             if (payMerchantEntity == null) {
-                throw new RenException(500, "商户已停用");
+                throw new RenException(500, "Merchant has been disabled");
             }
             // 生成订单号
             String orderno = generateOrderNo();
@@ -346,10 +351,16 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
                         responseDTO.setUamount(BigDecimal.ZERO);
                         responseDTO.setUprice(BigDecimal.ZERO);
                         responseDTO.setURealAmount(BigDecimal.ZERO);
-
-                        // 调用WePay支付服务创建支付订单 分转换为元
-                        PaymentResponseDTO paymentResponse = wePayPaymentService.createPaymentOrder(
-                                user, amount/100, orderno, payChannelEntity, payMerchantEntity);
+                        PaymentResponseDTO paymentResponse =null;
+                        if(payMerchantEntity.getMerchantname().equals("Wepay2886")) {
+                            // 调用WePay支付服务创建支付订单 分转换为元
+                            paymentResponse = wePayPaymentService.createPaymentOrder(
+                                    user, amount / 100, orderno, payChannelEntity, payMerchantEntity);
+                        }else {
+                            //调用qePay
+                            paymentResponse = qePayPaymentService.createPaymentOrder(
+                                    user, amount / 100, orderno, payChannelEntity, payMerchantEntity);
+                        }
 
                         // 设置支付地址
                         String payUrl = "";

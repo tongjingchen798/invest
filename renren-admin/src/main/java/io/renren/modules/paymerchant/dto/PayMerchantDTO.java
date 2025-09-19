@@ -41,7 +41,7 @@ public class PayMerchantDTO implements Serializable {
 	@ApiModelProperty(value = "代付费率%")
 	private BigDecimal dfFree;
 
-	@ApiModelProperty(value = "单笔手续费")
+	@ApiModelProperty(value = "代付单笔手续费")
 	private BigDecimal oneFree;
 
 	@ApiModelProperty(value = "后台管理地址")

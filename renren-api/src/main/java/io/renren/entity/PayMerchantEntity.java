@@ -62,7 +62,7 @@ public class PayMerchantEntity implements Serializable {
     private BigDecimal dfFree;
 
     /**
-     * 单笔手续费
+     * 代付单笔手续费
      */
     private BigDecimal oneFree;
 

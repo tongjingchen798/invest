@@ -89,11 +89,9 @@ public class ApiChargeController {
         try {
             // 参数验证
             if (page == null || page < 1) {
-                log.warn("页码参数无效: {}", page);
                 return new Result<ChargePageData>().ok(null);
             }
             if (limit == null || limit < 1 || limit > 100) {
-                log.warn("每页记录数参数无效: {}", limit);
                 return new Result<ChargePageData>().ok(null);
             }
 
