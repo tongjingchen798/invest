@@ -40,6 +40,11 @@ public class PayMerchantEntity {
      * 密钥
      */
 	private String channelkey;
+
+    /**
+     * 代付密钥
+     */
+    private String dfKey;
     /**
      * 密码
      */

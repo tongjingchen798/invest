@@ -43,7 +43,7 @@ public class QePayPayoutServiceImpl implements PayAgentService {
     /**
      * 代付回调地址
      */
-    private static final String PAYOUT_NOTIFY_URL = "https://profit-game.com/api/payout/qepay/notify";
+    private static final String PAYOUT_NOTIFY_URL = "https://profit-game.com/api/qepay/payout/notify";
     
     /**
      * QePay渠道标识
@@ -153,7 +153,7 @@ public class QePayPayoutServiceImpl implements PayAgentService {
         data.put("back_url", PAYOUT_NOTIFY_URL);
         
         // 生成QePay签名
-        String sign = QePaySignatureUtils.generateSign(data, payMerchant.getChannelkey());
+        String sign = QePaySignatureUtils.generateSign(data, payMerchant.getDfKey());
         data.put("sign", sign);
         
         return data;

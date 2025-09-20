@@ -16,12 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -368,8 +363,13 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
                             payUrl = paymentResponse.getData().getPayUrl();
                         }
                         responseDTO.setBankCardInfo(payUrl);
-                        responseDTO.setPOrderNo(paymentResponse.getData().getTradeNo());
-                        responseDTO.setErrorCode(0);
+                        if(Objects.isNull(paymentResponse.getData())){
+                            responseDTO.setPOrderNo(paymentResponse.getData().getTradeNo());
+                            responseDTO.setErrorCode(0);
+                        }else {
+                            responseDTO.setErrorCode(500);
+                        }
+
                         break;
                 }
             }
