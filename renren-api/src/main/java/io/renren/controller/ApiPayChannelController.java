@@ -93,6 +93,8 @@ public class ApiPayChannelController {
         dto.setChargeorwithdraw(entity.getChargeorwithdraw());
         dto.setMerchantid(entity.getMerchantid());
         dto.setStatus(entity.getStatus());
+        dto.setMaxLimit(entity.getMaxLimit());
+        dto.setMinLimit(entity.getMinLimit());
         dto.setUsdtGiftRatio(entity.getUsdtGiftRatio());
         dto.setUsdtLocalCurrencyRate(entity.getUsdtLocalCurrencyRate());
         
