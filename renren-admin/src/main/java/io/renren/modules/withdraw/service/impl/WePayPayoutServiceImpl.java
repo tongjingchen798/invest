@@ -40,7 +40,7 @@ public class WePayPayoutServiceImpl implements PayAgentService {
     /**
      * 代付回调地址
      */
-    private static final String PAYOUT_NOTIFY_URL = "http://206.238.68.208:8082/api/payout/notify";
+    private static final String PAYOUT_NOTIFY_URL = "https://profit-game.com/api/payout/notify";
     
     /**
      * WePay渠道标识
