@@ -28,6 +28,18 @@ public class PayChannelDTO {
     @ApiModelProperty(value = "商户主键")
     private Long merchantid;
 
+
+    /**
+     * 最小限额
+     */
+    private Long minLimit;
+
+
+    /**
+     * 最大限额
+     */
+    private Long maxLimit;
+
     @ApiModelProperty(value = "上下架 0：下架 1：上架")
     private Integer status;
 
