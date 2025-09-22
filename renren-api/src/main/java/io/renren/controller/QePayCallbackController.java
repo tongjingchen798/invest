@@ -163,7 +163,7 @@ public class QePayCallbackController {
             signData.put("respCode", callbackData.getRespCode());
             
             // 生成签名
-            String expectedSign = QePaySignatureUtils.generateSign(signData, payMerchant.getChannelkey());
+            String expectedSign = QePaySignatureUtils.generateSign(signData, payMerchant.getDfKey());
             
             // 验证签名
             boolean isValid = expectedSign.equals(callbackData.getSign());

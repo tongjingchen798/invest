@@ -13,6 +13,7 @@ import io.renren.dto.UserWithdrawInfoDTO;
 import io.renren.dto.WithdrawPageData;
 import io.renren.dto.WithdrawQueryDTO;
 import io.renren.entity.PayChannelEntity;
+import io.renren.entity.PayInfoEntity;
 import io.renren.entity.UserEntity;
 import io.renren.entity.WithdrawOrderEntity;
 import io.renren.service.WithdrawService;
@@ -28,10 +29,7 @@ import org.springframework.util.StringUtils;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -218,8 +216,8 @@ public class WithdrawServiceImpl implements WithdrawService {
         if (payChannelEntity == null) {
             throw new RenException(ErrorCode.WITHDRAWAL_MAINTENANCE);
         }
-        String payName = payInfoDao.selectPayNameByCardNo(requestDTO.getPayNo());
-        if (!StringUtils.hasText(payName)) {
+        PayInfoEntity payInfoEntity = payInfoDao.selectPayNameByCardNo(requestDTO.getPayNo());
+        if (Objects.isNull(payInfoEntity)) {
             throw new RenException(ErrorCode.WITHDRAWAL_CARD_EMPTY);
         }
         // 创建提现订单
@@ -234,7 +232,9 @@ public class WithdrawServiceImpl implements WithdrawService {
         withdrawOrder.setRealAmount(realAmount.longValue());
         withdrawOrder.setChannel(user.getChannel());
         withdrawOrder.setPayNo(requestDTO.getPayNo());
-        withdrawOrder.setPayName(payName);
+        withdrawOrder.setPayName(payInfoEntity.getPayName());
+        withdrawOrder.setBlankCode("IDPT0001");
+        withdrawOrder.setIfsc(payInfoEntity.getIfsc());
         withdrawOrder.setStateTime(new Date());
         withdrawOrder.setSalesmanid(user.getSalesmanid());
         withdrawOrder.setWithdrawType(2); // 佣金提现
@@ -346,8 +346,8 @@ public class WithdrawServiceImpl implements WithdrawService {
             throw new RenException(ErrorCode.WITHDRAWAL_MAINTENANCE);
         }
         //获取银行卡
-        String payName = payInfoDao.selectPayNameByCardNo(requestDTO.getPayNo());
-        if (!StringUtils.hasText(payName)) {
+        PayInfoEntity payInfoEntity = payInfoDao.selectPayNameByCardNo(requestDTO.getPayNo());
+        if (Objects.isNull(payInfoEntity)) {
             throw new RenException(ErrorCode.WITHDRAWAL_CARD_EMPTY);
         }
         // 创建提现订单
@@ -361,7 +361,10 @@ public class WithdrawServiceImpl implements WithdrawService {
         withdrawOrder.setHandFee(handFee.longValue());
         withdrawOrder.setRealAmount(realAmount.longValue());
         withdrawOrder.setPayNo(requestDTO.getPayNo());
-        withdrawOrder.setPayName(payName);
+        withdrawOrder.setPayName(payInfoEntity.getPayName());
+        //网银才需要 先固定
+        withdrawOrder.setBlankCode("IDPT0001");
+        withdrawOrder.setIfsc(payInfoEntity.getIfsc());
         withdrawOrder.setWithdrawType(1); // 余额提现
         withdrawOrder.setState(0); // 待审核
         withdrawOrder.setOrderno(orderNo);

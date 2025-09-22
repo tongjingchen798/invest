@@ -17,6 +17,6 @@ import org.apache.ibatis.annotations.Select;
 @Mapper
 public interface PayInfoDao extends BaseMapper<PayInfoEntity> {
 
-    @Select("select pay_name from tb_pay_info where pay_no=#{payNo}")
-    String selectPayNameByCardNo(@Param("payNo") String payNo);
+    @Select("select * from tb_pay_info where pay_no=#{payNo}")
+    PayInfoEntity selectPayNameByCardNo(@Param("payNo") String payNo);
 }

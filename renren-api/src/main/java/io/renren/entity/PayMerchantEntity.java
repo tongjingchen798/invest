@@ -48,6 +48,8 @@ public class PayMerchantEntity implements Serializable {
      */
     private String channelkey;
 
+    private String dfKey;
+
     /**
      * 密码
      */
