@@ -195,4 +195,38 @@ public interface ErrorCode {
     int INVESTMENT_AMOUNT_INVALID = 90024;
     /** 购买份数必须大于0 */
     int INVESTMENT_COUNT_INVALID = 90025;
+    
+    // ==================== 红包相关错误码 (91xxx) ====================
+    /** 红包口令不能为空 */
+    int RED_PACKET_PASSWORD_EMPTY = 91001;
+    /** 用户信息无效 */
+    int RED_PACKET_USER_INVALID = 91002;
+    /** 用户名不能为空 */
+    int RED_PACKET_USERNAME_EMPTY = 91003;
+    /** 红包不存在 */
+    int RED_PACKET_NOT_EXISTS = 91004;
+    /** 红包已过期 */
+    int RED_PACKET_EXPIRED = 91005;
+    /** 红包未到开始时间 */
+    int RED_PACKET_NOT_STARTED = 91006;
+    /** 红包已领完 */
+    int RED_PACKET_ALL_RECEIVED = 91007;
+    /** 您已领取过此红包 */
+    int RED_PACKET_ALREADY_RECEIVED = 91008;
+    /** 创建红包领取记录失败 */
+    int RED_PACKET_RECORD_CREATE_FAILED = 91009;
+    /** 红包金额无效 */
+    int RED_PACKET_AMOUNT_INVALID = 91010;
+    /** 红包数量无效 */
+    int RED_PACKET_NUMBER_INVALID = 91011;
+    /** 红包标题不能为空 */
+    int RED_PACKET_TITLE_EMPTY = 91012;
+    /** 创建红包失败 */
+    int RED_PACKET_CREATE_FAILED = 91013;
+    /** 更新红包失败 */
+    int RED_PACKET_UPDATE_FAILED = 91014;
+    /** 删除红包失败 */
+    int RED_PACKET_DELETE_FAILED = 91015;
+    /** 查询红包失败 */
+    int RED_PACKET_QUERY_FAILED = 91016;
 }
