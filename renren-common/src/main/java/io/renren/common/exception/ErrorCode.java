@@ -81,6 +81,8 @@ public interface ErrorCode {
     int CHARGE_AMOUNT_INVALID = 60004;
     /** 充值类型无效 */
     int CHARGE_TYPE_INVALID = 60005;
+    /** 充值请求过于频繁，请稍后再试 */
+    int CHARGE_TOO_FREQUENT = 60006;
     
     // ==================== API模块相关错误码 (70xxx) ====================
     /** 手机号不能为空 */

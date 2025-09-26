@@ -5,6 +5,7 @@ import io.renren.annotation.LoginUser;
 import io.renren.common.exception.ErrorCode;
 import io.renren.common.exception.RenException;
 import io.renren.common.utils.Result;
+import io.renren.utils.RedisDistributedLock;
 import io.renren.dto.ChargeOrderDetailDTO;
 import io.renren.dto.ChargePageData;
 import io.renren.dto.ChargeResponseDTO;
@@ -34,6 +35,9 @@ public class ApiChargeController {
 
     @Autowired
     private ChargeOrderService chargeOrderService;
+    
+    @Autowired
+    private RedisDistributedLock redisDistributedLock;
 
 
     @Login
@@ -60,6 +64,16 @@ public class ApiChargeController {
             @ApiParam(value = "支付通道主键") @RequestParam(required = false) Long channelid,
             @LoginUser UserEntity user) {
 
+        // 用户级别锁，防止并发充值
+        String lockKey = "charge:user:" + user.getId();
+        
+        // 尝试获取锁，3秒过期
+        String lockValue = redisDistributedLock.tryLock(lockKey, 3);
+        if (lockValue == null) {
+            log.warn("用户{}充值请求过于频繁，请稍后再试", user.getId());
+            throw new RenException(ErrorCode.CHARGE_TOO_FREQUENT);
+        }
+        
         try {
             // 参数验证
             if (amount == null || amount <= 0) {
@@ -73,9 +87,14 @@ public class ApiChargeController {
 
             return new Result<ChargeResponseDTO>().ok(responseDTO);
 
+        } catch (RenException e) {
+            throw e;
         } catch (Exception e) {
             log.error("充值失败: {}", e.getMessage(), e);
             throw new RenException(ErrorCode.CHARGE_FAILED);
+        } finally {
+            // 释放锁
+            redisDistributedLock.unlock(lockKey, lockValue);
         }
     }
 
@@ -105,6 +124,7 @@ public class ApiChargeController {
             throw new RenException(ErrorCode.CHARGE_PAGE_DATA_FAILED);
         }
     }
+    
 
 
 }

@@ -363,7 +363,7 @@ public class ChargeOrderServiceImpl extends BaseServiceImpl<ChargeOrderDao, Char
                             payUrl = paymentResponse.getData().getPayUrl();
                         }
                         responseDTO.setBankCardInfo(payUrl);
-                        if(Objects.isNull(paymentResponse.getData())){
+                        if(Objects.nonNull(paymentResponse.getData())){
                             responseDTO.setPOrderNo(paymentResponse.getData().getTradeNo());
                             responseDTO.setErrorCode(0);
                         }else {
