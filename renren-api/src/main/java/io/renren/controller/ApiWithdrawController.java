@@ -82,7 +82,6 @@ public class ApiWithdrawController {
     public Result<WithdrawPageData> getRewardWithdrawPage(
             @ApiParam(value = "每页显示记录数", required = true) @RequestParam Integer limit,
             @ApiParam(value = "当前页码，从1开始", required = true) @RequestParam Integer page,
-            @ApiParam(value = "登录用户id", required = true) @RequestParam Long userId,
             @ApiParam(value = "排序方式，可选值(asc、desc)") @RequestParam(required = false) String order,
             @ApiParam(value = "排序字段") @RequestParam(required = false) String orderField,
             @ApiParam(value = "第三方订单号") @RequestParam(required = false) String orderno,
@@ -92,9 +91,9 @@ public class ApiWithdrawController {
             @LoginUser UserEntity user) {
         try {
             // 验证用户权限
-            if (!user.getId().equals(userId)) {
-                return new Result<WithdrawPageData>().error("无权限查询其他用户的佣金提现记录");
-            }
+//            if (!user.getId().equals(userId)) {
+//                return new Result<WithdrawPageData>().error("无权限查询其他用户的佣金提现记录");
+//            }
 
             // 参数验证
             if (page == null || page < 1) {
@@ -108,7 +107,7 @@ public class ApiWithdrawController {
             WithdrawQueryDTO queryDTO = new WithdrawQueryDTO();
             queryDTO.setLimit(limit);
             queryDTO.setPage(page);
-            queryDTO.setUserId(userId);
+            queryDTO.setUserId(user.getId());
             queryDTO.setOrder(order);
             queryDTO.setOrderField(orderField);
             queryDTO.setOrderno(orderno);

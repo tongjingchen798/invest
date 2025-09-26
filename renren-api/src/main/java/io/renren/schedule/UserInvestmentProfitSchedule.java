@@ -682,6 +682,11 @@ public class UserInvestmentProfitSchedule {
             // 4. 重置今日充值
             int rechargeResult = resetTodayRecharge();
             totalResult += rechargeResult;
+
+            //重置今日佣金收入
+            int todayCommissionResult = resetTodayCommission();
+            totalResult += todayCommissionResult;
+
             
             log.info("所有用户的今日字段重置完成，总影响行数: {}", totalResult);
             return totalResult;
@@ -691,7 +696,22 @@ public class UserInvestmentProfitSchedule {
             throw e;
         }
     }
-    
+
+    private int resetTodayCommission() {
+        try {
+            LambdaUpdateWrapper<UserEntity> updateWrapper = new LambdaUpdateWrapper<>();
+            updateWrapper.set(UserEntity::getTodayCommission, 0)
+                    .gt(UserEntity::getTodayCommission, 0); // 只更新有收益的用户
+
+            int result = userDao.update(null, updateWrapper);
+            log.debug("今日佣金字段重置完成，影响行数: {}", result);
+            return result;
+        } catch (Exception e) {
+            log.error("重置今日收益字段失败", e);
+            throw e;
+        }
+    }
+
     /**
      * 重置今日收益字段
      * 只更新有收益记录的用户，提高性能
