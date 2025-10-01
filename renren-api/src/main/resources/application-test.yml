@@ -25,7 +25,7 @@ spring:
         #login-password: admin
       filter:
         stat:
-          log-slow-sql: true
+          log-slow-sql: false
           slow-sql-millis: 1000
           merge-sql: false
         wall:

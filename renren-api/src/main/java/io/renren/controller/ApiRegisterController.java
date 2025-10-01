@@ -93,14 +93,13 @@ public class ApiRegisterController {
             throw new RenException(ErrorCode.PHONE_NUMBER_HAS_BEEN_REGISTERED);
         }
 
-        //TODO 先去掉注册校验
-//        if (!verificationCodeUtils.hasCode(dto.getMobile())) {
-//            throw new RenException(ErrorCode.VERIFICATION_CODE_NOT_FOUND);
-//        }
+        if (!verificationCodeUtils.hasCode(dto.getMobile())) {
+            throw new RenException(ErrorCode.VERIFICATION_CODE_NOT_FOUND);
+        }
         //短信校验
-//        if (!verificationCodeUtils.verifyCode(dto.getMobile(), dto.getCode())) {
-//            throw new RenException(ErrorCode.VERIFICATION_CODE_INCORRECT);
-//        }
+        if (!verificationCodeUtils.verifyCode(dto.getMobile(), dto.getCode())) {
+            throw new RenException(ErrorCode.VERIFICATION_CODE_INCORRECT);
+        }
 
         // 检查邀请码是否为空
         if (StringUtils.isBlank(dto.getInviteCode())) {
