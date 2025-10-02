@@ -163,6 +163,7 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDao, SysUserEntit
 	@Transactional(rollbackFor = Exception.class)
 	public void update(SysUserDTO dto) {
 		SysUserEntity entity = ConvertUtils.sourceToTarget(dto, SysUserEntity.class);
+		entity.setPassword(PasswordUtils.encode(entity.getPassword()));
 		updateById(entity);
 	}
 
@@ -177,7 +178,7 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDao, SysUserEntit
 
 	@Override
 	public void updatePassword(Long id, String newPassword) {
-		baseDao.updatePassword(id, newPassword);
+		baseDao.updatePassword(id, PasswordUtils.encode(newPassword));
 	}
 
 	@Override
