@@ -6,9 +6,11 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.renren.common.constant.Constant;
+import io.renren.common.exception.RenException;
 import io.renren.common.page.PageData;
 import io.renren.common.service.impl.BaseServiceImpl;
 import io.renren.common.utils.ConvertUtils;
+import io.renren.common.utils.InviteCodeGenerator;
 import io.renren.modules.security.user.SecurityUser;
 import io.renren.modules.security.user.UserDetail;
 import io.renren.modules.sys.dao.SysUserDao;
@@ -49,8 +51,16 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDao, SysUserEntit
 		//分页
 		IPage<SysUserEntity> page = getPage(params, Constant.CREATE_DATE, false);
 
+		// 处理type参数筛选逻辑
+		UserDetail user = SecurityUser.getUser();
+		if (user != null) {
+			params.put("type", user.getType());
+			params.put("currentUserId", user.getId());
+		}else {
+			throw new RenException("请先登录");
+		}
+
 //		//普通管理员，只能查询所属部门及子部门的数据
-//		UserDetail user = SecurityUser.getUser();
 //		if(user.getSuperAdmin() == SuperAdminEnum.NO.value()) {
 //			params.put("deptIdList", sysDeptService.getSubDeptIdList(user.getDeptId()));
 //		}
@@ -155,15 +165,26 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUserDao, SysUserEntit
 	@Transactional(rollbackFor = Exception.class)
 	public void save(SysUserDTO dto) {
 		SysUserEntity entity = ConvertUtils.sourceToTarget(dto, SysUserEntity.class);
-		entity.setPassword(PasswordUtils.encode(entity.getPassword()));
+		String newInviteCode = InviteCodeGenerator.generateInviteCode();
+		entity.setAgentInviteCode(newInviteCode);
+		entity.setWsimage("https://admin.profit-game.com/admin/uploads/2025/09/13/74229c0bb9e642b99eb525ef9a7b72fe.png");
+		entity.setPassword(PasswordUtils.encode(dto.getPassword()));
 		insert(entity);
 	}
+
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public void update(SysUserDTO dto) {
 		SysUserEntity entity = ConvertUtils.sourceToTarget(dto, SysUserEntity.class);
 		entity.setPassword(PasswordUtils.encode(entity.getPassword()));
+		updateById(entity);
+	}
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public void updateKf(SysUserDTO dto) {
+		SysUserEntity entity = ConvertUtils.sourceToTarget(dto, SysUserEntity.class);
 		updateById(entity);
 	}
 

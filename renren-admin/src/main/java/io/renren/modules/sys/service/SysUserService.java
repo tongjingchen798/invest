@@ -72,4 +72,6 @@ public interface SysUserService extends BaseService<SysUserEntity> {
 	 * @return true表示有权限，false表示无权限
 	 */
 	boolean checkAgentDeletePermission(Long agentId, List<Long> userIds);
+
+	void updateKf(SysUserDTO updateDto);
 }

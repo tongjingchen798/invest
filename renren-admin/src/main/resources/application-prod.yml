@@ -3,9 +3,9 @@ spring:
     druid:
       #MySQL
       driver-class-name: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://206.238.68.208:3306/renren_security?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&nullCatalogMeansCurrent=true
+      url: jdbc:mysql://156.254.5.88:3306/renren_security?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&nullCatalogMeansCurrent=true
       username: root
-      password: MySQL@666
+      password: Lip@798
       initial-size: 10
       max-active: 100
       min-idle: 10
@@ -26,7 +26,7 @@ spring:
         #login-password: admin
       filter:
         stat:
-          log-slow-sql: true
+          log-slow-sql: false
           slow-sql-millis: 1000
           merge-sql: false
         wall:

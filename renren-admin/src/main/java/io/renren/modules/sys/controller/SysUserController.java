@@ -58,9 +58,10 @@ public class SysUserController {
 	@GetMapping("page")
 	@ApiOperation("分页")
 	@ApiImplicitParams({
-		@ApiImplicitParam(name = "username", value = "用户名", paramType = "query", dataType="String")
+		@ApiImplicitParam(name = "username", value = "用户名", paramType = "query", dataType="String"),
+		@ApiImplicitParam(name = "type", value = "用户类型筛选：0-查询所有，1-查询当前代理名下的业务员，其他-只查询当前用户", paramType = "query", dataType="Integer")
 	})
-	@RequiresPermissions("sys:user:page")
+//	@RequiresPermissions("sys:user:page")
 	public Result<PageData<SysUserDTO>> page(@ApiParam(value = "用户名", required = false) @RequestParam(required = false) String username) {
 
 		// 构建查询参数
@@ -68,6 +69,9 @@ public class SysUserController {
 		if (StringUtils.isNotBlank(username)) {
 			params.put("username", username);
 		}
+//		if (type != null) {
+//			params.put("type", type);
+//		}
 		PageData<SysUserDTO> pageData = sysUserService.page(params);
 
 		return new Result<PageData<SysUserDTO>>().ok(pageData);
@@ -136,9 +140,10 @@ public class SysUserController {
 			if (dto.getType() == null || dto.getType() != 2) {
 				return new Result().error("代理只能创建业务员");
 			}
-			if (dto.getAgent() == null || !dto.getAgent().equals(currentUserId)) {
-				return new Result().error("代理只能创建自己名下的业务员");
-			}
+			dto.setAgent(currentUserId);
+//			if (dto.getAgent() == null || !dto.getAgent().equals(currentUserId)) {
+//				return new Result().error("代理只能创建自己名下的业务员");
+//			}
 		} else if (currentUserType == 2) {
 			// 业务员：不能创建其他用户
 			return new Result().error("业务员无权限创建用户");
@@ -262,8 +267,7 @@ public class SysUserController {
 		updateDto.setWsnumber(dto.getWsnumber());
 		updateDto.setWsname(dto.getWsname());
 		updateDto.setTgnumber(dto.getTgnumber());
-
-		sysUserService.update(updateDto);
+		sysUserService.updateKf(updateDto);
 
 		return new Result();
 	}

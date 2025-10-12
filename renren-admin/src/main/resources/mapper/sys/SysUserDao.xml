@@ -5,7 +5,7 @@
 
 	<select id="getList" resultType="io.renren.modules.sys.entity.SysUserEntity">
 		select t1.*, (select t2.name from sys_dept t2 where t2.id=t1.dept_id) deptName from sys_user t1
-		where t1.super_admin = 0
+		where 1=1
 		<if test="username != null and username.trim() != ''">
 			and t1.username like #{username}
 		</if>
@@ -20,6 +20,21 @@
 			<foreach item="id" collection="deptIdList" open="(" separator="," close=")">
 				#{id}
 			</foreach>
+		</if>
+		<if test="type != null">
+			<choose>
+				<when test="type == 0">
+					<!-- type=0时查询所有用户 -->
+				</when>
+				<when test="type == 1">
+					<!-- type=1时查询type为2并且agent值为当前用户ID的用户 -->
+					and t1.type = 2 and t1.agent = #{currentUserId}
+				</when>
+				<otherwise>
+					<!-- 其他情况只查询当前用户 -->
+					and t1.id = #{currentUserId}
+				</otherwise>
+			</choose>
 		</if>
 	</select>
 
