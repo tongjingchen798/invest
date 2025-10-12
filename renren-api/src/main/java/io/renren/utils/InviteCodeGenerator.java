@@ -16,7 +16,6 @@ public class InviteCodeGenerator {
     private static final int CODE_LENGTH = 6;
     private static final SecureRandom RANDOM = new SecureRandom();
     
-    // 用于存储已生成的邀请码，避免重复（在实际应用中应该使用数据库或Redis）
     private static final Set<String> GENERATED_CODES = new HashSet<>();
     
     /**
@@ -63,64 +62,4 @@ public class InviteCodeGenerator {
         return code.toString();
     }
     
-    /**
-     * 验证邀请码格式是否正确
-     * 
-     * @param inviteCode 邀请码
-     * @return 是否有效
-     */
-    public static boolean isValidInviteCode(String inviteCode) {
-        if (inviteCode == null || inviteCode.length() != CODE_LENGTH) {
-            return false;
-        }
-        
-        // 检查是否只包含大写字母和数字
-        return inviteCode.matches("^[A-Z0-9]{" + CODE_LENGTH + "}$");
-    }
-    
-    /**
-     * 生成指定数量的邀请码
-     * 
-     * @param count 生成数量
-     * @return 邀请码数组
-     */
-    public static String[] generateMultipleInviteCodes(int count) {
-        if (count <= 0) {
-            return new String[0];
-        }
-        
-        String[] codes = new String[count];
-        for (int i = 0; i < count; i++) {
-            codes[i] = generateInviteCode();
-        }
-        
-        return codes;
-    }
-    
-    /**
-     * 清空已生成的邀请码集合
-     * 注意：这个方法主要用于测试，生产环境不应该调用
-     */
-    public static void clearGeneratedCodes() {
-        GENERATED_CODES.clear();
-    }
-    
-    /**
-     * 获取已生成的邀请码数量
-     * 
-     * @return 邀请码数量
-     */
-    public static int getGeneratedCodeCount() {
-        return GENERATED_CODES.size();
-    }
-    
-    /**
-     * 检查邀请码是否已被生成
-     * 
-     * @param inviteCode 邀请码
-     * @return 是否已生成
-     */
-    public static boolean isCodeGenerated(String inviteCode) {
-        return GENERATED_CODES.contains(inviteCode);
-    }
 }
