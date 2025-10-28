@@ -466,27 +466,13 @@ public class MemberController {
     @PutMapping("updatePws")
     @ApiOperation("修改登录密码")
     @LogOperation("修改登录密码")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "id", value = "用户ID", paramType = "query", required = true, dataType = "long"),
-            @ApiImplicitParam(name = "password", value = "新密码", paramType = "query", required = true, dataType = "string")
-    })
 //    @RequiresPermissions("member:user:updatePws")
-    public Result updatePws(@RequestParam("id") Long userId, @RequestParam("password") String password) {
+    public Result updatePws(@RequestBody AdminUpdatePasswordDTO dto) {
         try {
-            // 参数验证
-            if (userId == null || userId <= 0) {
-                return new Result().error("用户ID不能为空");
-            }
-            if (password == null || password.trim().isEmpty()) {
-                return new Result().error("新密码不能为空");
-            }
-
-            // 调用服务修改用户密码
-            Result result = memberService.updatePws(userId, password);
+            Result result = memberService.updatePws(dto.getId(), dto.getPassword());
             return result;
-
         } catch (Exception e) {
-            log.error("修改用户密码异常，用户ID: {}, 密码: {}", userId, password, e);
+            log.error("修改用户密码异常，用户ID: {}, 密码: {}", dto.getId(), dto.getPassword(), e);
             return new Result().error("密码修改失败: " + e.getMessage());
         }
     }

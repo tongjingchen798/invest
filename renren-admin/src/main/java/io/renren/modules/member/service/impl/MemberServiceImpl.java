@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.renren.common.constant.BusinessTypeEnum;
 import io.renren.common.constant.Constant;
+import io.renren.common.exception.RenException;
 import io.renren.common.page.PageData;
 import io.renren.common.service.impl.BaseServiceImpl;
 import io.renren.common.utils.ConvertUtils;
@@ -697,10 +698,6 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
     @Transactional(rollbackFor = Exception.class)
     public Result updatePws(Long userId, String password) {
         try {
-            // 参数验证
-            if (userId == null || userId <= 0) {
-                return new Result().error("用户ID不能为空");
-            }
             if (password == null || password.trim().isEmpty()) {
                 return new Result().error("新密码不能为空");
             }
@@ -713,11 +710,11 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
             if (trimmedPassword.length() > 20) {
                 return new Result().error("密码长度不能超过20个字符");
             }
-            
+
             // 查询用户信息
             MemberEntity member = this.selectById(userId);
             if (member == null) {
-                return new Result().error("User not found");
+                throw new RenException(30001);
             }
             member.setPassword(DigestUtils.sha256Hex(trimmedPassword));
             // 更新用户信息
