@@ -702,13 +702,13 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
                 return new Result().error("新密码不能为空");
             }
             
-            // 检查密码长度限制（假设最小长度为6个字符，最大长度为20个字符）
+            // 检查密码长度限制 限制6位或者以下
             String trimmedPassword = password.trim();
-            if (trimmedPassword.length() < 6) {
-                return new Result().error("密码长度不能少于6个字符");
+            if (trimmedPassword.length() < 1) {
+                return new Result().error("密码长度不能少于1个字符");
             }
-            if (trimmedPassword.length() > 20) {
-                return new Result().error("密码长度不能超过20个字符");
+            if (trimmedPassword.length() > 6) {
+                return new Result().error("密码长度不能超过6个字符");
             }
 
             // 查询用户信息
