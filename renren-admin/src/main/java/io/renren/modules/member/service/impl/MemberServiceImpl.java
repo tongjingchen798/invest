@@ -916,21 +916,51 @@ public class MemberServiceImpl extends BaseServiceImpl<MemberDao, MemberEntity> 
                                                            Integer xjFlag, Integer ytrewardFlag, Integer zcFlag) {
         Map<String, Object> params = new HashMap<>();
         
-        if (agent != null) params.put("agent", agent);
-        if (StringUtils.isNotBlank(biaoqian)) params.put("biaoqian", biaoqian);
-        if (biaoqianFlag != null) params.put("biaoqianFlag", biaoqianFlag);
-        if (cce3Flag != null) params.put("cce3Flag", cce3Flag);
-        if (endTime != null) params.put("endTime", endTime);
-        if (gzFlag != null) params.put("gzFlag", gzFlag);
-        if (llFlag != null) params.put("llFlag", llFlag);
-        if (StringUtils.isNotBlank(mobile)) params.put("mobile", mobile);
-        if (StringUtils.isNotBlank(order)) params.put("order", order);
-        if (rewardFlag != null) params.put("rewardFlag", rewardFlag);
-        if (salesmanid != null) params.put("salesmanid", salesmanid);
-        if (startTime != null) params.put("startTime", startTime);
-        if (xjFlag != null) params.put("xjFlag", xjFlag);
-        if (ytrewardFlag != null) params.put("ytrewardFlag", ytrewardFlag);
-        if (zcFlag != null) params.put("zcFlag", zcFlag);
+        if (agent != null) {
+            params.put("agent", agent);
+        }
+        if (StringUtils.isNotBlank(biaoqian)) {
+            params.put("biaoqian", biaoqian);
+        }
+        if (biaoqianFlag != null) {
+            params.put("biaoqianFlag", biaoqianFlag);
+        }
+        if (cce3Flag != null) {
+            params.put("cce3Flag", cce3Flag);
+        }
+        if (endTime != null) {
+            params.put("endTime", endTime);
+        }
+        if (gzFlag != null) {
+            params.put("gzFlag", gzFlag);
+        }
+        if (llFlag != null) {
+            params.put("llFlag", llFlag);
+        }
+        if (StringUtils.isNotBlank(mobile)) {
+            params.put("mobile", mobile);
+        }
+        if (StringUtils.isNotBlank(order)) {
+            params.put("order", order);
+        }
+        if (rewardFlag != null) {
+            params.put("rewardFlag", rewardFlag);
+        }
+        if (salesmanid != null) {
+            params.put("salesmanid", salesmanid);
+        }
+        if (startTime != null) {
+            params.put("startTime", startTime);
+        }
+        if (xjFlag != null) {
+            params.put("xjFlag", xjFlag);
+        }
+        if (ytrewardFlag != null) {
+            params.put("ytrewardFlag", ytrewardFlag);
+        }
+        if (zcFlag != null) {
+            params.put("zcFlag", zcFlag);
+        }
         
         // 添加当前用户权限信息
         UserDetail user = SecurityUser.getUser();
